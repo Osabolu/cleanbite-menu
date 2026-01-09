@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>CleanBite Kitchen | The No-Carb Covenant</title>
+   <link rel="stylesheet" href="style.css">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+   <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+</head>
+<body>
+   <!-- Navigation -->
+   <nav class="nav-bar">
+       <div class="nav-container">
+           <a href="/" class="nav-logo">Clean<span>Bite</span></a>
+           <div class="nav-menu">
+               <a href="#menu">Menu</a>
+               <a href="#about">Covenant</a>
+               <a href="#contact">Contact</a>
+               <a href="track.html" class="nav-track">
+                    <i class="fas fa-satellite-dish"></i> Track Order</a>
+               <a href="#" class="nav-cart" id="cartToggle">
+                   <i class="fas fa-shopping-basket"></i>
+                   <span class="cart-count" id="cartCount">0</span>
+               </a>
+           </div>
+           <button class="nav-toggle" id="menuToggle">
+               <i class="fas fa-bars"></i>
+           </button>
+       </div>
+   </nav>
+
+<!-- Hero Section with Parallax -->
+    <header class="hero parallax-section">
+        <div class="parallax-bg"></div>
+        <div class="parallax-overlay"></div>
+        <div class="parallax-content">
+            <div class="hero-content">
+            <h1 class="hero-title">Eat Clean.<br>Feel Sovereign.</h1>
+                <p class="hero-subtitle">Chef-crafted meals that honors your body without compromising flavors.</p>
+            <p class="hero-tagline" id="dynamicTagline">
+            <!-- JavaScript will rotate this text -->
+            We prepare clean meals
+            </p>
+            <a href="#menu" class="hero-button">
+            <i class="fas fa-utensils"></i> Explore the Menu
+            </a>
+            </div>
+        </div>
+    </header>
+
+
+
+    <!-- Menu Section -->
+    <main class="container">
+        <section id="menu" class="menu-section"> 
+            <div class="section-header">
+                <h2><i class="fas fa-utensils"></i> Our Menu</h2>
+                <p>Every ingredient is sourced. Every gram is accounted for.</p>
+            </div>
+
+                        <!-- Menu Categories -->
+            <div class="menu-categories" id="menuCategories">
+                <button class="category-btn active" data-category="all">All</button>
+                <button class="category-btn" data-category="soups">Soups</button>
+                <button class="category-btn" data-category="mains">Mains</button>
+                <button class="category-btn" data-category="sides">Sides</button>
+                <button class="category-btn" data-category="drinks">Drinks</button>
+            </div>
+
+            <!-- Menu Grid (Filled by JavaScript) -->
+            <div class="menu-grid" id="menuGrid">
+                <!-- Items load here -->
+                <div class="menu-loading">
+                    <i class="fas fa-spinner fa-spin"></i> Loading the kitchen...
+                </div>
+            </div>
+        </section>
+    </main>
+    
+            <!-- Add this section to your HTML where you want the kitchen pulse to appear -->
+            <!-- Kitchen Pulse - Dynamic Live Kitchen -->
+    <section class="kitchen-pulse-section">
+        <div class="kitchen-view">
+            <div class="kitchen-header">
+                <div class="kitchen-title">
+                    <div class="pulse-indicator active"></div>
+                    <h2><i class="fas fa-fire fa-beat"></i> LIVE KITCHEN PULSE</h2>
+                </div>
+                <div class="kitchen-stats">
+                    <span class="kitchen-stat"><i class="fas fa-clock"></i> <span id="currentTime">--:--</span></span>
+                    <span class="kitchen-stat"><i class="fas fa-users"></i> <span id="totalOrders">0</span> active</span>
+                </div>
+            </div>
+            
+            <p class="kitchen-subtitle">Orders moving through our kitchen in real-time</p>
+            
+            <!-- Kitchen Flow Visualization -->
+            <div class="kitchen-flow">
+                <div class="flow-line"></div>
+                
+                <div class="station prep-station">
+                    <div class="station-header">
+                        <div class="station-icon">
+                            <i class="fas fa-utensils fa-spin"></i>
+                            <div class="station-pulse"></div>
+                        </div>
+                        <h3>PREPARATION</h3>
+                    </div>
+                    <div class="station-body">
+                        <div class="station-count">
+                            <span class="count-number" id="prepCount">0</span>
+                            <small>orders in queue</small>
+                        </div>
+                        <div class="order-bubbles" id="prepBubbles">
+                            <!-- Dynamic order bubbles will appear here -->
+                        </div>
+                        <p class="station-status"><i class="fas fa-check-circle"></i> Active</p>
+                    </div>
+                </div>
+                
+                <div class="station cook-station">
+                    <div class="station-header">
+                        <div class="station-icon">
+                            <i class="fas fa-fire fa-flicker"></i>
+                            <div class="station-pulse cooking"></div>
+                        </div>
+                        <h3>COOKING</h3>
+                    </div>
+                    <div class="station-body">
+                        <div class="station-count">
+                            <span class="count-number" id="cookCount">0</span>
+                            <small>orders on fire</small>
+                        </div>
+                        <div class="order-bubbles" id="cookBubbles">
+                            <!-- Dynamic order bubbles will appear here -->
+                        </div>
+                        <p class="station-status"><i class="fas fa-thermometer-half"></i> Hot</p>
+                    </div>
+                </div>
+                
+                <div class="station pack-station">
+                    <div class="station-header">
+                        <div class="station-icon">
+                            <i class="fas fa-box-open fa-bounce"></i>
+                            <div class="station-pulse ready"></div>
+                        </div>
+                        <h3>PACKAGING</h3>
+                    </div>
+                    <div class="station-body">
+                        <div class="station-count">
+                            <span class="count-number" id="packCount">0</span>
+                            <small>ready soon</small>
+                        </div>
+                        <div class="order-bubbles" id="packBubbles">
+                            <!-- Dynamic order bubbles will appear here -->
+                        </div>
+                        <p class="station-status"><i class="fas fa-truck-fast"></i> Nearly Ready</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Live Activity Feed -->
+            <div class="kitchen-activity">
+                <div class="activity-header">
+                    <i class="fas fa-stream"></i>
+                    <h4>LIVE ACTIVITY STREAM</h4>
+                    <span class="activity-badge" id="activityCount">0</span>
+                </div>
+                <div class="activity-feed" id="activityFeed">
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-door-open"></i>
+                        </div>
+                        <div class="activity-content">
+                            <p><strong>Kitchen opened</strong> for today's service</p>
+                            <span class="activity-time">Just now</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="kitchen-message-container">
+                    <div class="message-header">
+                        <i class="fas fa-bullhorn fa-shake"></i>
+                        <h4>CHEF'S UPDATE</h4>
+                    </div>
+                    <p id="kitchenMessage" class="kitchen-message">
+                        <span class="typing-indicator">
+                            <span></span><span></span><span></span>
+                        </span>
+                        <span class="message-text">Listening for kitchen updates...</span>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="kitchen-progress">
+                <div class="progress-header">
+                    <span>Today's Efficiency</span>
+                    <span id="efficiencyPercent">85%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="efficiencyBar"></div>
+                </div>
+                <div class="progress-stats">
+                    <div class="stat-item">
+                        <small>Completed</small>
+                        <strong id="completedOrders">0</strong>
+                    </div>
+                    <div class="stat-item">
+                        <small>Avg Time</small>
+                        <strong id="avgTime">45m</strong>
+                    </div>
+                    <div class="stat-item">
+                        <small>Accuracy</small>
+                        <strong id="accuracyRate">98%</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+        <!-- Add this after the kitchen pulse section -->
+    <div class="tracking-cta" style="
+        text-align: center; 
+        margin-top: 40px; 
+        padding: 30px; 
+        background: linear-gradient(135deg, rgba(40, 40, 39, 0.1) 0%, rgba(114, 107, 100, 0.05) 100%);
+        border-radius: 15px;
+        border: 2px solid rgba(255, 209, 102, 0.2);
+    ">
+        <h3 style="color: #ffb70eff; margin-bottom: 15px;">
+            <i class="fas fa-satellite-dish"></i> Track Your Sovereignty
+        </h3>
+        <p style="color: #aaa; margin-bottom: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">
+            Placed an order? Track its real-time journey through our precision kitchen.
+        </p>
+        <a href="track.html" style="
+            display: inline-block;
+            background: linear-gradient(135deg, #ffd166 0%, #f9c74f 100%);
+            color: #1a1a2e;
+            padding: 14px 30px;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 10px 20px rgba(255, 209, 102, 0.3);
+            transition: all 0.3s;
+        " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 15px 30px rgba(255, 209, 102, 0.4)';" 
+        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 20px rgba(255, 209, 102, 0.3)';">
+            <i class="fas fa-rocket"></i> Launch Order Tracker
+        </a>
+    </div>
+    
+
+    <!-- Covenant Section with Parallax -->
+    <section id="about" class="covenant-section parallax-section">
+        <div class="parallax-bg" ></div>
+        <div class="parallax-overlay"></div>
+        <div class="parallax-contents">
+            <div class="covenant-card">
+                <h2><i class="fas fa-handshake"></i> Our Unbreakable Promise</h2>
+                <ul class="covenant-list">
+                    <li><i class="fas fa-seedling"></i> <strong>Sourced.</strong> Ingredients from trusted farms.</li>
+                    <li><i class="fas fa-flask"></i> <strong>Tested.</strong> Every batch verified for purity.</li>
+                    <li><i class="fas fa-clock"></i> <strong>Timed.</strong> Precision cooking, no shortcuts.</li>
+                    <li><i class="fas fa-heart"></i> <strong>Crafted.</strong> Made with chef's discipline.</li>
+                </ul>
+                <p class="covenant-verse" id="dynamicCovenant">
+                <!-- This will also rotate -->
+                Sovereignty starts on your plate
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact" class="contact-section">
+        <h2><i class="fas fa-comments"></i> The Kitchen</h2>
+        <div class="contact-info">
+            <p><i class="fas fa-map-marker-alt"></i> <strong>Ibadan, Nigeria</strong> | Delivery available.</p>
+            <p><i class="fas fa-phone"></i> <strong>Order Line:</strong> 080-CLEAN-BITE</p>
+            <p><i class="fas fa-clock"></i> <strong>Hours:</strong> 8AM - 8PM Daily</p>
+        </div>
+    </section>
+
+   <!-- Shopping Cart Sidebar -->
+   <aside class="cart-sidebar" id="cartSidebar">
+       <div class="cart-header">
+           <h3><i class="fas fa-shopping-basket"></i> Your Order</h3>
+           <button class="cart-close" id="cartClose">&times;</button>
+       </div>
+       <div class="cart-body" id="cartBody">
+           <div class="cart-empty" id="cartEmpty">
+               <i class="fas fa-shopping-basket"></i>
+               <p>Your basket is empty.</p>
+               <p>Add items from the menu.</p>
+           </div>
+           <!-- Cart items appear here -->
+       </div>
+       <div class="cart-footer">
+           <div class="cart-total">
+               <span>Total:</span>
+               <strong>₦<span id="cartTotal">0</span></strong>
+           </div>
+           <button class="checkout-btn" id="checkoutBtn" disabled>
+               <i class="fas fa-lock"></i> Proceed to Checkout
+           </button>
+           <p class="cart-note"><i class="fas fa-info-circle"></i> You'll enter details on the next step.</p>
+       </div>
+   </aside>
+   <div class="cart-overlay" id="cartOverlay"></div>
+
+   <!-- Checkout Modal -->
+   <div class="modal" id="checkoutModal">
+       <div class="modal-content">
+           <div class="modal-header">
+               <h3><i class="fas fa-clipboard-check"></i> Complete Your Order</h3>
+               <button class="modal-close" id="modalClose">&times;</button>
+           </div>
+           <form id="orderForm">
+               <div class="form-row">
+                   <div class="form-group">
+                       <label for="customerName">Full Name *</label>
+                       <input type="text" id="customerName" required>
+                   </div>
+                   <div class="form-group">
+                       <label for="customerPhone">Phone Number *</label>
+                       <input type="tel" id="customerPhone" required>
+                   </div>
+               </div>
+               <div class="form-group">
+                   <label for="customerEmail">Email Address *</label>
+                   <input type="email" id="customerEmail" required>
+               </div>
+               <div class="form-group">
+                   <label for="deliveryNotes">Delivery Notes (Optional)</label>
+                   <textarea id="deliveryNotes" rows="2" placeholder="Building, landmark, floor, etc."></textarea>
+               </div>
+               <div class="order-summary" id="modalOrderSummary">
+                   <!-- Order summary inserted here -->
+               </div>
+               <div class="form-actions">
+                   <button type="button" class="btn-secondary" id="backToCart">
+                       <i class="fas fa-arrow-left"></i> Back to Cart
+                   </button>
+                   <button type="submit" class="btn-primary" id="submitOrder">
+                       <i class="fas fa-paper-plane"></i> Place Order
+                   </button>
+               </div>
+           </form>
+       </div>
+   </div>
+
+   <!-- Order Confirmation Modal -->
+   <div class="modal" id="confirmationModal">
+       <div class="modal-content success-modal">
+           <div class="success-icon">
+               <i class="fas fa-check-circle"></i>
+           </div>
+           <h3>Order Confirmed!</h3>
+           <p class="order-id">Your Order ID: <strong id="confirmedOrderId">CB-123456</strong></p>
+           <p class="order-message">The kitchen has received your order. You will be notified when it's ready.</p>
+           <div class="success-actions">
+               <a href="#" class="btn-success" id="trackOrderLink" target="_blank">
+                   <i class="fas fa-external-link-alt"></i> Track Order
+               </a>
+               <button class="btn-outline" id="newOrderBtn">
+                   <i class="fas fa-plus"></i> New Order
+               </button>
+           </div>
+       </div>
+   </div>
+
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>CleanBite Kitchen &copy; <span id="currentYear"></span> | RC: Isabolu Enterprises</p>
+            <p class="footer-tagline">Sovereignty starts on your plate.</p>
+        </div>
+        <div class="kitchen-status">
+            <i class="fas fa-temperature-high"></i>
+            <span id="kitchenStatus">Kitchen: <strong>Open</strong> • Next available slot: <strong id="nextSlot">30 min</strong></span>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+    <script>
+
+    function updateKitchenStatus() {
+    const now = new Date();
+    const hours = now.getHours();
+    const isOpen = hours >= 8 && hours < 20;
+    const statusElement = document.getElementById('kitchenStatus');
+    const slotElement = document.getElementById('nextSlot');
+    if (statusElement) {
+    statusElement.innerHTML = `Kitchen: <strong>${isOpen ? 'Open' : 'Closed'}</strong> • ${isOpen ?
+    'Orders accepted' : 'Opens at 8AM'}`;
+    }
+    if (slotElement && isOpen) {
+    // Simulate busy times
+    const slots = ['15 min', '30 min', '45 min', '1 hour'];
+    const randomSlot = slots[Math.floor(Math.random() * slots.length)];
+    slotElement.textContent = randomSlot;
+    }
+    }
+
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
+</body>
+</html>
