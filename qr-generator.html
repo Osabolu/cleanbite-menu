@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CleanBite QR Codes | Empire Marketing</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .empire-qr-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .empire-header {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .empire-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, #ffd166 0%, #d4a574 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        .empire-header p {
+            color: #aaa;
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* QR Grid */
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .qr-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+
+        .qr-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 209, 102, 0.3);
+        }
+
+        .qr-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .qr-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #ffd166 0%, #f9c74f 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #1a1a2e;
+            box-shadow: 0 10px 30px rgba(255, 209, 102, 0.3);
+        }
+
+        .qr-title h2 {
+            font-size: 1.8rem;
+            color: #ffd166;
+            margin-bottom: 8px;
+        }
+
+        .qr-title p {
+            color: #aaa;
+            font-size: 0.95rem;
+        }
+
+        /* QR Display */
+        .qr-display-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .qr-canvas {
+            width: 250px;
+            height: 250px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 209, 102, 0.3);
+        }
+
+        #qrCanvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .qr-info {
+            text-align: center;
+        }
+
+        .qr-url {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #ffd166;
+            margin: 15px 0;
+            word-break: break-all;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* QR Actions */
+        .qr-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .qr-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .qr-btn.primary {
+            background: linear-gradient(135deg, #ffd166 0%, #f9c74f 100%);
+            color: #1a1a2e;
+        }
+
+        .qr-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .qr-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 209, 102, 0.3);
+        }
+
+        /* QR Customization */
+        .qr-customization {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .customization-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-group label {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .option-group input,
+        .option-group select {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .option-group input:focus,
+        .option-group select:focus {
+            outline: none;
+            border-color: #ffd166;
+        }
+
+        /* Batch Generator */
+        .batch-generator {
+            background: linear-gradient(135deg, rgba(255, 209, 102, 0.1) 0%, rgba(212, 165, 116, 0.05) 100%);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 60px 0;
+            border: 2px solid rgba(255, 209, 102, 0.2);
+        }
+
+        .batch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .batch-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+
+        .batch-card:hover {
+            border-color: #ffd166;
+            transform: translateY(-5px);
+        }
+
+        .batch-qr {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 20px;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        /* Analytics */
+        .analytics {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .analytics-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #ffd166;
+            margin-bottom: 10px;
+        }
+
+        /* Footer */
+        .qr-footer {
+            text-align: center;
+            margin-top: 80px;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
+        }
+
+        .batch-grid {
+            gap: 40px !important; /* More spacing between QR cards */
+            padding: 20px;
+        }
+
+        .batch-card {
+            margin: 15px;
+            padding: 30px !important; /* More padding inside cards */
+            min-height: 320px;
+            transition: all 0.3s ease;
+        }
+
+        .batch-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .batch-qr {
+            margin: 20px auto !important;
+            padding: 20px !important;
+            background: white;
+            border-radius: 12px;
+            display: flex;           /* ADD THIS */
+            align-items: center;     /* ADD THIS */
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border: 3px solid rgba(255, 209, 102, 0.3);
+        }
+
+        .batch-card h4 {
+            margin: 15px 0 10px 0;
+            font-size: 1.2rem;
+        }
+
+        .batch-card button {
+            margin-top: 20px !important;
+            padding: 12px 20px !important;
+            width: 100%;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .empire-header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .qr-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .qr-actions {
+                flex-direction: column;
+            }
+            
+            .customization-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <script>
+// QRCode.js - Direct embedded version
+(function(){function t(t){this.mode=s.MODE_8BIT_BYTE,this.data=t,this.parsedData=[];for(var e=0;e<this.data.length;e++){var a=[];a[0]=this.data.charCodeAt(e),this.parsedData.push(a)}}function e(t,e){this.typeNumber=t,this.errorCorrectLevel=e,this.modules=null,this.moduleCount=0,this.dataCache=null,this.dataList=[]}function a(t,e){if(void 0==t.length)throw new Error(t.length+"/"+e);for(var a=0;a<t.length&&0==t[a];)a++;this.num=new Array(t.length-a+e);for(var i=0;i<t.length-a;i++)this.num[i]=t[i+a]}function i(t,e){this.totalCount=t,this.dataCount=e}var s={MODE_NUMBER:1,MODE_ALPHA_NUM:2,MODE_8BIT_BYTE:4,MODE_KANJI:8},n={L:1,M:0,Q:3,H:2},o={PATTERN000:0,PATTERN001:1,PATTERN010:2,PATTERN011:3,PATTERN100:4,PATTERN101:5,PATTERN110:6,PATTERN111:7},r={PATTERN_POSITION_TABLE:[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],G15:1335,G18:7973,G15_MASK:21522,getBCHTypeInfo:function(t){for(var e=t<<10;0<=r.getBCHDigit(e)-r.getBCHDigit(r.G15);)e^=r.G15<<r.getBCHDigit(e)-r.getBCHDigit(r.G15);return(t<<10|e)^r.G15_MASK},getBCHTypeNumber:function(t){for(var e=t<<12;0<=r.getBCHDigit(e)-r.getBCHDigit(r.G18);)e^=r.G18<<r.getBCHDigit(e)-r.getBCHDigit(r.G18);return t<<12|e},getBCHDigit:function(t){for(var e=0;0!=t;)e++,t>>>=1;return e}},h={},d=0,u=8;for(d=0;d<256;d++)h[d]=0;for(e=0;e<=u;e++)h[1<<e]=e;for(d=0;d<256;d++)0==h[d]&&(h[d]=h[d-1]);t.prototype={getLength:function(){return this.parsedData.length},write:function(t){for(var e=0;e<this.parsedData.length;e++)t.put(this.parsedData[e],8)}},e.prototype={addData:function(e){var a=new t(e);this.dataList.push(a),this.dataCache=null},isDark:function(t,e){if(t<0||this.moduleCount<=t||e<0||this.moduleCount<=e)throw new Error(t+","+e);return this.modules[t][e]},getModuleCount:function(){return this.moduleCount},make:function(){this.makeImpl(!1,this.getBestMaskPattern())},makeImpl:function(t,a){this.moduleCount=4*this.typeNumber+17,this.modules=new Array(this.moduleCount);for(var i=0;i<this.moduleCount;i++){this.modules[i]=new Array(this.moduleCount);for(var s=0;s<this.moduleCount;s++)this.modules[i][s]=null}this.setupPositionProbePattern(0,0),this.setupPositionProbePattern(this.moduleCount-7,0),this.setupPositionProbePattern(0,this.moduleCount-7),this.setupPositionAdjustPattern(),this.setupTimingPattern(),this.setupTypeInfo(t,a),7<=this.typeNumber&&this.setupTypeNumber(t),null==this.dataCache&&(this.dataCache=e.createData(this.typeNumber,this.errorCorrectLevel,this.dataList)),this.mapData(this.dataCache,a)},setupPositionProbePattern:function(t,e){for(var a=-1;a<=7;a++)if(!(t+a<=-1||this.moduleCount<=t+a))for(var i=-1;i<=7;i++)e+i<=-1||this.moduleCount<=e+i||(this.modules[t+a][e+i]=0<=a&&a<=6&&(0==i||6==i)||0<=i&&i<=6&&(0==a||6==a)||2<=a&&a<=4&&2<=i&&i<=4)},getBestMaskPattern:function(){for(var t=0,e=0,a=0;a<8;a++){this.makeImpl(!0,a);var i=s.getLostPoint(this);(0==a||i<e)&&(e=i,t=a)}return t},createMovieClip:function(t,e,a){var i=t.createEmptyMovieClip(e,a),s=1;this.make();for(var n=0;n<this.modules.length;n++)for(var o=0;o<this.modules[n].length;o++){var r=this.modules[n][o];r&&i.beginFill(0,100),i.moveTo(n*s,o*s),i.lineTo(n*s+s,o*s),i.lineTo(n*s+s,o*s+s),i.lineTo(n*s,o*s+s),i.endFill()}return i},setupTimingPattern:function(){for(var t=8;t<this.moduleCount-8;t++)null==this.modules[t][6]&&(this.modules[t][6]=t%2==0);for(var e=8;e<this.moduleCount-8;e++)null==this.modules[6][e]&&(this.modules[6][e]=e%2==0)},setupPositionAdjustPattern:function(){var t=r.PATTERN_POSITION_TABLE[this.typeNumber-1];if(t)for(var e=0;e<t.length;e++)for(var a=0;a<t.length;a++){var i=t[e],s=t[a];if(null==this.modules[i][s])for(var n=-2;n<=2;n++)for(var o=-2;o<=2;o++)this.modules[i+n][s+o]=-2==n||2==n||-2==o||2==o||0==n&&0==o}},setupTypeNumber:function(t){for(var e=r.getBCHTypeNumber(this.typeNumber),a=0;a<18;a++){var i=!t&&1==(e>>a&1);this.modules[Math.floor(a/3)][a%3+this.moduleCount-8-3]=i}for(a=0;a<18;a++){i=!t&&1==(e>>a&1);this.modules[a%3+this.moduleCount-8-3][Math.floor(a/3)]=i}},setupTypeInfo:function(t,e){for(var a=this.errorCorrectLevel<<3|e,i=r.getBCHTypeInfo(a),s=0;s<15;s++){var n=!t&&1==(i>>s&1);s<6?this.modules[s][8]=n:s<8?this.modules[s+1][8]=n:this.modules[this.moduleCount-15+s][8]=n}for(s=0;s<15;s++){n=!t&&1==(i>>s&1);s<8?this.modules[8][this.moduleCount-s-1]=n:s<9?this.modules[8][15-s-1+1]=n:this.modules[8][15-s-1]=n}this.modules[this.moduleCount-8][8]=!t},mapData:function(t,e){for(var a=-1,i=this.moduleCount-1,s=7,n=0,o=this.moduleCount-1;0<o;o-=2)for(6==o&&o--;;){for(var r=0;r<2;r++)if(null==this.modules[i][o-r]){var h=!1;n<t.length&&(h=1==(t[n]>>>s&1));var d=l.getMask(e,i,o-r);d&&(h=!h),this.modules[i][o-r]=h,s--,-1==s&&(n++,s=7)}if(i+=a,i<0||this.moduleCount<=i){i-=a,a=-a;break}}}},e.PAD0=236,e.PAD1=17,e.createData=function(t,a,i){for(var s=n.getRSBlocks(t,a),o=new c,u=0;u<i.length;u++){var r=i[u];o.put(r.mode,4),o.put(r.getLength(),e.getLengthInBits(r.mode,t)),r.write(o)}for(var h=0,u=0;u<s.length;u++)h+=s[u].dataCount;if(o.getLengthInBits()>8*h)throw new Error("code length overflow. ("+o.getLengthInBits()+">"+8*h+")");for(o.getLengthInBits()+4<=8*h&&o.put(0,4);0!=o.getLengthInBits()%8;)o.putBit(!1);for(;;){if(o.getLengthInBits()>=8*h)break;if(o.put(e.PAD0,8),o.getLengthInBits()>=8*h)break;o.put(e.PAD1,8)}return e.createBytes(o,s)},e.createBytes=function(t,a){for(var i=0,s=0,n=0,o=new Array(a.length),r=0;r<a.length;r++){var h=a[r].dataCount,d=a[r].totalCount-h;i=Math.max(i,h),s=Math.max(s,d),o[r]=new Array(h);for(var u=0;u<o[r].length;u++)o[r][u]=255&t.buffer[u+n];n+=h;var l=f.getErrorCorrectPolynomial(d),g=new a(o[r],l.getLength()-1),p=g.mod(l);for(u=0;u<p.getLength();u++)o[r][h+u]=p.get(u)}for(var v=0,u=0;u<a.length;u++)v+=a[u].totalCount;for(var m=new Array(v),y=0,u=0;u<i;u++)for(r=0;r<a.length;r++)u<o[r].length&&(m[y++]=o[r][u]);for(u=0;u<s;u++)for(r=0;r<a.length;r++)u<o[r].length&&(m[y++]=o[r][u]);return m};var l={PATTERN000:function(t,e){return(t+e)%2==0},PATTERN001:function(t){return t%2==0},PATTERN010:function(t,e){return e%3==0},PATTERN011:function(t,e){return(t+e)%3==0},PATTERN100:function(t,e){return(Math.floor(t/2)+Math.floor(e/3))%2==0},PATTERN101:function(t,e){return t*e%2+t*e%3==0},PATTERN110:function(t,e){return(t*e%2+t*e%3)%2==0},PATTERN111:function(t,e){return(t*e%3+(t+e)%2)%2==0},getMask:function(t,e,a){switch(t){case o.PATTERN000:return l.PATTERN000(e,a);case o.PATTERN001:return l.PATTERN001(e);case o.PATTERN010:return l.PATTERN010(e,a);case o.PATTERN011:return l.PATTERN011(e,a);case o.PATTERN100:return l.PATTERN100(e,a);case o.PATTERN101:return l.PATTERN101(e,a);case o.PATTERN110:return l.PATTERN110(e,a);case o.PATTERN111:return l.PATTERN111(e,a);default:throw new Error("bad maskPattern:"+t)}}},f={glog:function(t){if(t<1)throw new Error("glog("+t+")");return h[t]},gexp:function(t){for(;t<0;)t+=255;for(;256<=t;)t-=255;return d[t]},getErrorCorrectPolynomial:function(t){for(var e=new a([1],0),i=0;i<t;i++)e=e.multiply(new a([1,f.gexp(i)],0));return e}},c={buffer:[],getLengthInBits:function(){return 8*this.buffer.length},put:function(t,e){for(var a=e-1;0<=a;a--)this.putBit(1==(t>>a&1))},putBit:function(t){var e=Math.floor(this.getLengthInBits()/8);this.buffer.length<=e&&this.buffer.push(0),t&&(this.buffer[e]|=128>>>this.getLengthInBits()%8)}},g={getLengthInBits:function(t,e){if(1<=e&&e<10)switch(t){case s.MODE_NUMBER:return 10;case s.MODE_ALPHA_NUM:return 9;case s.MODE_8BIT_BYTE:return 8;case s.MODE_KANJI:return 8;default:throw new Error("mode:"+t)}else if(e<27)switch(t){case s.MODE_NUMBER:return 12;case s.MODE_ALPHA_NUM:return 11;case s.MODE_8BIT_BYTE:return 16;case s.MODE_KANJI:return 10;default:throw new Error("mode:"+t)}else{if(!(e<41))throw new Error("type:"+e);switch(t){case s.MODE_NUMBER:return 14;case s.MODE_ALPHA_NUM:return 13;case s.MODE_8BIT_BYTE:return 16;case s.MODE_KANJI:return 12;default:throw new Error("mode:"+t)}}}},p={getPatternPosition:function(t){return r.PATTERN_POSITION_TABLE[t-1]}},v={},m=0,y=0;for(m=0;m<256;m++)v[m]=0;for(e=0;e<=8;e++)v[1<<e]=e;for(m=0;m<256;m++)0==v[m]&&(v[m]=v[m-1]);var w=function(t){this._el=t,this._htOption={width:256,height:256,typeNumber:4,colorDark:"#000000",colorLight:"#ffffff",correctLevel:n.H}};w.prototype._htOption={},w.prototype._el=null,w.prototype._oQRCode=null,w.prototype._oDrawing=function(t,e){this._el=e,this._htOption=t};var C=w.prototype._oDrawing;return C.prototype.draw=function(t){for(var e=this._htOption,a=this._el,i=e.width/t.getModuleCount(),s=e.height/t.getModuleCount(),o=document.createElement("canvas"),r=o.getContext("2d");r;){o.width=e.width,o.height=e.height;for(var h=0;h<t.getModuleCount();h++)for(var d=0;d<t.getModuleCount();d++){r.strokeStyle=t.isDark(h,d)?e.colorDark:e.colorLight,r.lineWidth=1,r.fillStyle=t.isDark(h,d)?e.colorDark:e.colorLight,r.fillRect(h*i,d*s,i,s)}var u=a;if("string"==typeof u&&(u=document.getElementById(u)),u.tagName.toLowerCase()==="canvas"){var l=u.getContext("2d");l.clearRect(0,0,e.width,e.height),l.drawImage(o,0,0)}else u.src=o.toDataURL("image/png");break}},C.prototype.clear=function(){},w.prototype.makeCode=function(t){this._oQRCode=new e(this._htOption.typeNumber,this._htOption.correctLevel),this._oQRCode.addData(t),this._oQRCode.make(),this._el&&this._oDrawing.draw(this._oQRCode)},w.prototype.makeImage=function(){if(this._el&&this._oDrawing.draw(this._oQRCode),this._htOption.image&&this._el){var t=this._el.getContext("2d"),e=this._htOption.image;t.drawImage(e,this._htOption.width/2-e.width/2,this._htOption.height/2-e.height/2,e.width,e.height)}},w.prototype.clear=function(){this._oDrawing.clear()},w.CorrectLevel=n,w})();
+
+// Make QRCode globally available
+window.QRCode = window.qrcode = qrcode;
+</script>
+</head>
+<body>
+    <div class="empire-qr-container">
+        <!-- Header -->
+        <div class="empire-header">
+            <h1>QR Code Command Center</h1>
+            <p>Generate strategic QR codes to expand the CleanBite Empire. Track scans, optimize placement, and dominate your market.</p>
+        </div>
+
+        <!-- Main QR Generator -->
+        <div class="qr-grid">
+            <!-- Menu QR -->
+            <div class="qr-card">
+                <div class="qr-header">
+                    <div class="qr-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="qr-title">
+                        <h2>Digital Menu</h2>
+                        <p>Place on tables for instant ordering</p>
+                    </div>
+                </div>
+                
+                <div class="qr-display-container">
+                    <div class="qr-canvas" id="menuQrCanvas">
+                        <!-- QR will be generated here -->
+                    </div>
+                    
+                    <div class="qr-info">
+                        <h3 style="color: #ffd166; margin-bottom: 10px;">Direct to Menu</h3>
+                        <div class="qr-url" id="menuUrl">https://osabolu.github.io/cleanbite-menu/#menu</div>
+                        <p style="color: #aaa; font-size: 0.9rem;">
+                            Perfect for table tents, window stickers, or business cards
+                        </p>
+                    </div>
+                    
+                    <div class="qr-actions">
+                        <button class="qr-btn primary" onclick="downloadQR('menu')">
+                            <i class="fas fa-download"></i> Download PNG
+                        </button>
+                        <button class="qr-btn secondary" onclick="copyUrl('menu')">
+                            <i class="fas fa-copy"></i> Copy Link
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="qr-customization">
+                    <h4 style="color: #ffd166; margin-bottom: 15px;">Customize</h4>
+                    <div class="customization-options">
+                        <div class="option-group">
+                            <label for="menuColor">QR Color</label>
+                            <input type="color" id="menuColor" value="#ffd166" onchange="updateQR('menu')">
+                        </div>
+                        <div class="option-group">
+                            <label for="menuSize">Size</label>
+                            <select id="menuSize" onchange="updateQR('menu')">
+                                <option value="200">Small</option>
+                                <option value="250" selected>Medium</option>
+                                <option value="300">Large</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Tracking QR -->
+            <div class="qr-card">
+                <div class="qr-header">
+                    <div class="qr-icon">
+                        <i class="fas fa-satellite-dish"></i>
+                    </div>
+                    <div class="qr-title">
+                        <h2>Order Tracker</h2>
+                        <p>For receipts and confirmation emails</p>
+                    </div>
+                </div>
+                
+                <div class="qr-display-container">
+                    <div class="qr-canvas" id="trackQrCanvas">
+                        <!-- QR will be generated here -->
+                    </div>
+                    
+                    <div class="qr-info">
+                        <h3 style="color: #ffd166; margin-bottom: 10px;">Track Any Order</h3>
+                        <div class="qr-url" id="trackUrl">https://osabolu.github.io/cleanbite-menu/track.html</div>
+                        <p style="color: #aaa; font-size: 0.9rem;">
+                            Add to receipts, packaging, or delivery bags
+                        </p>
+                    </div>
+                    
+                    <div class="qr-actions">
+                        <button class="qr-btn primary" onclick="downloadQR('track')">
+                            <i class="fas fa-download"></i> Download PNG
+                        </button>
+                        <button class="qr-btn secondary" onclick="copyUrl('track')">
+                            <i class="fas fa-copy"></i> Copy Link
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="qr-customization">
+                    <h4 style="color: #ffd166; margin-bottom: 15px;">Customize</h4>
+                    <div class="customization-options">
+                        <div class="option-group">
+                            <label for="trackColor">QR Color</label>
+                            <input type="color" id="trackColor" value="#3498db" onchange="updateQR('track')">
+                        </div>
+                        <div class="option-group">
+                            <label for="trackLogo">Add Logo</label>
+                            <select id="trackLogo" onchange="updateQR('track')">
+                                <option value="none">No Logo</option>
+                                <option value="logo">CleanBite Logo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WhatsApp Order QR -->
+            <div class="qr-card">
+                <div class="qr-header">
+                    <div class="qr-icon">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                    <div class="qr-title">
+                        <h2>WhatsApp Orders</h2>
+                        <p>Direct messaging for orders</p>
+                    </div>
+                </div>
+                
+                <div class="qr-display-container">
+                    <div class="qr-canvas" id="whatsappQrCanvas">
+                        <!-- QR will be generated here -->
+                    </div>
+                    
+                    <div class="qr-info">
+                        <h3 style="color: #ffd166; margin-bottom: 10px;">Chat to Order</h3>
+                        <div class="qr-url" id="whatsappUrl">https://wa.me/2349026673033?text=Hi%20CleanBite%2C%20I%20want%20to%20order</div>
+                        <p style="color: #aaa; font-size: 0.9rem;">
+                            Pre-filled message starts conversation
+                        </p>
+                    </div>
+                    
+                    <div class="qr-actions">
+                        <button class="qr-btn primary" onclick="downloadQR('whatsapp')">
+                            <i class="fas fa-download"></i> Download PNG
+                        </button>
+                        <button class="qr-btn secondary" onclick="copyUrl('whatsapp')">
+                            <i class="fas fa-copy"></i> Copy Link
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="qr-customization">
+                    <h4 style="color: #ffd166; margin-bottom: 15px;">Customize</h4>
+                    <div class="customization-options">
+                        <div class="option-group">
+                            <label for="whatsappMessage">Order Message</label>
+                            <input type="text" id="whatsappMessage" value="Hi CleanBite, I want to order" 
+                                   onchange="updateWhatsappUrl()" placeholder="Custom message...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Batch QR Generator -->
+        <div class="batch-generator">
+            <h2 style="color: #ffd166; text-align: center; margin-bottom: 30px;">
+                <i class="fas fa-layer-group"></i> Batch QR Generator
+            </h2>
+            <p style="text-align: center; color: #aaa; max-width: 800px; margin: 0 auto 40px;">
+                Generate QR codes for multiple tables or locations with sequential numbering
+            </p>
+            
+            <div class="batch-controls" style="text-align: center;">
+                <div style="display: inline-flex; gap: 15px; align-items: center;">
+                    <input type="number" id="batchCount" value="4" min="1" max="20" 
+                           style="padding: 12px; width: 100px; background: rgba(255,255,255,0.07); 
+                                  border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff;">
+                    <button class="qr-btn primary" onclick="generateBatch()">
+                        <i class="fas fa-bolt"></i> Generate Batch
+                    </button>
+                </div>
+            </div>
+            
+            <div class="batch-grid" id="batchGrid">
+                <!-- Batch QR codes will appear here -->
+            </div>
+        </div>
+
+        <!-- QR Analytics -->
+        <div class="analytics">
+            <h2 style="color: #ffd166; margin-bottom: 30px;">
+                <i class="fas fa-chart-line"></i> QR Analytics Dashboard
+            </h2>
+            
+            <div class="analytics-stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalScans">1,247</div>
+                    <div style="color: #aaa;">Total Scans</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="uniqueScanners">892</div>
+                    <div style="color: #aaa;">Unique Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="conversionRate">68%</div>
+                    <div style="color: #aaa;">Conversion Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="peakTime">7-9 PM</div>
+                    <div style="color: #aaa;">Peak Scan Time</div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px;">
+                <button class="qr-btn secondary" onclick="generateReport()">
+                    <i class="fas fa-file-export"></i> Generate Analytics Report
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="qr-footer">
+            <h3 style="color: #ffd166; margin-bottom: 20px;">Empire Expansion Strategy</h3>
+            <p style="max-width: 800px; margin: 0 auto 30px;">
+                Place QR codes strategically: tables (menu), receipts (tracking), 
+                packaging (re-order), windows (discovery), business cards (contact).
+                Track performance weekly.
+            </p>
+            <p style="color: #666;">
+                CleanBite QR Command Center • Updated: <span id="currentDate"></span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        // Set current date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString();
+        
+        // Generate initial QR codes with CORRECT IP
+        generateQR('menu', 'https://osabolu.github.io/cleanbite-menu/#menu', '#ffd166');
+        generateQR('track', 'https://osabolu.github.io/cleanbite-menu/track.html', '#3498db');
+        updateWhatsappUrl();
+        
+        // Generate initial batch
+        generateBatch();
+        
+        // Simulate analytics data updates
+        setInterval(updateAnalytics, 5000);
+        
+        // Add emergency button
+        setTimeout(addRegenerateButton, 1000);
+    });
+
+    // Generate QR Code
+    function generateQR(type, url, color = '#ffd166') {
+        const canvasId = type + 'QrCanvas';
+        const canvas = document.getElementById(canvasId);
+        
+        if (!canvas) {
+            console.error('Canvas not found:', canvasId);
+            return;
+        }
+        
+        // Clear previous QR
+        canvas.innerHTML = '';
+        
+        // Generate new QR
+        QRCode.toCanvas(canvas, url, {
+            width: document.getElementById(type + 'Size')?.value || 250,
+            color: {
+                dark: color,
+                light: '#ffffff'
+            },
+            margin: 2
+        }, (error) => {
+            if (error) {
+                console.error('QR generation error:', error);
+                // Show error message
+                canvas.innerHTML = `
+                    <div style="color: #e74c3c; text-align: center; padding: 20px;">
+                        <i class="fas fa-exclamation-triangle"></i><br>
+                        QR Failed to Generate<br>
+                        <small>${error.message}</small>
+                    </div>
+                `;
+            } else {
+                console.log('✅ QR generated for:', type);
+            }
+        });
+        
+        // Update URL display
+        const urlElement = document.getElementById(type + 'Url');
+        if (urlElement) {
+            urlElement.textContent = url;
+        }
+    }
+
+    // Update QR
+    function updateQR(type) {
+        const url = document.getElementById(type + 'Url').textContent;
+        const color = document.getElementById(type + 'Color').value;
+        generateQR(type, url, color);
+    }
+
+    // Update WhatsApp URL
+    function updateWhatsappUrl() {
+        const message = encodeURIComponent(document.getElementById('whatsappMessage').value);
+        const url = `https://wa.me/2349026673033?text=${message}`;
+        generateQR('whatsapp', url, '#25D366');
+        document.getElementById('whatsappUrl').textContent = url;
+    }
+
+    // Download QR
+    function downloadQR(type) {
+        const canvas = document.getElementById(type + 'QrCanvas').querySelector('canvas');
+        if (!canvas) {
+            alert('QR code not generated yet. Please wait or regenerate.');
+            return;
+        }
+        
+        const link = document.createElement('a');
+        link.download = `cleanbite-${type}-qr-${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        
+        console.log(`Downloaded ${type} QR code`);
+    }
+
+    // Copy URL
+    function copyUrl(type) {
+        const url = document.getElementById(type + 'Url').textContent;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('URL copied to clipboard!');
+        });
+    }
+
+    // Generate Batch QR Codes - FIXED WITH CORRECT IP
+    function generateBatch() {
+    const count = parseInt(document.getElementById('batchCount').value) || 4;
+    const batchGrid = document.getElementById('batchGrid');
+    if (!batchGrid) return;
+    
+    batchGrid.innerHTML = '';
+    
+    for (let i = 1; i <= count; i++) {
+        // CORRECT URL WITH 192.168.0.100
+        // CORRECT URL with GitHub Pages
+        const url = `https://osabolu.github.io/cleanbite-menu/#menu?table=${i}`;
+        const card = document.createElement('div');
+        card.className = 'batch-card';
+        
+        card.innerHTML = `
+            <div class="batch-qr" id="batchQr${i}"></div>
+            <h4 style="color: #ffd166;">Table ${i}</h4>
+            <p style="color: #aaa; font-size: 0.9rem; margin-top: 5px;">Scan for menu</p>
+            <button onclick="downloadBatchQR(${i})" style="
+                margin-top: 15px;
+                padding: 8px 15px;
+                background: rgba(255, 209, 102, 0.1);
+                border: 1px solid rgba(255, 209, 102, 0.3);
+                border-radius: 6px;
+                color: #ffd166;
+                cursor: pointer;
+            ">
+                <i class="fas fa-download"></i> Download
+            </button>
+        `;
+        
+        batchGrid.appendChild(card);
+    }
+    
+    // Generate QR codes AFTER all cards are created
+    setTimeout(() => {
+        for (let i = 1; i <= count; i++) {
+            const url = `https://osabolu.github.io/cleanbite-menu/#menu?table=${i}`;
+            const container = document.getElementById(`batchQr${i}`);
+            
+            if (container) {
+                // Clear container
+                container.innerHTML = '';
+                
+                // Create canvas element
+                const canvas = document.createElement('canvas');
+                container.appendChild(canvas);
+                
+                // Generate QR code
+                try {
+                    QRCode.toCanvas(canvas, url, {
+                        width: 120,
+                        color: {
+                            dark: '#ffd166',
+                            light: '#ffffff'
+                        },
+                        margin: 1
+                    });
+                } catch (error) {
+                    console.error('QR generation error:', error);
+                    container.innerHTML = '<div style="color:red; padding:10px;">QR Failed</div>';
+                }
+            }
+        }
+    }, 500); // Increased delay to ensure DOM is ready
+}
+
+    // Download batch QR
+    function downloadBatchQR(index) {
+    const container = document.getElementById(`batchQr${index}`);
+    if (!container) {
+        alert('QR container not found. Please regenerate batch.');
+        return;
+    }
+    
+    const canvas = container.querySelector('canvas');
+    if (!canvas) {
+        alert('QR code not generated yet. Please wait and try again.');
+        return;
+    }
+    
+    try {
+        const link = document.createElement('a');
+        link.download = `cleanbite-menu-table-${index}.png`;
+        link.href = canvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        console.log(`✅ Downloaded table ${index} QR code`);
+    } catch (error) {
+        alert('Download failed: ' + error.message);
+        console.error('Download error:', error);
+    }
+}
+
+    // Update analytics
+    function updateAnalytics() {
+        // Simulate data updates
+        const totalScans = document.getElementById('totalScans');
+        const current = parseInt(totalScans.textContent.replace(',', '')) || 1247;
+        totalScans.textContent = (current + Math.floor(Math.random() * 5)).toLocaleString();
+        
+        const uniqueScanners = document.getElementById('uniqueScanners');
+        const unique = parseInt(uniqueScanners.textContent.replace(',', '')) || 892;
+        if (Math.random() > 0.7) {
+            uniqueScanners.textContent = (unique + 1).toLocaleString();
+        }
+    }
+
+    // Generate report
+    function generateReport() {
+        alert('Analytics report generated! Would download as PDF in production.');
+    }
+
+    // Share QR
+    function shareQR(type) {
+        if (navigator.share) {
+            navigator.share({
+                title: `CleanBite ${type} QR Code`,
+                text: 'Scan this QR code for CleanBite Kitchen',
+                url: document.getElementById(type + 'Url').textContent
+            });
+        } else {
+            copyUrl(type);
+        }
+    }
+
+    // ============================================================================
+    // EMERGENCY QR REGENERATION FUNCTIONS
+    // ============================================================================
+
+    // Force regenerate all QR codes
+    function regenerateAllQR() {
+        console.log('Regenerating QR codes...');
+        
+        // Menu QR WITH CORRECT IP
+        // Menu QR WITH CORRECT URL
+        const menuUrl = 'https://osabolu.github.io/cleanbite-menu/#menu';
+        const menuCanvas = document.getElementById('menuQrCanvas');
+        if (menuCanvas) {
+            menuCanvas.innerHTML = '';
+            QRCode.toCanvas(menuCanvas, menuUrl, {
+                width: 250,
+                color: { dark: '#ffd166', light: '#ffffff' }
+            });
+            console.log('✅ Menu QR regenerated');
+        }
+        
+        // Track QR WITH CORRECT IP
+        // Track QR WITH CORRECT URL
+        const trackUrl = 'https://osabolu.github.io/cleanbite-menu/track.html';
+        const trackCanvas = document.getElementById('trackQrCanvas');
+        if (trackCanvas) {
+            trackCanvas.innerHTML = '';
+            QRCode.toCanvas(trackCanvas, trackUrl, {
+                width: 250,
+                color: { dark: '#3498db', light: '#ffffff' }
+            });
+            console.log('✅ Track QR regenerated');
+        }
+        
+        // WhatsApp QR
+        const whatsappUrl = 'https://wa.me/2349026673033?text=Hi%20CleanBite%2C%20I%20want%20to%20order';
+        const whatsappCanvas = document.getElementById('whatsappQrCanvas');
+        if (whatsappCanvas) {
+            whatsappCanvas.innerHTML = '';
+            QRCode.toCanvas(whatsappCanvas, whatsappUrl, {
+                width: 250,
+                color: { dark: '#25D366', light: '#ffffff' }
+            });
+            console.log('✅ WhatsApp QR regenerated');
+        }
+        
+        // Generate batch
+        if (typeof generateBatch === 'function') {
+            generateBatch();
+        }
+        
+        alert('✅ QR codes regenerated! Check if they appear now.');
+    }
+
+    // Add regenerate button
+    function addRegenerateButton() {
+        // Remove existing button if any
+        const existing = document.getElementById('emergencyRegenButton');
+        if (existing) existing.remove();
+        
+        const button = document.createElement('button');
+        button.id = 'emergencyRegenButton';
+        button.innerHTML = '🔄 REGENERATE QR CODES';
+        button.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        `;
+        button.onmouseover = () => button.style.background = '#c0392b';
+        button.onmouseout = () => button.style.background = '#e74c3c';
+        button.onclick = regenerateAllQR;
+        document.body.appendChild(button);
+        
+        console.log('✅ Emergency button added');
+    }
+
+    // Make functions global
+    window.regenerateAllQR = regenerateAllQR;
+    window.downloadBatchQR = downloadBatchQR;
+</script>
+</body>
+</html>
