@@ -2079,33 +2079,7 @@
     }
     
     // ==================== LOAD DASHBOARD DATA ====================
-    //function loadDashboardData() {
-       // const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
-        
-        // Apply filter if set
-       // let filteredOrders = orders;
-       // if (currentFilter !== 'all') {
-       //     filteredOrders = orders.filter(o => o.status === currentFilter);
-       // }
-        
-        //const pendingPayments = orders.filter(o => 
-        //    o.paymentStatus === 'pending' && 
-        //    o.status !== 'cancelled' && 
-        //    o.status !== 'rejected'
-        //);
-        
-       // const verifiedOrders = orders.filter(o => 
-        //    o.paymentStatus === 'verified' && 
-       //     o.status !== 'completed' && 
-       //     o.status !== 'cancelled'
-        //);
-        
-        //localStorage.setItem('admin_verification_queue', JSON.stringify(pendingPayments));
-        
-        updateStats(orders);
-        renderVerificationQueue(pendingPayments);
-        renderOrders(verifiedOrders);
-    }
+
     
     // ==================== UPDATE STATS ====================
     function updateStats(orders) {
@@ -3118,6 +3092,7 @@
 </body>
 
 </html>
+
 
 
 
