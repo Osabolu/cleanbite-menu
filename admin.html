@@ -1562,14 +1562,6 @@
         loadOrdersFromFirebase();
     });
     </script>
-    
-    // ==================== CALL THIS WHEN PAGE LOADS ====================
-    document.addEventListener('DOMContentLoaded', function() {
-        // Your existing initialization code...
-        
-        // Start loading orders from Firebase
-        loadOrdersFromFirebase();
-    });
 
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
     
@@ -2688,49 +2680,74 @@
     }
     
     // ==================== REJECT PAYMENT ====================
-    function rejectPayment() {
-        if (!currentVerificationOrder) {
-            showNotification('No order selected', 'error');
-            return;
-        }
+  function rejectPayment() {
+    console.log('🔍 REJECT: Started');
+    
+    if (!currentVerificationOrder) {
+        console.log('❌ REJECT: No order selected');
+        showNotification('No order selected', 'error');
+        return;
+    }
+    
+    const reason = document.getElementById('rejectionReason')?.value;
+    if (!reason?.trim()) {
+        showNotification('Please provide a rejection reason', 'warning');
+        return;
+    }
+    
+    console.log('❌ REJECT: Processing order:', currentVerificationOrder);
+    console.log('❌ REJECT: Reason:', reason);
+    
+    // Find the order in Firebase (allOrders)
+    const order = allOrders.find(o => o.id === currentVerificationOrder);
+    
+    if (!order) {
+        console.log('❌ REJECT: Order not found in allOrders');
+        console.log('Available orders:', allOrders.map(o => o.id));
+        showNotification('Order not found', 'error');
+        closeModal('rejectModal');
+        return;
+    }
+    
+    console.log('✅ REJECT: Order found:', order.id);
+    console.log('✅ REJECT: firebaseKey =', order.firebaseKey);
+    
+    if (!order.firebaseKey) {
+        console.log('❌ REJECT: No firebaseKey for order');
+        showNotification('Error: Order missing Firebase reference', 'error');
+        return;
+    }
+    
+    // Disable button
+    const rejectBtn = document.getElementById('confirmRejection');
+    if (rejectBtn) {
+        console.log('✅ REJECT: Disabling button');
+        rejectBtn.disabled = true;
+        rejectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejecting...';
+    }
+    
+    // Update in Firebase
+    console.log('🔍 REJECT: Preparing Firebase update');
+    const orderRef = database.ref(`orders/${order.firebaseKey}`);
+    
+    orderRef.update({
+        paymentStatus: 'rejected',
+        status: 'cancelled',
+        rejectionReason: reason,
+        rejectedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    })
+    .then(() => {
+        console.log('✅ REJECT: Firebase update SUCCESSFUL!');
         
-        const reason = document.getElementById('rejectionReason')?.value;
-        if (!reason?.trim()) {
-            showNotification('Please provide a rejection reason', 'warning');
-            return;
-        }
-        
-        console.log('❌ Rejecting payment for order:', currentVerificationOrder);
-        
-        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
-        const orderIndex = orders.findIndex(o => o.id === currentVerificationOrder);
-        
-        if (orderIndex === -1) {
-            showNotification('Order not found', 'error');
-            closeModal('rejectModal');
-            return;
-        }
-        
-        const order = orders[orderIndex];
-        
-        order.paymentStatus = 'rejected';
-        order.status = 'cancelled';
-        order.rejectionReason = reason;
-        order.rejectedAt = new Date().toISOString();
-        order.updatedAt = new Date().toISOString();
-        
-        localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
-        
+        // Remove from local queue (optional)
         const queue = JSON.parse(localStorage.getItem('admin_verification_queue') || '[]');
         const updatedQueue = queue.filter(o => o.id !== currentVerificationOrder);
         localStorage.setItem('admin_verification_queue', JSON.stringify(updatedQueue));
         
-        const pendingPayments = JSON.parse(localStorage.getItem('pending_payments') || '[]');
-        const updatedPending = pendingPayments.filter(o => o.id !== currentVerificationOrder);
-        localStorage.setItem('pending_payments', JSON.stringify(updatedPending));
-        
         const message = `❌ Payment REJECTED for order ${currentVerificationOrder.slice(-8)}: ${reason}`;
         
+        // Add to activity feed
         addActivityToFeed({
             type: 'payment_rejected',
             message: message,
@@ -2741,18 +2758,28 @@
             color: '#e74c3c'
         });
         
+        // Broadcast to order page
         broadcastToOrderPage('payment_rejected', message, order.id, order.customerName);
         
         showNotification(`❌ Payment rejected - Order removed from queue`, 'warning');
         
-        setTimeout(() => {
-            //loadDashboardData();
-        }, 50);
-        
+        // Close modal and reset
         closeModal('rejectModal');
         document.getElementById('rejectionReason').value = '';
         currentVerificationOrder = null;
-    }
+    })
+    .catch(error => {
+        console.log('❌ REJECT ERROR: Firebase update failed');
+        console.error('Error details:', error);
+        showNotification('Error rejecting payment: ' + error.message, 'error');
+        
+        // Re-enable button
+        if (rejectBtn) {
+            rejectBtn.disabled = false;
+            rejectBtn.innerHTML = '<i class="fas fa-times"></i> Reject Payment';
+        }
+    });
+}
     
     // ==================== UPDATE ORDER STATUS ====================
     function updateOrderStatus() {
@@ -2831,9 +2858,23 @@
 };  
     
     window.openRejectModal = function(orderId) {
-        currentVerificationOrder = orderId;
+    currentVerificationOrder = orderId;
+    
+    // Find the order in Firebase
+    const order = allOrders.find(o => o.id === orderId);
+    
+    if (order) {
+        document.getElementById('rejectOrderId').textContent = order.id;
+        document.getElementById('rejectCustomerName').textContent = order.customerName || 'Customer';
+        document.getElementById('rejectAmount').textContent = `₦${(order.total || order.totalAmount || 0).toLocaleString()}`;
         document.getElementById('rejectModal').classList.add('active');
-    };
+        
+        // Clear previous reason
+        document.getElementById('rejectionReason').value = '';
+    } else {
+        showNotification('Order not found', 'error');
+    }
+};
     
     window.openStatusModal = function(orderId) {
         currentStatusOrder = orderId;
@@ -3092,6 +3133,7 @@
 </body>
 
 </html>
+
 
 
 
