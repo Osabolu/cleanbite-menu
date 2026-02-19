@@ -1491,42 +1491,39 @@
     console.log('✅ Database object created:', database ? 'OK' : 'FAILED');
     
     // ==================== LOAD ORDERS FROM FIREBASE ====================
-    function loadOrdersFromFirebase() {
-        console.log('📡 Loading orders from Firebase...');
+   function loadOrdersFromFirebase() {
+    console.log('📡 Loading orders from Firebase...');
+    
+    const ordersRef = database.ref('orders');
+    
+    ordersRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        console.log('📦 Firebase snapshot received:', data ? 'Has data' : 'Empty');
         
-        const ordersRef = database.ref('orders');
+        if (!data) {
+            allOrders = [];
+            updateDashboardWithFirebaseOrders([]);
+            return;
+        }
         
-        ordersRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            console.log('📦 Firebase snapshot received:', data ? 'Has data' : 'Empty');
-            
-            if (!data) {
-                allOrders = [];
-                updateDashboardWithFirebaseOrders([]);
-                return;
-            }
-            
-            // Convert Firebase object to array with keys
-            allOrders = Object.keys(data).map(key => {
-                return {
-                    ...data[key],
-                    firebaseKey: key
-                };
-            });
-            
-            console.log(`✅ Loaded ${allOrders.length} orders from Firebase`);
-            if (allOrders.length > 0) {
-                console.log('Sample order:', {
-                    id: allOrders[0].id,
-                    firebaseKey: allOrders[0].firebaseKey
-                });
-            }
-            
-            updateDashboardWithFirebaseOrders(allOrders);
-        }, (error) => {
-            console.error('❌ Firebase load error:', error);
+        // Convert Firebase object to array with keys
+        allOrders = Object.keys(data).map(key => {
+            return {
+                ...data[key],
+                firebaseKey: key
+            };
         });
-    }
+        
+        console.log(`✅ Loaded ${allOrders.length} orders from Firebase`);
+        
+        // 🔥 THIS IS THE CRITICAL LINE - GENERATE ACTIVITIES FROM ORDERS
+        generateActivitiesFromOrders(allOrders);
+        
+        updateDashboardWithFirebaseOrders(allOrders);
+    }, (error) => {
+        console.error('❌ Firebase load error:', error);
+    });
+}
     
     // ==================== UPDATE DASHBOARD ====================
    function updateDashboardWithFirebaseOrders(orders) {
@@ -1566,6 +1563,101 @@
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
     
     <script>
+    // ==================== GENERATE ACTIVITIES FROM ORDERS ====================
+function generateActivitiesFromOrders(orders) {
+    console.log('🎯 Generating activities from', orders.length, 'orders');
+    
+    // Clear any "Loading activity..." placeholder
+    const feed = document.getElementById('activityFeed');
+    if (!feed) return;
+    
+    // Remove loading placeholder if it exists
+    const loadingItems = feed.querySelectorAll('.activity-item');
+    loadingItems.forEach(item => {
+        if (item.querySelector('.activity-message')?.textContent.includes('Loading')) {
+            item.remove();
+        }
+    });
+    
+    // Sort orders by most recent first
+    const sortedOrders = [...orders].sort((a, b) => 
+        new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)
+    );
+    
+    let activitiesAdded = 0;
+    
+    // Loop through each order and create activities
+    sortedOrders.forEach(order => {
+        // 1. Payment verifications
+        if (order.verifiedAt) {
+            addActivityToFeed({
+                type: 'payment_verified',
+                message: `💰 Payment verified for order ${order.id.slice(-8)}`,
+                orderId: order.id,
+                customerName: order.customerName,
+                timestamp: order.verifiedAt,
+                icon: 'fa-check-circle',
+                color: '#2ecc71'
+            });
+            activitiesAdded++;
+        }
+        
+        // 2. Status changes
+        if (order.updatedAt && order.status) {
+            let message = '';
+            if (order.status === 'preparing') 
+                message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
+            if (order.status === 'incubating') 
+                message = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
+            if (order.status === 'ready') 
+                message = `✅ Order ${order.id.slice(-8)} is READY`;
+            if (order.status === 'completed') 
+                message = `📦 Order ${order.id.slice(-8)} completed`;
+            if (order.status === 'cancelled') 
+                message = `❌ Order ${order.id.slice(-8)} was cancelled`;
+            
+            if (message) {
+                addActivityToFeed({
+                    type: 'status_change',
+                    message: message,
+                    orderId: order.id,
+                    customerName: order.customerName,
+                    timestamp: order.updatedAt,
+                    icon: 'fa-sync-alt',
+                    color: '#3498db'
+                });
+                activitiesAdded++;
+            }
+        }
+        
+        // 3. New orders (created but not verified)
+        if (order.createdAt && !order.verifiedAt && order.status !== 'cancelled') {
+            addActivityToFeed({
+                type: 'order_created',
+                message: `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
+                orderId: order.id,
+                customerName: order.customerName,
+                timestamp: order.createdAt,
+                icon: 'fa-cart-plus',
+                color: '#9b59b6'
+            });
+            activitiesAdded++;
+        }
+    });
+    
+    console.log(`✅ Generated ${activitiesAdded} activities`);
+    
+    // If no activities, show empty state
+    if (activitiesAdded === 0 && feed.children.length === 0) {
+        feed.innerHTML = `
+            <div class="empty-activity">
+                <i class="fas fa-mug-hot"></i>
+                <p>No recent activities</p>
+            </div>
+        `;
+    }
+}
+        
     // ==================== ENHANCED ADMIN DASHBOARD ====================
     // WITH MODERN UI AND ALL BUTTONS FUNCTIONAL
     
@@ -2671,7 +2763,7 @@
                 icon: 'fa-check-circle',
                 color: '#2ecc71'
             });
-            
+            loadOrdersFromFirebase()
             broadcastToOrderPage('payment_verified', message, order.id, order.customerName);
             showNotification(`✅ Payment verified - Order now preparing`, 'success');
             playApprovalSound();
@@ -3210,6 +3302,7 @@ window.openStatusModal = function(orderId) {
 </body>
 
 </html>
+
 
 
 
