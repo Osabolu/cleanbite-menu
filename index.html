@@ -2513,6 +2513,7 @@
     }
 
    // ==================== LIVE KITCHEN SYSTEM - FIREBASE VERSION ====================
+    // ==================== LIVE KITCHEN SYSTEM - FIREBASE VERSION ====================
 class LiveKitchenSystem {
     constructor() {
         this.kitchenData = { preparing: 0, incubating: 0, ready: 0, completed: 0 };
@@ -2523,10 +2524,18 @@ class LiveKitchenSystem {
     init() {
         console.log('👨‍🍳 Live Kitchen Ready (Firebase Mode)');
         
-        // Listen to Firebase for real-time updates
-        database.ref('orders').on('value', (snapshot) => {
+        // Listen to Firebase for real-time kitchen stats
+        this.loadKitchenStats();
+    }
+
+    loadKitchenStats() {
+        const ordersRef = database.ref('orders');
+        
+        ordersRef.on('value', (snapshot) => {
             const data = snapshot.val();
+            
             if (!data) {
+                // No orders
                 this.kitchenData = { preparing: 0, incubating: 0, ready: 0, completed: 0 };
                 this.updateDisplay();
                 return;
@@ -2535,27 +2544,105 @@ class LiveKitchenSystem {
             // Convert to array
             const orders = Object.values(data);
             
-            // Calculate stats
-            this.kitchenData = {
-                preparing: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'preparing').length,
-                incubating: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'incubating').length,
-                ready: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'ready').length,
-                completed: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'completed').length
-            };
+            // Calculate stats based on paymentStatus and status
+            const preparing = orders.filter(o => 
+                o.paymentStatus === 'verified' && o.status === 'preparing'
+            ).length;
             
+            const incubating = orders.filter(o => 
+                o.paymentStatus === 'verified' && o.status === 'incubating'
+            ).length;
+            
+            const ready = orders.filter(o => 
+                o.paymentStatus === 'verified' && o.status === 'ready'
+            ).length;
+            
+            const completed = orders.filter(o => 
+                o.paymentStatus === 'verified' && o.status === 'completed'
+            ).length;
+            
+            this.kitchenData = { preparing, incubating, ready, completed };
+            
+            // Update the display
             this.updateDisplay();
             
-            // Log changes for debugging
             console.log('📊 Kitchen stats updated:', this.kitchenData);
+            
+            // Generate activities for recent changes
+            this.generateActivitiesFromOrders(orders);
         });
+    }
+
+    generateActivitiesFromOrders(orders) {
+        // Sort by most recent
+        const recentOrders = [...orders].sort((a, b) => 
+            new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)
+        ).slice(0, 10);
         
-        // Also listen for new orders to add to activity log
-        database.ref('orders').limitToLast(1).on('child_added', (snapshot) => {
-            const order = snapshot.val();
-            if (order) {
-                this.logActivity(`🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`, 'order_created', order.id, order.customerName);
+        recentOrders.forEach(order => {
+            // Payment verifications (last 5 minutes)
+            if (order.verifiedAt) {
+                const verifiedTime = new Date(order.verifiedAt).getTime();
+                const fiveMinAgo = Date.now() - (5 * 60 * 1000);
+                
+                if (verifiedTime > fiveMinAgo && !this.isActivityLogged(order.id, 'payment_verified')) {
+                    this.logActivity(
+                        `💰 Payment verified for order ${order.id.slice(-8)}`,
+                        'payment_verified',
+                        order.id,
+                        order.customerName
+                    );
+                }
+            }
+            
+            // Status changes (last 5 minutes)
+            if (order.updatedAt && order.status) {
+                const updateTime = new Date(order.updatedAt).getTime();
+                const fiveMinAgo = Date.now() - (5 * 60 * 1000);
+                
+                if (updateTime > fiveMinAgo && !this.isActivityLogged(order.id, 'status_change', order.status)) {
+                    let message = '';
+                    if (order.status === 'preparing') 
+                        message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
+                    if (order.status === 'incubating') 
+                        message = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
+                    if (order.status === 'ready') 
+                        message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
+                    if (order.status === 'completed') 
+                        message = `📦 Order ${order.id.slice(-8)} completed`;
+                    if (order.status === 'cancelled') 
+                        message = `❌ Order ${order.id.slice(-8)} was cancelled`;
+                    
+                    if (message) {
+                        this.logActivity(message, 'status_change', order.id, order.customerName);
+                    }
+                }
+            }
+            
+            // New orders (last 5 minutes)
+            if (order.createdAt && !order.verifiedAt) {
+                const createTime = new Date(order.createdAt).getTime();
+                const fiveMinAgo = Date.now() - (5 * 60 * 1000);
+                
+                if (createTime > fiveMinAgo && !this.isActivityLogged(order.id, 'order_created')) {
+                    this.logActivity(
+                        `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
+                        'order_created',
+                        order.id,
+                        order.customerName
+                    );
+                }
             }
         });
+    }
+
+    isActivityLogged(orderId, type, status = null) {
+        return this.activityLog.some(a => 
+            a.orderId === orderId && 
+            a.type === type && 
+            (status ? a.message.includes(status) : true) &&
+            (Date.now() - new Date(a.timestamp).getTime() < 30000) // Last 30 seconds
+        );
     }
 
     logActivity(message, type, orderId, customerName) {
@@ -2569,8 +2656,14 @@ class LiveKitchenSystem {
             icon: this.getActivityIcon(type),
             color: this.getActivityColor(type)
         };
+        
         this.activityLog.unshift(activity);
-        if (this.activityLog.length > 20) this.activityLog.pop();
+        
+        // Keep only last 20 activities
+        if (this.activityLog.length > 20) {
+            this.activityLog = this.activityLog.slice(0, 20);
+        }
+        
         this.updateActivityFeed();
     }
 
@@ -2578,7 +2671,12 @@ class LiveKitchenSystem {
         const icons = { 
             'order_created': 'fa-cart-plus', 
             'payment_verified': 'fa-check-circle',
-            'status_change': 'fa-sync-alt'
+            'status_change': 'fa-sync-alt',
+            'preparing': 'fa-utensils',
+            'incubating': 'fa-fire',
+            'ready': 'fa-check-circle',
+            'completed': 'fa-flag-checkered',
+            'cancelled': 'fa-ban'
         };
         return icons[type] || 'fa-bell';
     }
@@ -2587,7 +2685,12 @@ class LiveKitchenSystem {
         const colors = { 
             'order_created': '#9b59b6', 
             'payment_verified': '#2ecc71',
-            'status_change': '#3498db'
+            'status_change': '#3498db',
+            'preparing': '#f39c12',
+            'incubating': '#e74c3c',
+            'ready': '#2ecc71',
+            'completed': '#27ae60',
+            'cancelled': '#95a5a6'
         };
         return colors[type] || '#3498db';
     }
@@ -2616,14 +2719,23 @@ class LiveKitchenSystem {
     }
 
     updateDisplay() {
-        document.getElementById('preparingCount').textContent = this.kitchenData.preparing;
-        document.getElementById('incubatingCount').textContent = this.kitchenData.incubating;
-        document.getElementById('readyCount').textContent = this.kitchenData.ready;
-        document.getElementById('completedCount').textContent = this.kitchenData.completed;
+        // Update the stat counters
+        const preparingEl = document.getElementById('preparingCount');
+        const incubatingEl = document.getElementById('incubatingCount');
+        const readyEl = document.getElementById('readyCount');
+        const completedEl = document.getElementById('completedCount');
+        
+        if (preparingEl) preparingEl.textContent = this.kitchenData.preparing;
+        if (incubatingEl) incubatingEl.textContent = this.kitchenData.incubating;
+        if (readyEl) readyEl.textContent = this.kitchenData.ready;
+        if (completedEl) completedEl.textContent = this.kitchenData.completed;
+        
+        console.log('🔄 Display updated:', this.kitchenData);
     }
 
     handleNewOrder(order) {
         // This will be handled by Firebase listener now
+        console.log('New order detected by Firebase:', order.id);
     }
 
     generateOrderId() {
@@ -2897,6 +3009,7 @@ console.log('✅ Live Activity Feed initialized - Listening to cleanbite_orders'
   
 </body>
 </html>
+
 
 
 
