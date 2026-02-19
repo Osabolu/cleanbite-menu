@@ -2200,11 +2200,36 @@ function setupSubmitButton() {
     });
 }
 
+// ==================== SHOW ORDER CONFIRMATION POPUP - FIXED ====================
 function showOrderConfirmation(order) {
+    console.log('🎉 Showing confirmation for order:', order.id);
+    
+    // Update modal content
     document.getElementById('confirmCustomerName').textContent = order.customerName || 'Customer';
     document.getElementById('confirmOrderId').textContent = order.id;
     document.getElementById('confirmTotal').textContent = `₦${(order.total || 0).toLocaleString()}`;
-    document.getElementById('confirmationModal').classList.add('active');
+    
+    // Update estimated time (45 minutes from now)
+    const estimatedTime = new Date(Date.now() + 45 * 60 * 1000);
+    document.getElementById('confirmEstimatedTime').innerHTML = 
+        `${estimatedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (45 mins)`;
+    
+    // Set track order link
+    const trackBtn = document.getElementById('trackOrderBtn');
+    if (trackBtn) {
+        trackBtn.href = `track.html?order=${order.id}`;
+    }
+    
+    // Show the modal
+    const modal = document.getElementById('confirmationModal');
+    if (modal) {
+        modal.classList.add('active');
+        console.log('✅ Confirmation modal shown');
+    } else {
+        console.error('❌ Confirmation modal not found');
+        // Fallback alert
+        alert(`Order ${order.id} placed successfully!`);
+    }
 }
 
 window.closeModal = function(modalId) {
@@ -2335,3 +2360,4 @@ console.log('✅ ORDER PAGE COMPLETE - Firebase + Broadcast Ready');
 </script>
 </body>
 </html>
+
