@@ -2162,8 +2162,34 @@ function generateActivitiesFromOrders(orders) {
         //loadDashboardData();
     }
     
-    // ==================== LOAD DASHBOARD DATA ====================
+    // ==================== LOAD DASHBOARD STATS ====================
+    // ==================== LIVE KITCHEN STATS FOR ADMIN ====================
+function loadAdminKitchenStats() {
+    database.ref('orders').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+        
+        const orders = Object.values(data);
+        
+        // Update stats if you have kitchen stat elements in admin
+        const preparing = orders.filter(o => o.paymentStatus === 'verified' && o.status === 'preparing').length;
+        const incubating = orders.filter(o => o.paymentStatus === 'verified' && o.status === 'incubating').length;
+        const ready = orders.filter(o => o.paymentStatus === 'verified' && o.status === 'ready').length;
+        const completed = orders.filter(o => o.paymentStatus === 'verified' && o.status === 'completed').length;
+        
+        console.log('👨‍🍳 Admin Kitchen Stats:', { preparing, incubating, ready, completed });
+        
+        // If you have elements to display these stats, update them here
+        // document.getElementById('adminPreparing').textContent = preparing;
+        // etc.
+    });
+}
 
+// Call it in DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    // ... existing code ...
+    loadAdminKitchenStats();
+});
     
     // ==================== UPDATE STATS ====================
     function updateStats(orders) {
@@ -3302,6 +3328,7 @@ window.openStatusModal = function(orderId) {
 </body>
 
 </html>
+
 
 
 
