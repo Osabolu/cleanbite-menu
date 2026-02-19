@@ -2201,41 +2201,62 @@ function setupSubmitButton() {
 }
 
 // ==================== SHOW ORDER CONFIRMATION POPUP - FIXED ====================
+// ==================== SHOW ORDER CONFIRMATION POPUP - FIXED ====================
 function showOrderConfirmation(order) {
     console.log('🎉 Showing confirmation for order:', order.id);
     
-    // Update modal content
-    document.getElementById('confirmCustomerName').textContent = order.customerName || 'Customer';
-    document.getElementById('confirmOrderId').textContent = order.id;
-    document.getElementById('confirmTotal').textContent = `₦${(order.total || 0).toLocaleString()}`;
+    // Get the modal element
+    const modal = document.getElementById('confirmationModal');
+    if (!modal) {
+        console.error('❌ Confirmation modal not found in DOM');
+        alert(`Order ${order.id} placed successfully! (Modal not found)`);
+        return;
+    }
     
-    // Update estimated time (45 minutes from now)
-    const estimatedTime = new Date(Date.now() + 45 * 60 * 1000);
-    document.getElementById('confirmEstimatedTime').innerHTML = 
-        `${estimatedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (45 mins)`;
+    // Update modal content
+    const nameSpan = document.getElementById('confirmCustomerName');
+    const idSpan = document.getElementById('confirmOrderId');
+    const totalSpan = document.getElementById('confirmTotal');
+    const timeSpan = document.getElementById('confirmEstimatedTime');
+    const trackBtn = document.getElementById('trackOrderBtn');
+    
+    if (nameSpan) nameSpan.textContent = order.customerName || 'Customer';
+    if (idSpan) idSpan.textContent = order.id;
+    if (totalSpan) totalSpan.textContent = `₦${(order.total || 0).toLocaleString()}`;
+    
+    // Set estimated time (45 minutes from now)
+    if (timeSpan) {
+        const estimatedTime = new Date(Date.now() + 45 * 60 * 1000);
+        timeSpan.textContent = estimatedTime.toLocaleTimeString([], { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        }) + ' (45 mins)';
+    }
     
     // Set track order link
-    const trackBtn = document.getElementById('trackOrderBtn');
     if (trackBtn) {
         trackBtn.href = `track.html?order=${order.id}`;
+        trackBtn.target = '_blank'; // Open in new tab
     }
     
-    // Show the modal
-    const modal = document.getElementById('confirmationModal');
-    if (modal) {
-        modal.classList.add('active');
-        console.log('✅ Confirmation modal shown');
-    } else {
-        console.error('❌ Confirmation modal not found');
-        // Fallback alert
-        alert(`Order ${order.id} placed successfully!`);
-    }
+    // SHOW THE MODAL
+    console.log('✅ Adding active class to modal');
+    modal.classList.add('active');
+    
+    // Verify it worked
+    setTimeout(() => {
+        if (modal.classList.contains('active')) {
+            console.log('✅ Modal is visible');
+        } else {
+            console.error('❌ Modal did not become active');
+        }
+    }, 100);
 }
 
-window.closeModal = function(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) modal.classList.remove('active');
-};
+    document.getElementById('closeConfirmationModal')?.addEventListener('click', () => {
+    console.log('Closing confirmation modal');
+    closeModal('confirmationModal');
+});
 
 function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
@@ -2360,4 +2381,5 @@ console.log('✅ ORDER PAGE COMPLETE - Firebase + Broadcast Ready');
 </script>
 </body>
 </html>
+
 
