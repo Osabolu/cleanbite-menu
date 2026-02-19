@@ -1529,38 +1529,32 @@
     }
     
     // ==================== UPDATE DASHBOARD ====================
-    function updateDashboardWithFirebaseOrders(orders) {
-        console.log('🔄 Updating dashboard with', orders.length, 'orders');
-        
-        const pendingPayments = orders.filter(o => 
-            o.paymentStatus === 'pending' && 
-            o.status !== 'cancelled'
-        );
-        
-        const verifiedOrders = orders.filter(o => 
-            o.paymentStatus === 'verified' && 
-            o.status !== 'completed' && 
-            o.status !== 'cancelled'
-        );
-        
-        // Update stats if function exists
-        if (typeof updateStats === 'function') {
-            updateStats(orders, pendingPayments);
-        }
-        
-        // Update verification queue
-        if (typeof renderVerificationQueue === 'function') {
-            renderVerificationQueue(pendingPayments);
-        }
-        
-        // Update orders list
-        if (typeof renderOrders === 'function') {
-            renderOrders(verifiedOrders);
-        }
-        
-        // Update localStorage backup
-        localStorage.setItem('admin_verification_queue', JSON.stringify(pendingPayments));
-    }
+   function updateDashboardWithFirebaseOrders(orders) {
+    console.log('🔄 Updating dashboard with', orders.length, 'orders');
+    
+    const pendingPayments = orders.filter(o => 
+        o.paymentStatus === 'pending' && 
+        o.status !== 'cancelled'
+    );
+    
+    const verifiedOrders = orders.filter(o => 
+        o.paymentStatus === 'verified' && 
+        o.status !== 'completed' && 
+        o.status !== 'cancelled'
+    );
+    
+    // Update stats
+    updateStats(orders);
+    
+    // Update verification queue
+    renderVerificationQueue(pendingPayments);
+    
+    // Update orders list
+    renderOrders(verifiedOrders);
+    
+    // Update localStorage backup (optional)
+    localStorage.setItem('admin_verification_queue', JSON.stringify(pendingPayments));
+}
     
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
@@ -1651,7 +1645,7 @@
         setupBroadcastListeners();
         setupActivityFeedListener();
         setupProgressionMonitor();
-        loadDashboardData();
+        //loadDashboardData();
         startAutoRefresh();
         requestNotificationPermission();
         
@@ -1775,7 +1769,7 @@
         
         if (updated) {
             localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
-            loadDashboardData();
+            //loadDashboardData();
         }
     }
     
@@ -2081,32 +2075,32 @@
         addActivityToFeed(activity);
         broadcastToOrderPage('order_created', activity.message, order.id, order.customerName);
         
-        loadDashboardData();
+        //loadDashboardData();
     }
     
     // ==================== LOAD DASHBOARD DATA ====================
-    function loadDashboardData() {
-        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+    //function loadDashboardData() {
+       // const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
         
         // Apply filter if set
-        let filteredOrders = orders;
-        if (currentFilter !== 'all') {
-            filteredOrders = orders.filter(o => o.status === currentFilter);
-        }
+       // let filteredOrders = orders;
+       // if (currentFilter !== 'all') {
+       //     filteredOrders = orders.filter(o => o.status === currentFilter);
+       // }
         
-        const pendingPayments = orders.filter(o => 
-            o.paymentStatus === 'pending' && 
-            o.status !== 'cancelled' && 
-            o.status !== 'rejected'
-        );
+        //const pendingPayments = orders.filter(o => 
+        //    o.paymentStatus === 'pending' && 
+        //    o.status !== 'cancelled' && 
+        //    o.status !== 'rejected'
+        //);
         
-        const verifiedOrders = orders.filter(o => 
-            o.paymentStatus === 'verified' && 
-            o.status !== 'completed' && 
-            o.status !== 'cancelled'
-        );
+       // const verifiedOrders = orders.filter(o => 
+        //    o.paymentStatus === 'verified' && 
+       //     o.status !== 'completed' && 
+       //     o.status !== 'cancelled'
+        //);
         
-        localStorage.setItem('admin_verification_queue', JSON.stringify(pendingPayments));
+        //localStorage.setItem('admin_verification_queue', JSON.stringify(pendingPayments));
         
         updateStats(orders);
         renderVerificationQueue(pendingPayments);
@@ -2164,130 +2158,130 @@
     }
     
     // ==================== RENDER VERIFICATION QUEUE ====================
-    function renderVerificationQueue(pendingPayments) {
-        const container = document.getElementById('verificationList');
-        if (!container) return;
-        
-        if (pendingPayments.length === 0) {
-            container.innerHTML = `
-                <div class="verification-item empty" style="grid-template-columns: 1fr; text-align: center; padding: 40px;">
-                    <div>
-                        <i class="fas fa-check-circle" style="font-size: 48px; color: #2ecc71; margin-bottom: 16px;"></i>
-                        <p style="color: #7f8c8d; margin: 0;">No payments pending verification</p>
-                        <p style="color: #95a5a6; font-size: 13px; margin-top: 8px;">All caught up!</p>
+   function renderVerificationQueue(pendingPayments) {
+    const container = document.getElementById('verificationList');
+    if (!container) return;
+    
+    if (!pendingPayments || pendingPayments.length === 0) {
+        container.innerHTML = `
+            <div class="verification-item empty" style="grid-template-columns: 1fr; text-align: center; padding: 40px;">
+                <div>
+                    <i class="fas fa-check-circle" style="font-size: 48px; color: #2ecc71; margin-bottom: 16px;"></i>
+                    <p style="color: #7f8c8d; margin: 0;">No payments pending verification</p>
+                    <p style="color: #95a5a6; font-size: 13px; margin-top: 8px;">All caught up!</p>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = pendingPayments.map(order => `
+        <div class="verification-item" data-order-id="${order.id}">
+            <div class="order-id">${order.id}</div>
+            <div class="customer-info">
+                <h4><i class="fas fa-user-circle"></i> ${order.customerName || 'Customer'}</h4>
+                <p><i class="fas fa-phone-alt"></i> ${order.customerPhone || 'N/A'}</p>
+            </div>
+            <div class="order-items">
+                ${order.items?.slice(0, 3).map(item => 
+                    `${item.quantity}x ${item.name}`
+                ).join('<br>')}
+                ${order.items?.length > 3 ? `<br><span style="color: #95a5a6;">+${order.items.length - 3} more</span>` : ''}
+            </div>
+            <div class="order-amount">₦${(order.total || order.totalAmount || 0).toLocaleString()}</div>
+            <div class="verification-actions">
+                <button class="btn-verify" onclick="openVerifyModal('${order.id}')">
+                    <i class="fas fa-check-circle"></i> Verify
+                </button>
+                <button class="btn-reject" onclick="openRejectModal('${order.id}')">
+                    <i class="fas fa-times-circle"></i> Reject
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+    
+    // ==================== RENDER ORDERS ====================
+   function renderOrders(orders) {
+    const container = document.getElementById('ordersList');
+    if (!container) return;
+    
+    if (!orders || orders.length === 0) {
+        container.innerHTML = `
+            <div class="order-row empty" style="grid-template-columns: 1fr; text-align: center; padding: 40px;">
+                <div>
+                    <i class="fas fa-shopping-cart" style="font-size: 48px; color: #95a5a6; margin-bottom: 16px;"></i>
+                    <p style="color: #7f8c8d; margin: 0;">No verified orders</p>
+                    <p style="color: #95a5a6; font-size: 13px;">Orders will appear here after payment verification</p>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    const sortedOrders = [...orders].sort((a, b) => 
+        new Date(b.verifiedAt || b.createdAt || b.timestamp || 0) - new Date(a.verifiedAt || a.createdAt || a.timestamp || 0)
+    );
+    
+    container.innerHTML = sortedOrders.map(order => {
+        let progressHtml = '';
+        if (order.status === 'incubating' && order.incubatingStarted) {
+            const start = new Date(order.incubatingStarted);
+            const now = new Date();
+            const elapsed = now - start;
+            const total = 24 * 60 * 60 * 1000;
+            const percent = Math.min(100, Math.round((elapsed / total) * 100));
+            const remaining = Math.max(0, Math.round((total - elapsed) / (60 * 60 * 1000)));
+            
+            progressHtml = `
+                <div style="margin-top: 8px; font-size: 11px;">
+                    <div style="background: #edf2f7; border-radius: 10px; height: 6px; width: 100%;">
+                        <div style="background: #3498db; width: ${percent}%; height: 6px; border-radius: 10px;"></div>
                     </div>
+                    <span style="color: #7f8c8d;">${remaining}h remaining</span>
                 </div>
             `;
-            return;
         }
         
-        container.innerHTML = pendingPayments.map(order => `
-            <div class="verification-item" data-order-id="${order.id}">
+        return `
+            <div class="order-row" data-order-id="${order.id}">
                 <div class="order-id">${order.id}</div>
                 <div class="customer-info">
                     <h4><i class="fas fa-user-circle"></i> ${order.customerName || 'Customer'}</h4>
                     <p><i class="fas fa-phone-alt"></i> ${order.customerPhone || 'N/A'}</p>
                 </div>
                 <div class="order-items">
-                    ${order.items?.slice(0, 3).map(item => 
+                    ${order.items?.slice(0, 2).map(item => 
                         `${item.quantity}x ${item.name}`
                     ).join('<br>')}
-                    ${order.items?.length > 3 ? `<br><span style="color: #95a5a6;">+${order.items.length - 3} more</span>` : ''}
+                    ${order.items?.length > 2 ? `<br><span style="color: #95a5a6;">+${order.items.length - 2} more</span>` : ''}
                 </div>
                 <div class="order-amount">₦${(order.total || order.totalAmount || 0).toLocaleString()}</div>
-                <div class="verification-actions">
-                    <button class="btn-verify" onclick="openVerifyModal('${order.id}')">
-                        <i class="fas fa-check-circle"></i> Verify
-                    </button>
-                    <button class="btn-reject" onclick="openRejectModal('${order.id}')">
-                        <i class="fas fa-times-circle"></i> Reject
+                <div>
+                    <span class="status-badge status-${order.status || 'pending'}">
+                        <i class="fas ${getStatusIcon(order.status)}"></i>
+                        ${(order.status || 'pending').replace('-', ' ')}
+                    </span>
+                    <span class="payment-status payment-verified">
+                        <i class="fas fa-check-circle"></i> Verified
+                    </span>
+                    ${progressHtml}
+                </div>
+                <div class="action-buttons">
+                    ${order.status === 'ready' ? `
+                        <button class="btn-action complete" onclick="completeOrderManually('${order.id}')" 
+                                style="background: #2ecc71; color: white;">
+                            <i class="fas fa-flag-checkered"></i> Complete
+                        </button>
+                    ` : ''}
+                    <button class="btn-action update" onclick="openStatusModal('${order.id}')">
+                        <i class="fas fa-sync-alt"></i> Update
                     </button>
                 </div>
             </div>
-        `).join('');
-    }
-    
-    // ==================== RENDER ORDERS ====================
-    function renderOrders(orders) {
-        const container = document.getElementById('ordersList');
-        if (!container) return;
-        
-        if (orders.length === 0) {
-            container.innerHTML = `
-                <div class="order-row empty" style="grid-template-columns: 1fr; text-align: center; padding: 40px;">
-                    <div>
-                        <i class="fas fa-shopping-cart" style="font-size: 48px; color: #95a5a6; margin-bottom: 16px;"></i>
-                        <p style="color: #7f8c8d; margin: 0;">No verified orders</p>
-                        <p style="color: #95a5a6; font-size: 13px;">Orders will appear here after payment verification</p>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-        
-        const sortedOrders = [...orders].sort((a, b) => 
-            new Date(b.verifiedAt || b.createdAt || b.timestamp || 0) - new Date(a.verifiedAt || a.createdAt || a.timestamp || 0)
-        );
-        
-        container.innerHTML = sortedOrders.map(order => {
-            let progressHtml = '';
-            if (order.status === 'incubating' && order.incubatingStarted) {
-                const start = new Date(order.incubatingStarted);
-                const now = new Date();
-                const elapsed = now - start;
-                const total = 24 * 60 * 60 * 1000;
-                const percent = Math.min(100, Math.round((elapsed / total) * 100));
-                const remaining = Math.max(0, Math.round((total - elapsed) / (60 * 60 * 1000)));
-                
-                progressHtml = `
-                    <div style="margin-top: 8px; font-size: 11px;">
-                        <div style="background: #edf2f7; border-radius: 10px; height: 6px; width: 100%;">
-                            <div style="background: #3498db; width: ${percent}%; height: 6px; border-radius: 10px;"></div>
-                        </div>
-                        <span style="color: #7f8c8d;">${remaining}h remaining</span>
-                    </div>
-                `;
-            }
-            
-            return `
-                <div class="order-row" data-order-id="${order.id}">
-                    <div class="order-id">${order.id}</div>
-                    <div class="customer-info">
-                        <h4><i class="fas fa-user-circle"></i> ${order.customerName || 'Customer'}</h4>
-                        <p><i class="fas fa-phone-alt"></i> ${order.customerPhone || 'N/A'}</p>
-                    </div>
-                    <div class="order-items">
-                        ${order.items?.slice(0, 2).map(item => 
-                            `${item.quantity}x ${item.name}`
-                        ).join('<br>')}
-                        ${order.items?.length > 2 ? `<br><span style="color: #95a5a6;">+${order.items.length - 2} more</span>` : ''}
-                    </div>
-                    <div class="order-amount">₦${(order.total || order.totalAmount || 0).toLocaleString()}</div>
-                    <div>
-                        <span class="status-badge status-${order.status || 'pending'}">
-                            <i class="fas ${getStatusIcon(order.status)}"></i>
-                            ${(order.status || 'pending').replace('-', ' ')}
-                        </span>
-                        <span class="payment-status payment-verified">
-                            <i class="fas fa-check-circle"></i> Verified
-                        </span>
-                        ${progressHtml}
-                    </div>
-                    <div class="action-buttons">
-                        ${order.status === 'ready' ? `
-                            <button class="btn-action complete" onclick="completeOrderManually('${order.id}')" 
-                                    style="background: #2ecc71; color: white;">
-                                <i class="fas fa-flag-checkered"></i> Complete
-                            </button>
-                        ` : ''}
-                        <button class="btn-action update" onclick="openStatusModal('${order.id}')">
-                            <i class="fas fa-sync-alt"></i> Update
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
+        `;
+    }).join('');
+}
     
     // ==================== TAB VIEWS ====================
     function setActiveTab(tabId) {
@@ -2629,7 +2623,7 @@
         broadcastToOrderPage('order_completed', message, order.id, order.customerName);
         
         showNotification(`✅ Order ${orderId.slice(-8)} completed`, 'success');
-        loadDashboardData();
+        //loadDashboardData();
     };
     
         function verifyPayment() {
@@ -2778,7 +2772,7 @@
         showNotification(`❌ Payment rejected - Order removed from queue`, 'warning');
         
         setTimeout(() => {
-            loadDashboardData();
+            //loadDashboardData();
         }, 50);
         
         closeModal('rejectModal');
@@ -2840,25 +2834,27 @@
         
         showNotification(`Order updated to ${newStatus}`, 'info');
         
-        loadDashboardData();
+        //loadDashboardData();
         closeModal('statusModal');
     }
     
     // ==================== MODAL FUNCTIONS ====================
-    window.openVerifyModal = function(orderId) {
-        currentVerificationOrder = orderId;
-        
-        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
-        const order = orders.find(o => o.id === orderId);
-        
-        if (order) {
-            document.getElementById('verifyOrderId').textContent = order.id;
-            document.getElementById('verifyCustomerName').textContent = order.customerName || 'Customer';
-            document.getElementById('verifyAmount').textContent = `₦${(order.total || order.totalAmount || 0).toLocaleString()}`;
-            document.getElementById('verifyMethod').textContent = order.paymentMethod || 'Bank Transfer';
-            document.getElementById('verifyModal').classList.add('active');
-        }
-    };
+   window.openVerifyModal = function(orderId) {
+    currentVerificationOrder = orderId;
+    
+    // Use allOrders (Firebase) instead of localStorage
+    const order = allOrders.find(o => o.id === orderId);
+    
+    if (order) {
+        document.getElementById('verifyOrderId').textContent = order.id;
+        document.getElementById('verifyCustomerName').textContent = order.customerName || 'Customer';
+        document.getElementById('verifyAmount').textContent = `₦${(order.total || order.totalAmount || 0).toLocaleString()}`;
+        document.getElementById('verifyMethod').textContent = order.paymentMethod || 'Bank Transfer';
+        document.getElementById('verifyModal').classList.add('active');
+    } else {
+        showNotification('Order not found', 'error');
+    }
+};  
     
     window.openRejectModal = function(orderId) {
         currentVerificationOrder = orderId;
@@ -3104,7 +3100,7 @@
     
     function startAutoRefresh() {
         setInterval(() => {
-            loadDashboardData();
+            //loadDashboardData();
         }, 15000);
     }
     
@@ -3122,5 +3118,6 @@
 </body>
 
 </html>
+
 
 
