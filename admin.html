@@ -2552,25 +2552,33 @@
     };
     
     // ==================== COMPLETE ORDER MANUALLY ====================
-    window.completeOrderManually = function(orderId) {
-        console.log('🏁 Manually completing order:', orderId);
-        
-        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
-        const orderIndex = orders.findIndex(o => o.id === orderId);
-        
-        if (orderIndex === -1) {
-            showNotification('Order not found', 'error');
-            return;
-        }
-        
-        const order = orders[orderIndex];
-        
-        order.status = 'completed';
-        order.completedAt = new Date().toISOString();
-        order.updatedAt = new Date().toISOString();
-        order.completedBy = 'admin';
-        
-        localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
+  window.completeOrderManually = function(orderId) {
+    console.log('🏁 Manually completing order:', orderId);
+    
+    // Find the order in Firebase
+    const order = allOrders.find(o => o.id === orderId);
+    
+    if (!order) {
+        showNotification('Order not found', 'error');
+        return;
+    }
+    
+    if (!order.firebaseKey) {
+        showNotification('Error: Order missing Firebase reference', 'error');
+        return;
+    }
+    
+    // Update in Firebase
+    const orderRef = database.ref(`orders/${order.firebaseKey}`);
+    
+    orderRef.update({
+        status: 'completed',
+        completedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        completedBy: 'admin'
+    })
+    .then(() => {
+        console.log('✅ Order completed in Firebase');
         
         playApprovalSound();
         
@@ -2589,8 +2597,12 @@
         broadcastToOrderPage('order_completed', message, order.id, order.customerName);
         
         showNotification(`✅ Order ${orderId.slice(-8)} completed`, 'success');
-        //loadDashboardData();
-    };
+    })
+    .catch(error => {
+        console.error('❌ Error completing order:', error);
+        showNotification('Error completing order', 'error');
+    });
+};
     
         function verifyPayment() {
         console.log('🔍 STEP 1: verifyPayment started');
@@ -2783,36 +2795,85 @@
     
     // ==================== UPDATE ORDER STATUS ====================
     function updateOrderStatus() {
-        if (!currentStatusOrder) return;
+    console.log('🔍 STATUS: Started');
+    
+    if (!currentStatusOrder) {
+        console.log('❌ STATUS: No order selected');
+        showNotification('No order selected', 'error');
+        return;
+    }
+    
+    const selectedStatus = document.querySelector('input[name="status"]:checked');
+    if (!selectedStatus) {
+        showNotification('Please select a status', 'warning');
+        return;
+    }
+    
+    const newStatus = selectedStatus.value;
+    console.log('📊 STATUS: Updating order', currentStatusOrder, 'to', newStatus);
+    
+    // Find the order in Firebase (allOrders)
+    const order = allOrders.find(o => o.id === currentStatusOrder);
+    
+    if (!order) {
+        console.log('❌ STATUS: Order not found in allOrders');
+        console.log('Available orders:', allOrders.map(o => o.id));
+        showNotification('Order not found', 'error');
+        closeModal('statusModal');
+        return;
+    }
+    
+    console.log('✅ STATUS: Order found:', order.id);
+    console.log('✅ STATUS: firebaseKey =', order.firebaseKey);
+    
+    if (!order.firebaseKey) {
+        console.log('❌ STATUS: No firebaseKey for order');
+        showNotification('Error: Order missing Firebase reference', 'error');
+        return;
+    }
+    
+    // Disable button
+    const updateBtn = document.getElementById('confirmUpdate');
+    if (updateBtn) {
+        console.log('✅ STATUS: Disabling button');
+        updateBtn.disabled = true;
+        updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+    }
+    
+    // Prepare update data
+    const updates = {
+        status: newStatus,
+        updatedAt: new Date().toISOString()
+    };
+    
+    // Add special fields based on status
+    if (newStatus === 'preparing' && !order.preparingStarted) {
+        updates.preparingStarted = new Date().toISOString();
+    }
+    if (newStatus === 'incubating' && !order.incubatingStarted) {
+        updates.incubatingStarted = new Date().toISOString();
+    }
+    if (newStatus === 'ready' && !order.readyAt) {
+        updates.readyAt = new Date().toISOString();
+    }
+    if (newStatus === 'completed') {
+        updates.completedAt = new Date().toISOString();
+        updates.completedBy = 'admin';
+    }
+    
+    console.log('🔍 STATUS: Updating Firebase with:', updates);
+    
+    // Update in Firebase
+    const orderRef = database.ref(`orders/${order.firebaseKey}`);
+    
+    orderRef.update(updates)
+    .then(() => {
+        console.log('✅ STATUS: Firebase update SUCCESSFUL!');
         
-        const selectedStatus = document.querySelector('input[name="status"]:checked');
-        if (!selectedStatus) {
-            showNotification('Please select a status', 'warning');
-            return;
-        }
-        
-        const newStatus = selectedStatus.value;
-        
-        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
-        const orderIndex = orders.findIndex(o => o.id === currentStatusOrder);
-        
-        if (orderIndex === -1) return;
-        
-        const order = orders[orderIndex];
-        const oldStatus = order.status;
-        
-        order.status = newStatus;
-        order.updatedAt = new Date().toISOString();
-        
-        if (newStatus === 'completed') {
-            order.completedAt = new Date().toISOString();
-            order.completedBy = 'admin';
-        }
-        
-        localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
-        
+        // Play approval sound
         playApprovalSound();
         
+        // Create message for activity feed
         let message = '';
         if (newStatus === 'preparing') message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
         if (newStatus === 'incubating') message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (24hr countdown started)`;
@@ -2833,11 +2894,24 @@
             broadcastToOrderPage('status_change', message, order.id, order.customerName);
         }
         
-        showNotification(`Order updated to ${newStatus}`, 'info');
+        showNotification(`Order updated to ${newStatus}`, 'success');
         
-        //loadDashboardData();
+        // Close modal
         closeModal('statusModal');
-    }
+        currentStatusOrder = null;
+    })
+    .catch(error => {
+        console.log('❌ STATUS ERROR: Firebase update failed');
+        console.error('Error details:', error);
+        showNotification('Error updating status: ' + error.message, 'error');
+        
+        // Re-enable button
+        if (updateBtn) {
+            updateBtn.disabled = false;
+            updateBtn.innerHTML = '<i class="fas fa-check"></i> Update Status';
+        }
+    });
+}
     
     // ==================== MODAL FUNCTIONS ====================
    window.openVerifyModal = function(orderId) {
@@ -2876,33 +2950,36 @@
     }
 };
     
-    window.openStatusModal = function(orderId) {
-        currentStatusOrder = orderId;
+window.openStatusModal = function(orderId) {
+    console.log('🔍 Opening status modal for:', orderId);
+    currentStatusOrder = orderId;
+    
+    // Find the order in Firebase
+    const order = allOrders.find(o => o.id === orderId);
+    
+    if (order) {
+        document.getElementById('modalOrderInfo').innerHTML = 
+            `Order: <strong>${order.id}</strong> for <strong>${order.customerName || 'Customer'}</strong>`;
         
-        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
-        const order = orders.find(o => o.id === orderId);
+        const statusOptions = document.getElementById('statusOptions');
+        const statuses = ['pending-payment', 'preparing', 'incubating', 'ready', 'completed', 'cancelled'];
         
-        if (order) {
-            document.getElementById('modalOrderInfo').innerHTML = 
-                `Order: <strong>${order.id}</strong> for <strong>${order.customerName || 'Customer'}</strong>`;
-            
-            const statusOptions = document.getElementById('statusOptions');
-            const statuses = ['pending-payment', 'preparing', 'incubating', 'ready', 'completed', 'cancelled'];
-            
-            statusOptions.innerHTML = statuses.map(status => `
-                <label style="display: flex; align-items: center; margin-bottom: 12px; padding: 10px 16px; border: 1px solid #e9ecef; border-radius: 12px; cursor: pointer; background: ${order.status === status ? '#fff9e6' : 'white'};">
-                    <input type="radio" name="status" value="${status}" ${order.status === status ? 'checked' : ''} style="margin-right: 12px; width: 18px; height: 18px; accent-color: var(--primary);">
-                    <span style="display: inline-block; padding: 6px 16px; border-radius: 30px; background: ${getStatusColor(status)}; color: white; font-size: 12px; font-weight: 600;">
-                        <i class="fas ${getStatusIcon(status)}" style="margin-right: 6px;"></i>
-                        ${status.replace('-', ' ')}
-                    </span>
-                    ${order.status === status ? '<span style="margin-left: auto; color: var(--primary);"><i class="fas fa-check-circle"></i> Current</span>' : ''}
-                </label>
-            `).join('');
-            
-            document.getElementById('statusModal').classList.add('active');
-        }
-    };
+        statusOptions.innerHTML = statuses.map(status => `
+            <label style="display: flex; align-items: center; margin-bottom: 12px; padding: 10px 16px; border: 1px solid #e9ecef; border-radius: 12px; cursor: pointer; background: ${order.status === status ? '#fff9e6' : 'white'};">
+                <input type="radio" name="status" value="${status}" ${order.status === status ? 'checked' : ''} style="margin-right: 12px; width: 18px; height: 18px; accent-color: var(--primary);">
+                <span style="display: inline-block; padding: 6px 16px; border-radius: 30px; background: ${getStatusColor(status)}; color: white; font-size: 12px; font-weight: 600;">
+                    <i class="fas ${getStatusIcon(status)}" style="margin-right: 6px;"></i>
+                    ${status.replace('-', ' ')}
+                </span>
+                ${order.status === status ? '<span style="margin-left: auto; color: var(--primary);"><i class="fas fa-check-circle"></i> Current</span>' : ''}
+            </label>
+        `).join('');
+        
+        document.getElementById('statusModal').classList.add('active');
+    } else {
+        showNotification('Order not found', 'error');
+    }
+};
     
     function closeModal(modalId) {
         const modal = document.getElementById(modalId);
@@ -3133,6 +3210,7 @@
 </body>
 
 </html>
+
 
 
 
