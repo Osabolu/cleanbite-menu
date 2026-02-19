@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Browse authentic customer reviews of CleanBite Empire. Read testimonials from fellow patrons who experienced our premium Nigerian yoghurt and sovereign service.">
+    <title>Customer Sovereignty | CleanBite Empire</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            color: #f0f0f0;
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        .nav-bar {
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 40px;
+            border-bottom: 1px solid rgba(255, 209, 102, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-logo span {
+            color: #ffd166;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            color: #aaa;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+
+        .nav-menu a:hover {
+            color: #ffd166;
+            background: rgba(255, 209, 102, 0.1);
+        }
+
+        .nav-menu a i {
+            margin-right: 8px;
+        }
+
+        /* Main Container */
+        .reviews-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .reviews-header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 209, 102, 0.2);
+        }
+
+        .reviews-header h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(135deg, #ffd166 0%, #f9c74f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .reviews-header p {
+            color: #aaa;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 209, 102, 0.4);
+        }
+
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffd166 0%, #f9c74f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .stat-card span:last-child {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 10px 25px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #aaa;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .filter-btn:hover {
+            border-color: rgba(255, 209, 102, 0.4);
+            color: #ffd166;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #ffd166 0%, #f9c74f 100%);
+            color: #1a1a2e;
+            border-color: #ffd166;
+            font-weight: 600;
+        }
+
+        /* Reviews Grid */
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .review-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .review-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(255, 209, 102, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .reviewer-info h3 {
+            color: #ffd166;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .reviewer-location {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .reviewer-location i {
+            margin-right: 5px;
+        }
+
+        .review-stars {
+            color: #ffd166;
+            font-size: 1.3rem;
+            letter-spacing: 3px;
+        }
+
+        .review-content {
+            color: #f0f0f0;
+            line-height: 1.7;
+            margin-bottom: 25px;
+            font-size: 1.05rem;
+        }
+
+        .review-footer {
+            color: #888;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .review-footer i {
+            margin-right: 8px;
+        }
+
+        /* Empty State */
+        .empty-reviews {
+            text-align: center;
+            padding: 80px 40px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            border: 2px dashed rgba(255, 209, 102, 0.3);
+            grid-column: 1 / -1;
+        }
+
+        .empty-reviews i {
+            font-size: 4rem;
+            color: rgba(255, 209, 102, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .empty-reviews h3 {
+            color: #ffd166;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+
+        .empty-reviews p {
+            color: #aaa;
+            margin-bottom: 30px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 35px;
+            background: linear-gradient(135deg, #ffd166 0%, #f9c74f 100%);
+            color: #1a1a2e;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 209, 102, 0.3);
+        }
+
+        /* Mobile Menu */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #ffd166;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .reviews-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-bar {
+                padding: 15px 20px;
+            }
+            
+            .nav-menu {
+                display: none;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: rgba(15, 15, 35, 0.98);
+                backdrop-filter: blur(20px);
+                flex-direction: column;
+                padding: 20px;
+                border-bottom: 1px solid rgba(255, 209, 102, 0.2);
+            }
+            
+            .nav-menu.active {
+                display: flex;
+            }
+            
+            .nav-toggle {
+                display: block;
+            }
+            
+            .reviews-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .reviews-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters {
+                gap: 10px;
+            }
+            
+            .filter-btn {
+                padding: 8px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .review-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">Clean<span>Bite</span> Empire</a>
+            
+            <button class="nav-toggle" id="navToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <div class="nav-menu" id="navMenu">
+                <a href="index.html#menu"><i class="fas fa-utensils"></i> Menu</a>
+                <a href="index.html#covenant"><i class="fas fa-handshake"></i> Covenant</a>
+                <a href="review.html"><i class="fas fa-pencil-alt"></i> Submit Review</a>
+                <a href="track.html"><i class="fas fa-satellite-dish"></i> Track Order</a>
+                <a href="index.html#contact"><i class="fas fa-headset"></i> Empire Support</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="reviews-container">
+        <div class="reviews-header">
+            <h1><i class="fas fa-crown"></i> Customer Sovereignty</h1>
+            <p>Our empire is built on the voices of our patrons. See how we honor the CleanBite covenant through real experiences.</p>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <span class="number" id="avgRating">4.9</span>
+                <span>Empire Rating</span>
+            </div>
+            <div class="stat-card">
+                <span class="number" id="totalReviews">247</span>
+                <span>Total Testimonials</span>
+            </div>
+            <div class="stat-card">
+                <span class="number" id="fiveStarReviews">92%</span>
+                <span>5-Star Experiences</span>
+            </div>
+            <div class="stat-card">
+                <span class="number" id="happyCustomers">2.1k</span>
+                <span>Sovereign Patrons</span>
+            </div>
+        </div>
+
+        <div class="filters" id="filters">
+            <button class="filter-btn active" data-filter="all">All Testimonials</button>
+            <button class="filter-btn" data-filter="5">5 Stars</button>
+            <button class="filter-btn" data-filter="4">4+ Stars</button>
+            <button class="filter-btn" data-filter="chef">Chef's Picks</button>
+        </div>
+
+        <div class="reviews-grid" id="reviewsGrid">
+            <!-- Sample Reviews - These can be replaced with real data -->
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <h3>Chidi N.</h3>
+                        <div class="reviewer-location"><i class="fas fa-map-marker-alt"></i> Victoria Island, Lagos</div>
+                    </div>
+                    <div class="review-stars" title="5 stars">★★★★★</div>
+                </div>
+                <div class="review-content">
+                    "The sovereignty starts with the first bite. CleanBite's grilled salmon transformed my relationship with food. Every ingredient feels intentional, every flavor purposeful."
+                </div>
+                <div class="review-footer">
+                    <span><i class="far fa-calendar"></i> 2 days ago</span>
+                    <span><i class="fas fa-tag"></i> Order #CB-8472</span>
+                </div>
+            </div>
+
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <h3>Amina S.</h3>
+                        <div class="reviewer-location"><i class="fas fa-map-marker-alt"></i> GRA, Ibadan</div>
+                    </div>
+                    <div class="review-stars" title="5 stars">★★★★★</div>
+                </div>
+                <div class="review-content">
+                    "As someone with dietary restrictions, finding flavorful clean food was impossible until CleanBite. The kitchen's attention to detail makes me feel seen and valued."
+                </div>
+                <div class="review-footer">
+                    <span><i class="far fa-calendar"></i> 1 week ago</span>
+                    <span><i class="fas fa-award"></i> Chef's Pick</span>
+                </div>
+            </div>
+
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <h3>Tunde O.</h3>
+                        <div class="reviewer-location"><i class="fas fa-map-marker-alt"></i> Lekki, Lagos</div>
+                    </div>
+                    <div class="review-stars" title="4 stars">★★★★☆</div>
+                </div>
+                <div class="review-content">
+                    "The real-time order tracking is a game-changer. Watching my meal's journey from kitchen to delivery gave me complete peace of mind. Food arrived hot and perfect."
+                </div>
+                <div class="review-footer">
+                    <span><i class="far fa-calendar"></i> 3 weeks ago</span>
+                    <span><i class="fas fa-tag"></i> Order #CB-8123</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="empty-reviews" id="emptyState" style="display: none;">
+            <i class="fas fa-comments"></i>
+            <h3>No testimonials yet</h3>
+            <p>Be the first sovereign patron to share your CleanBite experience</p>
+            <a href="review.html" class="btn">
+                <i class="fas fa-pencil-alt"></i> Write Your Testimonial
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const navToggle = document.getElementById('navToggle');
+        const navMenu = document.getElementById('navMenu');
+        
+        if (navToggle && navMenu) {
+            navToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!navToggle.contains(e.target) && !navMenu.contains(e.target)) {
+                    navMenu.classList.remove('active');
+                }
+            });
+        }
+        
+        // Filter functionality
+        document.querySelectorAll('.filter-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                button.classList.add('active');
+                
+                // Filter logic would go here
+                const filter = button.dataset.filter;
+                console.log('Filtering by:', filter);
+                
+                // In a real app, you would filter reviews here
+            });
+        });
+        
+        // Load reviews from localStorage (if any)
+        function loadReviews() {
+            try {
+                const reviews = JSON.parse(localStorage.getItem('cleanbite_reviews') || '[]');
+                
+                // If no reviews in localStorage, keep the sample reviews
+                if (reviews.length === 0) {
+                    console.log('No reviews in localStorage, showing sample reviews');
+                    return;
+                }
+                
+                // Update stats with real data
+                if (reviews.length > 0) {
+                    const total = reviews.length;
+                    const avgRating = (reviews.reduce((sum, r) => sum + r.rating, 0) / total).toFixed(1);
+                    const fiveStarCount = reviews.filter(r => r.rating === 5).length;
+                    const uniqueCustomers = new Set(reviews.map(r => r.name)).size;
+                    
+                    document.getElementById('avgRating').textContent = avgRating;
+                    document.getElementById('totalReviews').textContent = total;
+                    document.getElementById('fiveStarReviews').textContent = Math.round((fiveStarCount / total) * 100) + '%';
+                    document.getElementById('happyCustomers').textContent = uniqueCustomers;
+                }
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+            }
+        }
+        
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', loadReviews);
+    </script>
+</body>
+</html>

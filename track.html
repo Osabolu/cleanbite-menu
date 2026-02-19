@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Track your CleanBite Empire order in real-time. Monitor your yoghurt's journey from preparation to pickup with our live kitchen tracking system.">
+    <title>Order Tracking | CleanBite Kitchen</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            color: #fff;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .background-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 209, 102, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(212, 165, 116, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .tracking-header {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .tracking-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, #ffd166 0%, #d4a574 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            text-shadow: 0 5px 15px rgba(255, 209, 102, 0.2);
+        }
+
+        .tracking-header p {
+            color: #aaa;
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .lookup-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .lookup-input {
+            display: flex;
+            gap: 15px;
+            max-width: 600px;
+            margin: 30px auto;
+        }
+
+        .lookup-input input {
+            flex: 1;
+            padding: 18px 25px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+
+        .lookup-input input:focus {
+            outline: none;
+            border-color: #ffd166;
+            box-shadow: 0 0 20px rgba(255, 209, 102, 0.3);
+        }
+
+        .lookup-input input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .track-btn {
+            padding: 18px 35px;
+            background: linear-gradient(135deg, #ffd166 0%, #f9c74f 100%);
+            color: #1a1a2e;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 10px 20px rgba(255, 209, 102, 0.3);
+        }
+
+        .track-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(255, 209, 102, 0.4);
+        }
+
+        .track-btn:focus {
+            outline: 3px solid #ffd166;
+            outline-offset: 3px;
+            box-shadow: 0 0 0 3px rgba(255, 209, 102, 0.5);
+        }
+
+        #trackingDisplay {
+            display: none;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .order-summary {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .summary-header h2 {
+            font-size: 1.8rem;
+            color: #ffd166;
+        }
+
+        .order-id-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .order-id {
+            font-family: monospace;
+            background: rgba(255, 209, 102, 0.1);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid #ffd166;
+            color: #ffd166;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 209, 102, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .copy-btn:focus {
+            outline: 3px solid #ffd166;
+            outline-offset: 2px;
+        }
+
+        .copy-btn.copied {
+            background: #2ecc71;
+            border-color: #2ecc71;
+            color: white;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .summary-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #ffd166;
+        }
+
+        .summary-item h4 {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .summary-item p {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .timeline-section {
+            margin: 60px 0;
+        }
+
+        .timeline-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .timeline-title h2 {
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            color: #ffd166;
+        }
+
+        .timeline-title p {
+            color: #aaa;
+            font-size: 1.1rem;
+        }
+
+        .timeline-container {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .timeline-line {
+            position: absolute;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 209, 102, 0.5) 50%, 
+                transparent 100%);
+            z-index: 1;
+        }
+
+        .timeline-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            z-index: 2;
+        }
+
+        .timeline-step {
+            text-align: center;
+            flex: 1;
+            position: relative;
+        }
+
+        .step-icon-container {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 25px;
+            position: relative;
+        }
+
+        .step-icon-bg {
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.5s ease;
+        }
+
+        .step-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 2.5rem;
+            color: #666;
+            transition: all 0.5s ease;
+            border: 2px solid transparent;
+        }
+
+        .step-glow {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: radial-gradient(circle, rgba(255, 209, 102, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .timeline-step.active .step-icon-bg {
+            background: rgba(255, 209, 102, 0.15);
+            border-color: rgba(255, 209, 102, 0.5);
+            box-shadow: 0 0 40px rgba(255, 209, 102, 0.3);
+            transform: scale(1.05);
+        }
+
+        .timeline-step.active .step-icon {
+            background: linear-gradient(135deg, #ffd166 0%, #f9c74f 100%);
+            color: #1a1a2e;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(255, 209, 102, 0.4);
+        }
+
+        .timeline-step.active .step-glow {
+            opacity: 1;
+        }
+
+        .timeline-step.active .step-title {
+            color: #ffd166;
+            transform: scale(1.05);
+        }
+
+        .timeline-step.completed .step-icon {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .step-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #aaa;
+            transition: all 0.5s ease;
+        }
+
+        .step-time {
+            font-size: 0.9rem;
+            color: #888;
+            min-height: 40px;
+        }
+
+        .step-description {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            color: #ccc;
+            display: none;
+        }
+
+        .timeline-step.active .step-description {
+            display: block;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-card {
+            background: linear-gradient(135deg, rgba(255, 209, 102, 0.1) 0%, rgba(212, 165, 116, 0.05) 100%);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 50px auto;
+            max-width: 800px;
+            text-align: center;
+            border: 1px solid rgba(255, 209, 102, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ffd166, #f9c74f, #ffd166);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite linear;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .status-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .status-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #ffd166 0%, #f9c74f 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #1a1a2e;
+            box-shadow: 0 10px 30px rgba(255, 209, 102, 0.4);
+        }
+
+        .status-text h3 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ffd166 0%, #d4a574 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-message {
+            font-size: 1.2rem;
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        .notification-toggle-container {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .notification-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: #444;
+            border-radius: 13px;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .notification-toggle input:checked + .toggle-switch {
+            background: #2ecc71;
+        }
+
+        .notification-toggle input:checked + .toggle-switch::after {
+            transform: translateX(24px);
+        }
+
+        .notification-toggle input {
+            display: none;
+        }
+
+        .kitchen-live {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 60px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .live-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .live-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .live-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .live-stats {
+            display: flex;
+            gap: 30px;
+        }
+
+        .live-stat {
+            text-align: center;
+        }
+
+        .live-stat .number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffd166;
+            display: block;
+        }
+
+        .live-stat .label {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        .eta-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            border: 2px solid rgba(255, 209, 102, 0.3);
+        }
+
+        .eta-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .eta-header i {
+            color: #ffd166;
+            font-size: 1.5rem;
+        }
+
+        .eta-timer {
+            text-align: center;
+            font-size: 3rem;
+            font-weight: 700;
+            color: #ffd166;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+
+        .eta-progress {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .eta-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd166, #f9c74f);
+            border-radius: 3px;
+            width: 0%;
+            transition: width 1s ease;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+            display: none;
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            color: #e74c3c;
+            margin-bottom: 30px;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .support-button {
+            padding: 12px 25px;
+            background: #9b59b6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .support-button:hover {
+            background: #8e44ad;
+            transform: translateY(-2px);
+        }
+
+        .support-button:focus {
+            outline: 3px solid #9b59b6;
+            outline-offset: 2px;
+        }
+
+        .retry-button {
+            padding: 12px 25px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .retry-button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .retry-button:focus {
+            outline: 3px solid #3498db;
+            outline-offset: 2px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 10, 20, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #ffd166;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .support-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .support-modal-content {
+            background: #1a1a2e;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid rgba(255, 209, 102, 0.3);
+        }
+
+        .support-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .support-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .support-option {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .support-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .support-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 209, 102, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffd166;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 992px) {
+            .timeline-steps {
+                flex-direction: column;
+                gap: 40px;
+            }
+            
+            .timeline-line {
+                top: 0;
+                left: 75px;
+                width: 4px;
+                height: 80%;
+                transform: none;
+            }
+            
+            .timeline-step {
+                display: flex;
+                align-items: center;
+                gap: 30px;
+                text-align: left;
+            }
+            
+            .step-icon-container {
+                width: 100px;
+                height: 100px;
+                margin: 0;
+                flex-shrink: 0;
+            }
+            
+            .step-icon {
+                width: 70px;
+                height: 70px;
+                top: 15px;
+                left: 15px;
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .tracking-header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .lookup-input {
+                flex-direction: column;
+            }
+            
+            .summary-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .live-header {
+                flex-direction: column;
+                gap: 20px;
+                align-items: flex-start;
+            }
+            
+            .error-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .error-actions button {
+                width: 100%;
+            }
+        }
+
+     .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 10px;
+        }
+
+        .typing-indicator span {
+            width: 6px;
+            height: 6px;
+            background: #ffd166;
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-glow"></div>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <p style="color: #ffd166; font-size: 1.2rem;">Connecting to CleanBite Network...</p>
+    </div>
+
+    <div class="container">
+        <div class="tracking-header">
+            <h1>Track Your Sovereignty</h1>
+            <p>Witness your order's journey through our precision kitchen. Every step crafted with discipline.</p>
+        </div>
+
+        <div class="lookup-card">
+            <h2 style="color: #ffd166; margin-bottom: 15px; font-size: 1.8rem;">
+                <i class="fas fa-search"></i> Enter Your Order ID
+            </h2>
+            <p style="color: #aaa; margin-bottom: 30px;">
+                Find your Order ID in your confirmation email or receipt
+            </p>
+            
+            <div class="lookup-input">
+                <input type="text" id="orderIdInput" 
+                       placeholder="e.g., CB-1746745678-ABC123" 
+                       autocomplete="off">
+                <button class="track-btn" id="trackOrderBtn">
+                    <i class="fas fa-satellite-dish"></i> Track Order
+                </button>
+            </div>
+            
+            <div id="errorMessage" class="error-state">
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 style="color: #e74c3c; margin-bottom: 15px;">Order Not Found</h3>
+                <p style="color: #aaa; max-width: 500px; margin: 0 auto;">
+                    Please check your Order ID and try again. If you just placed an order, 
+                    it may take a few moments to appear in our system.
+                </p>
+                
+                <div class="error-actions">
+                    <button class="retry-button" id="retryButton">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>
+                    <button class="support-button" id="supportButton">
+                        <i class="fas fa-headset"></i> Contact Support
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="trackingDisplay">
+            <div class="order-summary">
+                <div class="summary-header">
+                    <h2>Order Summary</h2>
+                    <div class="order-id-container">
+                        <div class="order-id" id="displayOrderId">CB-000000000</div>
+                        <button class="copy-btn" id="copyOrderIdBtn">
+                            <i class="fas fa-copy"></i> Copy ID
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <h4>Customer</h4>
+                        <p id="customerName">Loading...</p>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <h4>Order Value</h4>
+                        <p id="orderAmount">₦0</p>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <h4>Items</h4>
+                        <p id="itemCount">0 items</p>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <h4>Order Time</h4>
+                        <p id="orderTime">--:--</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-section">
+                <div class="timeline-title">
+                    <h2>Your Order's Journey</h2>
+                    <p>From raw ingredients to sovereign fuel - tracked in real-time</p>
+                </div>
+                
+                <div class="timeline-container">
+                    <div class="timeline-line"></div>
+                    <div class="timeline-steps">
+                        <div class="timeline-step" id="step1">
+                            <div class="step-icon-container">
+                                <div class="step-icon-bg"></div>
+                                <div class="step-icon">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </div>
+                                <div class="step-glow"></div>
+                            </div>
+                            <div class="step-title">Order Placed</div>
+                            <div class="step-time" id="time1">Awaiting</div>
+                            <div class="step-description">
+                                Your order has been received and queued for processing.
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-step" id="step2">
+                            <div class="step-icon-container">
+                                <div class="step-icon-bg"></div>
+                                <div class="step-icon">
+                                    <i class="fas fa-utensils"></i>
+                                </div>
+                                <div class="step-glow"></div>
+                            </div>
+                            <div class="step-title">Preparing</div>  <!-- Changed from "Payment Verified" -->
+                            <div class="step-time" id="time2">Pending</div>
+                            <div class="step-description">
+                                Payment confirmed! Kitchen has started preparing your order.
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-step" id="step3">
+                            <div class="step-icon-container">
+                                <div class="step-icon-bg"></div>
+                                <div class="step-icon">
+                                    <i class="fas fa-fire"></i>
+                                </div>
+                                <div class="step-glow"></div>
+                            </div>
+                            <div class="step-title">Incubating</div>  <!-- Changed from "Preparation" -->
+                            <div class="step-time" id="time3">Next</div>
+                            <div class="step-description">
+                                Your yoghurt is incubating for 24 hours to develop perfect flavor.
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-step" id="step4">
+                            <div class="step-icon-container">
+                                <div class="step-icon-bg"></div>
+                                <div class="step-icon">
+                                    <i class="fas fa-check-double"></i>
+                                </div>
+                                <div class="step-glow"></div>
+                            </div>
+                            <div class="step-title">Ready for Pickup</div>  <!-- Changed from "Incubating" -->
+                            <div class="step-time" id="time4">--:--</div>
+                            <div class="step-description">
+                                Your order is ready for pickup!
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-step" id="step5">
+                            <div class="step-icon-container">
+                                <div class="step-icon-bg"></div>
+                                <div class="step-icon">
+                                    <i class="fas fa-flag-checkered"></i>
+                                </div>
+                                <div class="step-glow"></div>
+                            </div>
+                            <div class="step-title">Completed</div>  <!-- Added missing step -->
+                            <div class="step-time" id="time5">--:--</div>
+                            <div class="step-description">
+                                Thank you for choosing CleanBite Empire!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-card">
+                <div class="status-header">
+                    <div class="status-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="status-text">
+                        <h3 id="currentStatusTitle">Current Status</h3>
+                        <p class="status-message" id="statusMessage">
+                            Connecting to kitchen systems...
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="notification-toggle-container">
+                    <label class="notification-toggle" id="notificationToggle">
+                        <input type="checkbox" id="browserNotificationsToggle">
+                        <span class="toggle-switch"></span>
+                        <span style="color: #ccc;">
+                            <i class="fas fa-bell"></i> Enable browser notifications
+                        </span>
+                    </label>
+                    <p style="color: #aaa; font-size: 0.9rem; margin-top: 10px; text-align: center;">
+                        Get real-time updates in your browser when order status changes
+                    </p>
+                </div>
+                
+                <div class="eta-card">
+                    <div class="eta-header">
+                        <i class="fas fa-clock"></i>
+                        <h3 style="color: #ffd166;">Estimated Ready Time</h3>
+                    </div>
+                    <div class="eta-timer" id="etaTimer">--:--</div>
+                    <div class="eta-progress">
+                        <div class="eta-progress-fill" id="etaProgress"></div>
+                    </div>
+                    <p style="color: #aaa; text-align: center;">
+                        Updates in real-time based on kitchen operations
+                    </p>
+                </div>
+            </div>
+
+            <div class="kitchen-live">
+                <div class="live-header">
+                    <div class="live-title">
+                        <h2 style="color: #ffd166;">
+                            <i class="fas fa-fire fa-beat"></i> Live Kitchen Feed
+                        </h2>
+                        <span class="live-badge">
+                            <i class="fas fa-circle"></i> LIVE
+                        </span>
+                    </div>
+                    
+                    <div class="live-stats">
+                        <div class="live-stat">
+                            <span class="number" id="prepCountLive">0</span>
+                            <span class="label">Preparing</span>
+                        </div>
+                        <div class="live-stat">
+                            <span class="number" id="incubatingCountLive">0</span>
+                            <span class="label">Incubating</span>
+                        </div>
+                        <div class="live-stat">
+                            <span class="number" id="readyCountLive">0</span>
+                            <span class="label">Ready</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="activity-feed" id="kitchenActivity">
+                    <div class="activity-item" style="color: #aaa; text-align: center; padding: 20px;">
+                        <i class="fas fa-sync fa-spin"></i> Listening to kitchen communications...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="supportModal" class="support-modal" style="display: none;">
+        <div class="support-modal-content">
+            <div class="support-modal-header">
+                <h3 style="color: #ffd166;">
+                    <i class="fas fa-headset"></i> CleanBite Support
+                </h3>
+                <button id="closeSupportModal" style="background: none; border: none; color: #aaa; font-size: 1.5rem; cursor: pointer;">
+                    &times;
+                </button>
+            </div>
+            <p style="color: #ccc; margin-bottom: 25px;">
+                Need help with your order? Choose a support option below:
+            </p>
+            <div class="support-options">
+                <div class="support-option" onclick="window.open('tel:+2348000000000')">
+                    <div class="support-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div>
+                        <strong style="color: #fff;">Call Support</strong>
+                        <p style="color: #aaa; margin-top: 5px; font-size: 0.9rem;">0800-CLEANBITE</p>
+                    </div>
+                </div>
+                <div class="support-option" onclick="window.open('mailto:support@cleanbite.ng')">
+                    <div class="support-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div>
+                        <strong style="color: #fff;">Email Support</strong>
+                        <p style="color: #aaa; margin-top: 5px; font-size: 0.9rem;">support@cleanbite.ng</p>
+                    </div>
+                </div>
+                <div class="support-option" onclick="window.open('https://wa.me/+2349026673033')">
+                    <div class="support-icon">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                    <div>
+                        <strong style="color: #fff;">WhatsApp Support</strong>
+                        <p style="color: #aaa; margin-top: 5px; font-size: 0.9rem;">+234 902 667 3033</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+    // ==================== COMPLETE FIXED TRACKING PAGE SCRIPT ====================
+    
+    // ==================== STATUS CONFIGURATION ====================
+    const STATUS_CONFIG = {
+        'pending-payment': { 
+            step: 1, 
+            title: 'Order Placed', 
+            message: 'Your order has been received. Awaiting payment verification.', 
+            icon: 'fa-shopping-cart', 
+            color: '#f59e0b'
+        },
+        'preparing': { 
+            step: 2, 
+            title: 'Preparing', 
+            message: 'Payment confirmed! Kitchen has started preparing your order.', 
+            icon: 'fa-utensils', 
+            color: '#3498db'
+        },
+        'incubating': { 
+            step: 3, 
+            title: 'Incubating', 
+            message: 'Your yoghurt is incubating for 24 hours to develop perfect flavor.', 
+            icon: 'fa-fire', 
+            color: '#e74c3c'
+        },
+        'ready': { 
+            step: 4, 
+            title: 'Ready for Pickup', 
+            message: 'Your order is ready! Please come to our Ibadan location for pickup.', 
+            icon: 'fa-check-double', 
+            color: '#2ecc71'
+        },
+        'completed': { 
+            step: 5, 
+            title: 'Completed', 
+            message: 'Thank you for choosing CleanBite Empire! Your order has been fulfilled.', 
+            icon: 'fa-flag-checkered', 
+            color: '#95a5a6'
+        },
+        'cancelled': { 
+            step: 1, 
+            title: 'Cancelled', 
+            message: 'This order has been cancelled. Please contact support for more information.', 
+            icon: 'fa-times-circle', 
+            color: '#e74c3c'
+        }
+    };
+
+    // ✅ SINGLE STATUS SEQUENCE - NO DUPLICATES
+    const STATUS_SEQUENCE = ['pending-payment', 'preparing', 'incubating', 'ready', 'completed'];
+    
+    let currentOrderId = null;
+    let refreshInterval = null;
+
+    // ==================== INITIALIZATION ====================
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('📍 TRACK.HTML initializing...');
+        
+        // Hide loading overlay after 1 second
+        setTimeout(function() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'none';
+            }
+        }, 1000);
+        
+        // Get order ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderIdFromUrl = urlParams.get('order');
+        
+        if (orderIdFromUrl) {
+            document.getElementById('orderIdInput').value = orderIdFromUrl;
+            setTimeout(function() {
+                trackOrder(orderIdFromUrl);
+            }, 500);
+        }
+        
+        setupEventListeners();
+        updateKitchenView();
+    });
+
+    // ==================== FIND ORDER BY ID ====================
+    function findOrderById(orderId) {
+        try {
+            console.log('🔍 Searching for order:', orderId);
+            
+            if (!orderId) return null;
+            
+            const ordersJson = localStorage.getItem('cleanbite_orders');
+            if (!ordersJson) {
+                console.log('❌ No orders found');
+                return null;
+            }
+            
+            const orders = JSON.parse(ordersJson);
+            console.log('📦 Total orders:', orders.length);
+            
+            const searchId = orderId.trim();
+            
+            const foundOrder = orders.find(order => 
+                order.id === searchId || 
+                order.orderId === searchId ||
+                order.id?.slice(-8) === searchId.slice(-8)
+            );
+            
+            if (foundOrder) {
+                console.log('✅ Order found:', foundOrder.id);
+                return foundOrder;
+            }
+            
+            console.log('❌ Order not found');
+            return null;
+            
+        } catch (error) {
+            console.error('❌ Error:', error);
+            return null;
+        }
+    }
+
+    // ==================== TRACK ORDER ====================
+    function trackOrder(orderId) {
+        showLoading();
+        hideError();
+        
+        const order = findOrderById(orderId);
+        
+        if (order) {
+            currentOrderId = orderId;
+            displayOrderData(order);
+            document.getElementById('trackingDisplay').style.display = 'block';
+            startAutoRefresh();
+        } else {
+            showError('Order "' + orderId + '" not found. Please check your Order ID.');
+        }
+        
+        hideLoading();
+    }
+
+    // ==================== DISPLAY ORDER DATA ====================
+    function displayOrderData(order) {
+        document.getElementById('displayOrderId').textContent = order.id;
+        document.getElementById('customerName').textContent = order.customerName || 'Customer';
+        
+        const amount = order.totalAmount || order.total || 0;
+        document.getElementById('orderAmount').textContent = '₦' + amount.toLocaleString();
+        
+        document.getElementById('itemCount').textContent = (order.items?.length || 0) + ' items';
+        
+        if (order.createdAt) {
+            const orderTime = new Date(order.createdAt);
+            document.getElementById('orderTime').textContent = 
+                orderTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+        
+        updateTimeline(order);
+        updateCurrentStatus(order);
+        updateETA(order);
+        updateKitchenView();
+    }
+
+    // ==================== UPDATE TIMELINE ====================
+    function updateTimeline(order) {
+        const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG['pending-payment'];
+        let currentStep = statusConfig.step;
+        
+        // Reset all steps
+        for (let i = 1; i <= 5; i++) {
+            const step = document.getElementById('step' + i);
+            if (step) {
+                step.classList.remove('active', 'completed');
+            }
+        }
+        
+        // Update steps
+        for (let i = 1; i <= 5; i++) {
+            const step = document.getElementById('step' + i);
+            if (step) {
+                if (i < currentStep) {
+                    step.classList.add('completed');
+                } else if (i === currentStep) {
+                    step.classList.add('active');
+                }
+            }
+        }
+        
+        // Hide step 6 if it exists
+        const step6 = document.getElementById('step6');
+        if (step6) step6.style.display = 'none';
+    }
+
+    // ==================== UPDATE CURRENT STATUS ====================
+    function updateCurrentStatus(order) {
+        const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG['pending-payment'];
+        
+        let displayTitle = statusConfig.title;
+        let displayMessage = statusConfig.message;
+        
+        if (order.paymentStatus === 'pending' && order.status === 'pending-payment') {
+            displayTitle = 'Awaiting Payment Verification';
+            displayMessage = 'Your payment is being verified. The kitchen will start preparation once payment is confirmed.';
+        }
+        
+        document.getElementById('currentStatusTitle').textContent = displayTitle;
+        document.getElementById('statusMessage').textContent = displayMessage;
+    }
+
+    // ==================== UPDATE ETA ====================
+    // ==================== CORRECTED ETA CALCULATION ====================
+function updateETA(order) {
+    const etaTimer = document.getElementById('etaTimer');
+    const etaProgress = document.getElementById('etaProgress');
+    if (!etaTimer || !etaProgress) return;
+    
+    // If order is ready or completed
+    if (order.status === 'ready') {
+        etaTimer.textContent = 'READY NOW';
+        etaProgress.style.width = '100%';
+        return;
+    }
+    
+    if (order.status === 'completed') {
+        etaTimer.textContent = 'COMPLETED';
+        etaProgress.style.width = '100%';
+        return;
+    }
+    
+    // Get the time when order entered current status
+    let statusStartTime;
+    if (order.status === 'pending-payment' && order.createdAt) {
+        statusStartTime = new Date(order.createdAt);
+    } else if (order.status === 'preparing' && (order.preparingStarted || order.verifiedAt)) {
+        statusStartTime = new Date(order.preparingStarted || order.verifiedAt);
+    } else if (order.status === 'incubating' && order.incubatingStarted) {
+        statusStartTime = new Date(order.incubatingStarted);
+    } else {
+        statusStartTime = new Date(order.updatedAt || order.createdAt);
+    }
+    
+    const now = new Date();
+    const elapsedMinutes = Math.floor((now - statusStartTime) / (60 * 1000));
+    
+    // CORRECT TIMELINE (24 hours total)
+    // Preparing: 30 minutes
+    // Incubating: 23 hours (1380 minutes)
+    // Packing/Ready: 30 minutes
+    // Total: 24 hours (1440 minutes)
+    
+    let totalMinutes = 0;
+    let minutesRemaining = 0;
+    let progressPercent = 0;
+    
+    if (order.status === 'pending-payment') {
+        // Not started yet - waiting for payment
+        etaTimer.textContent = 'Pending Payment';
+        etaProgress.style.width = '0%';
+        return;
+        
+    } else if (order.status === 'preparing') {
+        // Preparing stage (30 minutes)
+        totalMinutes = 30;
+        const minutesLeft = Math.max(0, totalMinutes - elapsedMinutes);
+        
+        if (minutesLeft <= 0) {
+            // Should have moved to incubating, but show as transitioning
+            etaTimer.textContent = 'Starting Incubation...';
+            etaProgress.style.width = '100%';
+        } else {
+            const hours = Math.floor(minutesLeft / 60);
+            const mins = minutesLeft % 60;
+            
+            if (hours > 0) {
+                etaTimer.textContent = `${hours}h ${mins}m`;
+            } else {
+                etaTimer.textContent = `${mins}m`;
+            }
+            
+            // Progress within preparing stage
+            progressPercent = Math.min(100, (elapsedMinutes / totalMinutes) * 100);
+            etaProgress.style.width = progressPercent + '%';
+        }
+        
+    } else if (order.status === 'incubating') {
+        // Incubating stage (23 hours = 1380 minutes)
+        totalMinutes = 23 * 60; // 1380 minutes
+        const minutesLeft = Math.max(0, totalMinutes - elapsedMinutes);
+        
+        if (minutesLeft <= 0) {
+            // Incubation complete - should be ready
+            etaTimer.textContent = 'Ready Soon';
+            etaProgress.style.width = '100%';
+        } else {
+            const hours = Math.floor(minutesLeft / 60);
+            const mins = minutesLeft % 60;
+            
+            if (hours > 0) {
+                etaTimer.textContent = `${hours}h ${mins}m`;
+            } else {
+                etaTimer.textContent = `${mins}m`;
+            }
+            
+            // Calculate overall progress (preparing 30min + incubating progress)
+            const preparingMinutes = 30; // Preparing time
+            const totalElapsed = elapsedMinutes + preparingMinutes;
+            const totalOverall = 24 * 60; // 1440 minutes total
+            
+            progressPercent = Math.min(100, (totalElapsed / totalOverall) * 100);
+            etaProgress.style.width = progressPercent + '%';
+        }
+    }
+}
+
+// ==================== GET TIME REMAINING STRING ====================
+function getTimeRemainingString(minutes) {
+    if (minutes <= 0) return 'Ready';
+    
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    
+    if (hours > 24) {
+        const days = Math.floor(hours / 24);
+        const remainingHours = hours % 24;
+        return `${days}d ${remainingHours}h ${mins}m`;
+    } else if (hours > 0) {
+        return `${hours}h ${mins}m`;
+    } else {
+        return `${mins}m`;
+    }
+}
+
+        // ==================== FIXED UPDATE KITCHEN VIEW ====================
+    function updateKitchenView() {
+        try {
+            const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+            
+            console.log('📊 All orders:', orders.map(o => ({
+                id: o.id,
+                status: o.status,
+                paymentStatus: o.paymentStatus
+            })));
+            
+            // Count PREPARING orders (payment verified AND status = 'preparing')
+            const prepCount = orders.filter(order => 
+                order.paymentStatus === 'verified' && order.status === 'preparing'
+            ).length;
+            
+            // Count INCUBATING orders (payment verified AND status = 'incubating')
+            const incubatingCount = orders.filter(order => 
+                order.paymentStatus === 'verified' && order.status === 'incubating'
+            ).length;
+            
+            // Count READY orders (payment verified AND status = 'ready')
+            const readyCount = orders.filter(order => 
+                order.paymentStatus === 'verified' && order.status === 'ready'
+            ).length;
+            
+            console.log('👨‍🍳 Kitchen counts:', {
+                preparing: prepCount,
+                incubating: incubatingCount,
+                ready: readyCount
+            });
+            
+            // Update the display
+            document.getElementById('prepCountLive').textContent = prepCount;
+            document.getElementById('incubatingCountLive').textContent = incubatingCount;
+            document.getElementById('readyCountLive').textContent = readyCount;
+            
+            // Add visual feedback
+            animateCount('prepCountLive');
+            animateCount('incubatingCountLive');
+            animateCount('readyCountLive');
+            
+            updateActivityFeed(orders);
+            
+        } catch (error) {
+            console.error('Kitchen view error:', error);
+        }
+    }
+
+    // Add animation function
+    function animateCount(elementId) {
+        const el = document.getElementById(elementId);
+        if (el) {
+            el.classList.add('pulse');
+            setTimeout(() => el.classList.remove('pulse'), 500);
+        }
+    }
+
+    // ==================== UPDATE ACTIVITY FEED ====================
+    function updateActivityFeed(orders) {
+        const activityFeed = document.getElementById('kitchenActivity');
+        if (!activityFeed) return;
+        
+        const activeOrders = orders.filter(order => 
+            order.paymentStatus === 'verified' && 
+            ['preparing', 'incubating', 'ready'].includes(order.status)
+        ).slice(0, 5);
+        
+        if (activeOrders.length === 0) {
+            activityFeed.innerHTML = '<div style="color: #aaa; text-align: center; padding: 20px;"><i class="fas fa-mug-hot"></i> Kitchen is preparing...</div>';
+            return;
+        }
+        
+        let activityHTML = '';
+        activeOrders.forEach(order => {
+            const timeAgo = getTimeAgo(order.updatedAt || order.createdAt);
+            const statusColor = getStatusColor(order.status);
+            const statusIcon = getStatusIcon(order.status);
+            const statusText = getStatusText(order.status);
+            
+            activityHTML += `
+                <div class="activity-item" style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid ${statusColor};">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="width: 40px; height: 40px; background: rgba(255,209,102,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: ${statusColor};">
+                            <i class="fas ${statusIcon}"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #fff;">${order.customerName || 'Customer'}</div>
+                            <div style="color: #aaa; font-size: 0.9rem;">${statusText} • ${timeAgo}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        activityFeed.innerHTML = activityHTML;
+    }
+
+    // ==================== UTILITY FUNCTIONS ====================
+    function getStatusColor(status) {
+        const colors = {
+            'preparing': '#9b59b6',
+            'incubating': '#e74c3c',
+            'ready': '#2ecc71',
+            'pending-payment': '#f59e0b'
+        };
+        return colors[status] || '#ffd166';
+    }
+
+    function getStatusIcon(status) {
+        const icons = {
+            'pending-payment': 'fa-clock',
+            'preparing': 'fa-utensils',
+            'incubating': 'fa-fire',
+            'ready': 'fa-check',
+            'completed': 'fa-flag-checkered'
+        };
+        return icons[status] || 'fa-clock';
+    }
+
+    function getStatusText(status) {
+        const texts = {
+            'pending-payment': 'Awaiting Payment',
+            'preparing': 'Preparing',
+            'incubating': 'Incubating',
+            'ready': 'Ready',
+            'completed': 'Completed'
+        };
+        return texts[status] || 'Processing';
+    }
+
+    function getTimeAgo(timestamp) {
+        if (!timestamp) return 'Recently';
+        try {
+            const now = new Date();
+            const date = new Date(timestamp);
+            const diffMins = Math.floor((now - date) / 60000);
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return diffMins + 'm ago';
+            if (diffMins < 1440) return Math.floor(diffMins / 60) + 'h ago';
+            return Math.floor(diffMins / 1440) + 'd ago';
+        } catch (error) {
+            return 'Recently';
+        }
+    }
+
+    // ==================== EVENT LISTENERS ====================
+    function setupEventListeners() {
+        const trackBtn = document.getElementById('trackOrderBtn');
+        const orderInput = document.getElementById('orderIdInput');
+        
+        if (trackBtn) {
+            trackBtn.addEventListener('click', function() {
+                const orderId = orderInput.value.trim();
+                if (orderId) {
+                    trackOrder(orderId);
+                } else {
+                    alert('Please enter your Order ID');
+                }
+            });
+        }
+        
+        if (orderInput) {
+            orderInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    trackBtn.click();
+                }
+            });
+        }
+        
+        document.getElementById('copyOrderIdBtn')?.addEventListener('click', copyOrderId);
+        document.getElementById('supportButton')?.addEventListener('click', showSupportModal);
+        document.getElementById('closeSupportModal')?.addEventListener('click', hideSupportModal);
+    }
+
+    function copyOrderId() {
+        const orderId = document.getElementById('displayOrderId').textContent;
+        const copyBtn = document.getElementById('copyOrderIdBtn');
+        
+        navigator.clipboard.writeText(orderId).then(function() {
+            copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            setTimeout(function() {
+                copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy ID';
+            }, 2000);
+        }).catch(function() {
+            alert('Failed to copy');
+        });
+    }
+
+    function showError(message) {
+        const errorEl = document.getElementById('errorMessage');
+        const display = document.getElementById('trackingDisplay');
+        
+        if (errorEl) {
+            errorEl.style.display = 'block';
+            const errorText = errorEl.querySelector('p');
+            if (errorText) {
+                errorText.textContent = message;
+            }
+        }
+        
+        if (display) {
+            display.style.display = 'none';
+        }
+    }
+
+    function hideError() {
+        const errorEl = document.getElementById('errorMessage');
+        if (errorEl) {
+            errorEl.style.display = 'none';
+        }
+    }
+
+    function showSupportModal() {
+        document.getElementById('supportModal').style.display = 'flex';
+    }
+
+    function hideSupportModal() {
+        document.getElementById('supportModal').style.display = 'none';
+    }
+
+    function showLoading() {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) overlay.style.display = 'flex';
+    }
+
+    function hideLoading() {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+
+    function startAutoRefresh() {
+        if (refreshInterval) clearInterval(refreshInterval);
+        refreshInterval = setInterval(function() {
+            if (currentOrderId) {
+                const order = findOrderById(currentOrderId);
+                if (order) displayOrderData(order);
+            }
+            updateKitchenView();
+        }, 10000);
+    }
+
+    console.log('📍 TRACK.HTML script loaded - ALL CONFLICTS FIXED');
+    </script>
+</body>
+</html>

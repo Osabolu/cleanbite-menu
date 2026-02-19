@@ -1,0 +1,2978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CleanBite Empire | Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ==================== ROOT VARIABLES - PRESERVING EXISTING COLORS ==================== */
+        :root {
+            --primary: #ffd700;
+            --primary-dark: #e6c200;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --info: #3498db;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --gray: #95a5a6;
+            --white: #ffffff;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --border-radius: 8px;
+        }
+
+        /* ==================== PAYMENT NOTIFICATION BANNER - ENHANCED ==================== */
+        .payment-notice {
+            display: none;
+            align-items: center;
+            gap: 16px;
+            background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+            border: 1px solid #ffd700;
+            border-left: 6px solid #f39c12;
+            border-radius: 12px;
+            padding: 18px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 20px rgba(243, 156, 18, 0.12);
+            animation: slideDown 0.4s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .payment-notice i {
+            font-size: 28px;
+            color: #f39c12;
+            filter: drop-shadow(0 4px 8px rgba(243,156,18,0.2));
+        }
+
+        .payment-notice-content {
+            flex: 1;
+        }
+
+        .payment-notice-content h4 {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 6px;
+            font-size: 1.1rem;
+        }
+
+        .payment-notice-content p {
+            color: #5a6a7a;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .payment-notice .badge {
+            background: #f39c12;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 10px rgba(243,156,18,0.3);
+        }
+
+        /* ==================== STATS CARDS - MODERN REDESIGN ==================== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid rgba(237, 242, 247, 0.8);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,215,0,0.03) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            border-color: var(--primary);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .stat-card.revenue .stat-icon {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            color: #2ecc71;
+            box-shadow: 0 10px 20px rgba(46, 204, 113, 0.15);
+        }
+
+        .stat-card.pending .stat-icon {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            color: #f39c12;
+            box-shadow: 0 10px 20px rgba(243, 156, 18, 0.15);
+        }
+
+        .stat-card.products .stat-icon {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            color: #3498db;
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.15);
+        }
+
+        .stat-card.customers .stat-icon {
+            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+            color: #9b59b6;
+            box-shadow: 0 10px 20px rgba(155, 89, 182, 0.15);
+        }
+
+        .stat-trend {
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #f8f9fa;
+            border: 1px solid #edf2f7;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-trend.positive {
+            color: #2ecc71;
+            background: #e8f5e9;
+            border-color: #a5d6a7;
+        }
+
+        .stat-trend.negative {
+            color: #e74c3c;
+            background: #ffebee;
+            border-color: #ffcdd2;
+        }
+
+        .stat-value {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 6px;
+            line-height: 1;
+            letter-spacing: -0.5px;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-label i {
+            color: var(--primary);
+            font-size: 12px;
+        }
+
+        /* ==================== VERIFICATION QUEUE CARDS - ENHANCED ==================== */
+        .verification-section {
+            background: white;
+            border-radius: 24px;
+            padding: 28px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            border: 1px solid #edf2f7;
+        }
+
+        .verification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .verification-header h3 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .verification-header h3 i {
+            color: #f39c12;
+            font-size: 1.5rem;
+        }
+
+        .verification-count {
+            background: linear-gradient(135deg, #f8f9fa, #edf2f7);
+            color: #2c3e50;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 700;
+            border: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .verification-count i {
+            color: #f39c12;
+        }
+
+        .verification-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .verification-item {
+            background: white;
+            border: 1px solid #edf2f7;
+            border-radius: 20px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 140px 1.2fr 2fr 120px auto;
+            gap: 20px;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+
+        .verification-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20px;
+            bottom: 20px;
+            width: 4px;
+            background: linear-gradient(to bottom, #f39c12, #ffd700);
+            border-radius: 0 4px 4px 0;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .verification-item:hover {
+            background: #fafbfc;
+            border-color: #ffd700;
+            transform: translateX(4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+        }
+
+        .verification-item:hover::before {
+            opacity: 1;
+        }
+
+        .order-id {
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(44,62,80,0.15);
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .verification-item:hover .order-id {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(44,62,80,0.2);
+        }
+
+        .customer-info h4 {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 6px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .customer-info h4 i {
+            color: #f39c12;
+            font-size: 14px;
+        }
+
+        .customer-info p {
+            color: #7f8c8d;
+            font-size: 13px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .order-items {
+            color: #5a6a7a;
+            font-size: 13px;
+            line-height: 1.6;
+            background: #f8f9fa;
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1px solid #edf2f7;
+            transition: all 0.3s ease;
+        }
+
+        .verification-item:hover .order-items {
+            background: white;
+            border-color: #ffd700;
+        }
+
+        .order-amount {
+            font-weight: 800;
+            color: #27ae60;
+            font-size: 1.4rem;
+            letter-spacing: 0.5px;
+        }
+
+        .verification-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-verify {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(46,204,113,0.2);
+        }
+
+        .btn-verify:hover {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(46,204,113,0.3);
+        }
+
+        .btn-reject {
+            background: white;
+            color: #e74c3c;
+            border: 2px solid #fde2e2;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-reject:hover {
+            background: #fee9e7;
+            border-color: #e74c3c;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(231, 76, 60, 0.1);
+        }
+
+        /* ==================== ORDERS TABLE - ENHANCED ==================== */
+        .orders-container {
+            background: white;
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            border: 1px solid #edf2f7;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .section-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-header h2 i {
+            color: #3498db;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .refresh-btn, .export-btn, .filter-btn {
+            background: white;
+            border: 1px solid #edf2f7;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: #f8f9fa;
+            border-color: #3498db;
+            color: #3498db;
+            transform: rotate(30deg);
+        }
+
+        .export-btn:hover {
+            background: #f8f9fa;
+            border-color: #2ecc71;
+            color: #2ecc71;
+        }
+
+        .filter-btn:hover {
+            background: #f8f9fa;
+            border-color: #f39c12;
+            color: #f39c12;
+        }
+
+        .orders-header {
+            display: grid;
+            grid-template-columns: 140px 1.2fr 2fr 120px 120px 100px;
+            gap: 16px;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #f8f9fa, #ecf0f1);
+            border-radius: 14px;
+            color: #2c3e50;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid #e9ecef;
+            margin-bottom: 8px;
+        }
+
+        .order-row {
+            display: grid;
+            grid-template-columns: 140px 1.2fr 2fr 120px 120px 100px;
+            gap: 16px;
+            padding: 20px;
+            border-bottom: 1px solid #edf2f7;
+            align-items: center;
+            transition: all 0.2s;
+            border-radius: 14px;
+        }
+
+        .order-row:hover {
+            background: #f8f9fa;
+            transform: scale(1.01);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+        }
+
+        .status-badge i {
+            margin-right: 4px;
+            font-size: 11px;
+        }
+
+        .status-pending-payment {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            color: #e67e22;
+            border: 1px solid #ffb74d;
+        }
+
+        .status-preparing {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            color: #1976d2;
+            border: 1px solid #64b5f6;
+        }
+
+        .status-incubating {
+            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+            color: #7b1fa2;
+            border: 1px solid #ba68c8;
+        }
+
+        .status-ready {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            color: #388e3c;
+            border: 1px solid #81c784;
+        }
+
+        .status-completed {
+            background: linear-gradient(135deg, #eeeeee, #e0e0e0);
+            color: #616161;
+            border: 1px solid #bdbdbd;
+        }
+
+        .status-cancelled {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+
+        .payment-status {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-top: 8px;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+        }
+
+        .payment-verified {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            color: #2e7d32;
+        }
+
+        .payment-pending {
+            background: linear-gradient(135deg, #fff8e1, #ffecb3);
+            color: #ff8f00;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            white-space: nowrap;
+        }
+
+        .btn-action.verify {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            box-shadow: 0 4px 10px rgba(46,204,113,0.2);
+        }
+
+        .btn-action.verify:hover {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(46,204,113,0.3);
+        }
+
+        .btn-action.update {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            box-shadow: 0 4px 10px rgba(52,152,219,0.2);
+        }
+
+        .btn-action.update:hover {
+            background: linear-gradient(135deg, #2980b9, #1f6a9a);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(52,152,219,0.3);
+        }
+
+        .btn-action.complete {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            box-shadow: 0 4px 10px rgba(46,204,113,0.2);
+        }
+
+        .btn-action.complete:hover {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            transform: translateY(-2px);
+        }
+
+        /* ==================== ACTIVITY FEED - ENHANCED ==================== */
+        .activity-section {
+            background: white;
+            border-radius: 24px;
+            padding: 28px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            border: 1px solid #edf2f7;
+        }
+
+        .activity-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 450px;
+            overflow-y: auto;
+            padding-right: 12px;
+        }
+
+        .activity-feed::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .activity-feed::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .activity-feed::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        .activity-feed::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 18px;
+            background: #f8f9fa;
+            border-radius: 16px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+            animation: fadeInLeft 0.4s ease;
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .activity-item:hover {
+            background: white;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+            transform: translateX(4px);
+        }
+
+        .activity-icon {
+            width: 44px;
+            height: 44px;
+            background: white;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2c3e50;
+            font-size: 18px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            transition: all 0.3s ease;
+        }
+
+        .activity-item:hover .activity-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-message {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: #95a5a6;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .activity-order {
+            font-size: 11px;
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            padding: 4px 12px;
+            border-radius: 30px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .activity-customer {
+            font-size: 11px;
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            padding: 4px 12px;
+            border-radius: 30px;
+            color: #e67e22;
+            font-weight: 600;
+        }
+
+        /* ==================== ENHANCED NOTIFICATION ==================== */
+        .notification-toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: white;
+            border-left: 6px solid;
+            border-radius: 16px;
+            padding: 18px 24px;
+            min-width: 340px;
+            max-width: 420px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+            z-index: 9999;
+            animation: slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .notification-toast.success {
+            border-left-color: #2ecc71;
+            background: linear-gradient(to right, #f0fdf4, white);
+        }
+
+        .notification-toast.warning {
+            border-left-color: #f39c12;
+            background: linear-gradient(to right, #fff7ed, white);
+        }
+
+        .notification-toast.error {
+            border-left-color: #e74c3c;
+            background: linear-gradient(to right, #fef2f2, white);
+        }
+
+        .notification-toast.info {
+            border-left-color: #3498db;
+            background: linear-gradient(to right, #eff6ff, white);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%) scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* ==================== CUSTOMERS VIEW ==================== */
+        .customers-section {
+            background: white;
+            border-radius: 24px;
+            padding: 28px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            border: 1px solid #edf2f7;
+        }
+
+        .customers-header {
+            display: grid;
+            grid-template-columns: 1.5fr 2fr 0.8fr 1fr 1fr 0.8fr;
+            gap: 16px;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #f8f9fa, #ecf0f1);
+            border-radius: 14px;
+            color: #2c3e50;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid #e9ecef;
+            margin-bottom: 8px;
+        }
+
+        .customers-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .customer-row {
+            display: grid;
+            grid-template-columns: 1.5fr 2fr 0.8fr 1fr 1fr 0.8fr;
+            gap: 16px;
+            padding: 16px 20px;
+            background: white;
+            border: 1px solid #edf2f7;
+            border-radius: 14px;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .customer-row:hover {
+            background: #f8f9fa;
+            transform: translateX(4px);
+            border-color: var(--primary);
+        }
+
+        .customer-name {
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .customer-name i {
+            color: var(--primary);
+            font-size: 20px;
+        }
+
+        .customer-contact {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .customer-contact div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #7f8c8d;
+            font-size: 13px;
+        }
+
+        .customer-contact i {
+            color: var(--primary);
+            width: 16px;
+            font-size: 12px;
+        }
+
+        .customer-orders-count .badge {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            color: #1976d2;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .customer-total {
+            font-weight: 700;
+            color: #27ae60;
+        }
+
+        .customer-last-order {
+            color: #7f8c8d;
+            font-size: 13px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #95a5a6;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: #ddd;
+            margin-bottom: 16px;
+        }
+
+        /* ==================== MODAL ENHANCEMENTS ==================== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 28px;
+            width: 90%;
+            max-width: 550px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalZoomIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: 1px solid #edf2f7;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+        }
+
+        @keyframes modalZoomIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 24px 28px;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #f8f9fa, white);
+            border-radius: 28px 28px 0 0;
+        }
+
+        .modal-header h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-header h3 i {
+            color: var(--primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #95a5a6;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .modal-close:hover {
+            background: #fee9e7;
+            color: #e74c3c;
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 28px;
+        }
+
+        .order-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 18px;
+            margin-bottom: 24px;
+            border: 1px solid #edf2f7;
+        }
+
+        .order-info p {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: baseline;
+        }
+
+        .order-info strong {
+            min-width: 120px;
+            color: #2c3e50;
+        }
+
+        .status-options {
+            margin: 20px 0;
+        }
+
+        .status-options label {
+            transition: all 0.2s;
+        }
+
+        .status-options label:hover {
+            background: #fff9e6 !important;
+            border-color: var(--primary) !important;
+        }
+
+        /* ==================== RESPONSIVE DESIGN ==================== */
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .verification-item {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .orders-header, .order-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .customers-header, .customer-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .verification-actions {
+                flex-direction: column;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .header-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Dashboard Page -->
+    <div class="dashboard-page" id="dashboardPage">
+        <!-- Navigation -->
+        <nav class="admin-nav">
+            <div class="nav-brand">
+                <i class="fas fa-crown"></i>
+                <h1>CLEANBITE ADMIN DASHBOARD</h1>
+            </div>
+            <div class="nav-user">
+                <div class="user-info">
+                    <div class="user-name" id="adminName">Administrator</div>
+                    <div class="user-role">Super Admin</div>
+                </div>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Dashboard -->
+        <div class="dashboard-container">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-menu">
+                    <a href="#" class="menu-item active" id="dashboardTab">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#" class="menu-item" id="verificationTab">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Payment Verification</span>
+                        <span class="badge" id="verificationBadge">0</span>
+                    </a>
+                    <a href="#" class="menu-item" id="ordersTab">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>All Orders</span>
+                        <span class="badge" id="pendingBadge">0</span>
+                    </a>
+                    <a href="#" class="menu-item" id="customersTab">
+                        <i class="fas fa-users"></i>
+                        <span>Customers</span>
+                    </a>
+                    <a href="#" class="menu-item" id="activityTab">
+                        <i class="fas fa-stream"></i>
+                        <span>Activity Feed</span>
+                    </a>
+                </div>
+                <div class="sidebar-footer">
+                    <i class="fas fa-shield-alt"></i>
+                    Secure Admin Panel v2.0
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Payment Verification Notice -->
+                <div class="payment-notice" id="paymentNotice">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div class="payment-notice-content">
+                        <h4>⚠️ Payment Verification Required</h4>
+                        <p id="paymentNoticeMessage">New orders require payment verification before production can begin.</p>
+                    </div>
+                    <span class="badge" id="paymentNoticeCount">
+                        <i class="fas fa-clock"></i> 0 pending
+                    </span>
+                </div>
+
+                <!-- Stats Cards - Modern Design -->
+                <div class="stats-grid">
+                    <div class="stat-card revenue">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-naira-sign"></i>
+                            </div>
+                            <div class="stat-trend positive">
+                                <i class="fas fa-arrow-up"></i> +12%
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalRevenue">₦0</div>
+                        <div class="stat-label">
+                            <i class="fas fa-circle-check"></i>
+                            Total Verified Revenue
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card pending">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-hourglass-half"></i>
+                            </div>
+                            <div class="stat-trend warning" id="pendingTrend">
+                                <i class="fas fa-clock"></i> 0
+                            </div>
+                        </div>
+                        <div class="stat-value" id="awaitingVerification">0</div>
+                        <div class="stat-label">
+                            <i class="fas fa-hourglass"></i>
+                            Awaiting Verification
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card products">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-cube"></i>
+                            </div>
+                            <div class="stat-trend positive">
+                                <i class="fas fa-arrow-up"></i> +8%
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalProducts">0</div>
+                        <div class="stat-label">
+                            <i class="fas fa-box"></i>
+                            Products Sold
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card customers">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-trend positive">
+                                <i class="fas fa-arrow-up"></i> +15%
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalCustomers">0</div>
+                        <div class="stat-label">
+                            <i class="fas fa-user-plus"></i>
+                            Active Customers
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Verification Section -->
+                <div class="verification-section" id="verificationSection">
+                    <div class="verification-header">
+                        <h3>
+                            <i class="fas fa-check-circle"></i>
+                            Payment Verification Queue
+                        </h3>
+                        <div class="verification-count" id="verificationCount">
+                            <i class="fas fa-clock"></i> <span id="verificationCountNum">0</span> pending
+                        </div>
+                    </div>
+                    <div class="verification-list" id="verificationList">
+                        <!-- DYNAMIC CONTENT -->
+                    </div>
+                </div>
+
+                <!-- Orders Section with Actions -->
+                <div class="section-header">
+                    <h2>
+                        <i class="fas fa-shopping-cart"></i>
+                        Recent Orders
+                    </h2>
+                    <div class="header-actions">
+                        <button class="filter-btn" id="filterOrders">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                        <button class="export-btn" id="exportOrders">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <button class="refresh-btn" id="refreshOrders">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div class="orders-container">
+                    <div class="orders-header">
+                        <div>Order ID</div>
+                        <div>Customer</div>
+                        <div>Items</div>
+                        <div>Amount</div>
+                        <div>Status</div>
+                        <div>Actions</div>
+                    </div>
+                    
+                    <div class="orders-list" id="ordersList">
+                        <!-- DYNAMIC CONTENT -->
+                    </div>
+                </div>
+
+                <!-- Activity Feed -->
+                <div class="activity-section">
+                    <div class="section-header">
+                        <h2>
+                            <i class="fas fa-stream"></i>
+                            Live Activity Feed
+                        </h2>
+                        <div class="header-actions">
+                            <button class="refresh-btn" id="refreshActivity">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="activity-feed" id="activityFeed">
+                        <div class="activity-item" style="border-left-color: #3498db;">
+                            <div class="activity-icon">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-message">Loading activity...</div>
+                                <div class="activity-time">
+                                    <i class="far fa-clock"></i> Just now
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Verification Modal -->
+    <div class="modal" id="verifyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-check-circle"></i> Verify Payment</h3>
+                <button class="modal-close" id="closeVerifyModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="order-info" id="verifyOrderInfo">
+                    <p><strong>Order ID:</strong> <span id="verifyOrderId">CB-0000</span></p>
+                    <p><strong>Customer:</strong> <span id="verifyCustomerName">John Doe</span></p>
+                    <p><strong>Amount:</strong> <span id="verifyAmount">₦0</span></p>
+                    <p><strong>Payment Method:</strong> <span id="verifyMethod">Bank Transfer</span></p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="verificationNotes">Verification Notes (Optional)</label>
+                    <textarea id="verificationNotes" rows="4" placeholder="Add any notes about this payment verification..."></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-modal btn-secondary" id="cancelVerification">Cancel</button>
+                    <button class="btn-modal btn-primary" id="confirmVerification">
+                        <i class="fas fa-check"></i> Verify Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Payment Modal -->
+    <div class="modal" id="rejectModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-times-circle"></i> Reject Payment</h3>
+                <button class="modal-close" id="closeRejectModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="order-info" id="rejectOrderInfo">
+                    <p><strong>Order ID:</strong> <span id="rejectOrderId">CB-0000</span></p>
+                    <p><strong>Customer:</strong> <span id="rejectCustomerName">John Doe</span></p>
+                    <p><strong>Amount:</strong> <span id="rejectAmount">₦0</span></p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="rejectionReason">Rejection Reason *</label>
+                    <textarea id="rejectionReason" rows="4" placeholder="Please provide the reason for rejecting this payment..." required></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-modal btn-secondary" id="cancelRejection">Go Back</button>
+                    <button class="btn-modal btn-danger" id="confirmRejection">
+                        <i class="fas fa-times"></i> Reject Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Status Modal -->
+    <div class="modal" id="statusModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-sync-alt"></i> Update Order Status</h3>
+                <button class="modal-close" id="closeStatusModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="order-info" id="modalOrderInfo">Order: <strong>CB-0000</strong> for <strong>Customer Name</strong></p>
+                
+                <div class="status-options" id="statusOptions">
+                    <!-- Options will be populated by JavaScript -->
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-modal btn-secondary" id="cancelUpdate">Cancel</button>
+                    <button class="btn-modal btn-primary" id="confirmUpdate">
+                        <i class="fas fa-check"></i> Update Status
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="modal" id="filterModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-filter"></i> Filter Orders</h3>
+                <button class="modal-close" id="closeFilterModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="filterStatus" class="form-control">
+                        <option value="all">All Orders</option>
+                        <option value="pending-payment">Pending Payment</option>
+                        <option value="preparing">Preparing</option>
+                        <option value="incubating">Incubating</option>
+                        <option value="ready">Ready</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date Range</label>
+                    <select id="filterDate" class="form-control">
+                        <option value="all">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-modal btn-secondary" id="clearFilters">Clear</button>
+                    <button class="btn-modal btn-primary" id="applyFilters">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    
+    <script>
+    // ==================== ENHANCED ADMIN DASHBOARD ====================
+    // WITH MODERN UI AND ALL BUTTONS FUNCTIONAL
+    
+    // Global variables
+    let currentVerificationOrder = null;
+    let currentStatusOrder = null;
+    let adminBroadcastChannel = null;
+    let lastOrderCount = 0;
+    let activityChannel = null;
+    let progressionInterval = null;
+    let currentFilter = 'all';
+    
+    // ==================== ORDER STATUS FLOW CONFIGURATION ====================
+    const ORDER_STATUS_FLOW = {
+        'pending-payment': {
+            next: null,
+            allowedPrev: [],
+            autoProgress: false,
+            timeout: 48 * 60 * 60 * 1000,
+            actions: ['verify_payment', 'cancel']
+        },
+        'preparing': {
+            next: 'incubating',
+            allowedPrev: ['pending-payment'],
+            autoProgress: true,
+            progressTime: 30 * 60 * 1000,
+            actions: ['start_incubating', 'cancel']
+        },
+        'incubating': {
+            next: 'ready',
+            allowedPrev: ['preparing'],
+            autoProgress: true,
+            progressTime: 24 * 60 * 60 * 1000,
+            actions: ['mark_ready', 'cancel']
+        },
+        'ready': {
+            next: null,
+            allowedPrev: ['incubating'],
+            autoProgress: false,
+            timeout: 24 * 60 * 60 * 1000,
+            actions: ['mark_completed', 'cancel']
+        },
+        'completed': {
+            next: null,
+            allowedPrev: ['ready'],
+            autoProgress: false,
+            timeout: 7 * 24 * 60 * 60 * 1000,
+            actions: ['archive', 'refund']
+        },
+        'cancelled': {
+            next: null,
+            allowedPrev: ['pending-payment', 'preparing', 'incubating', 'ready'],
+            autoProgress: false,
+            timeout: 24 * 60 * 60 * 1000,
+            actions: ['restore', 'delete']
+        }
+    };
+    
+    // ==================== INITIALIZATION ====================
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔐 Initializing Enhanced Admin Dashboard...');
+        
+        const adminName = document.getElementById('adminName');
+        if (adminName) adminName.textContent = 'Administrator';
+        
+        initNotificationSounds();
+        
+        setupEventListeners();
+        setupBroadcastListeners();
+        setupActivityFeedListener();
+        setupProgressionMonitor();
+        loadDashboardData();
+        startAutoRefresh();
+        requestNotificationPermission();
+        
+        addActivity('System', 'Admin dashboard initialized', 'info');
+        
+        console.log('✅ Enhanced Admin Dashboard Ready - All buttons functional');
+    });
+    
+    // ==================== NOTIFICATION SOUNDS ====================
+    let notificationSound = null;
+    let approvalSound = null;
+    
+    function initNotificationSounds() {
+        try {
+            notificationSound = new Audio();
+            approvalSound = new Audio();
+            
+            notificationSound.src = 'data:audio/wav;base64,UklGRlwAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVAAAAA8Pzw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PA==';
+            approvalSound.src = 'data:audio/wav;base64,UklGRlwAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVAAAAA8Pzw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PA==';
+            
+            notificationSound.volume = 0.3;
+            approvalSound.volume = 0.4;
+            
+            console.log('✅ Notification sounds initialized');
+        } catch (e) {
+            console.warn('Could not initialize sounds:', e);
+        }
+    }
+    
+    function playNotificationSound() {
+        try {
+            if (notificationSound) {
+                notificationSound.currentTime = 0;
+                notificationSound.play().catch(e => console.log('Sound play prevented by browser'));
+            }
+        } catch (e) {
+            console.warn('Error playing sound:', e);
+        }
+    }
+    
+    function playApprovalSound() {
+        try {
+            if (approvalSound) {
+                approvalSound.currentTime = 0;
+                approvalSound.play().catch(e => console.log('Sound play prevented by browser'));
+            }
+        } catch (e) {
+            console.warn('Error playing sound:', e);
+        }
+    }
+    
+    // ==================== SETUP PROGRESSION MONITOR ====================
+    function setupProgressionMonitor() {
+        console.log('⏰ Setting up order progression monitor (24hr incubation)...');
+        
+        progressionInterval = setInterval(() => {
+            checkOrderProgressions();
+        }, 60 * 1000);
+    }
+    
+    // ==================== CHECK ORDER PROGRESSIONS ====================
+    function checkOrderProgressions() {
+        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+        let updated = false;
+        const now = new Date();
+        
+        orders.forEach(order => {
+            if (order.paymentStatus !== 'verified') return;
+            
+            const lastUpdate = new Date(order.updatedAt || order.verifiedAt || order.createdAt);
+            const timeElapsed = now - lastUpdate;
+            
+            if (order.status === 'preparing' && timeElapsed >= 30 * 60 * 1000) {
+                console.log(`⏩ Auto-progress: Order ${order.id} preparing → incubating`);
+                
+                order.status = 'incubating';
+                order.incubatingStarted = now.toISOString();
+                order.updatedAt = now.toISOString();
+                
+                const message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (24hr countdown started)`;
+                
+                addActivityToFeed({
+                    type: 'status_change',
+                    message: message,
+                    orderId: order.id,
+                    customerName: order.customerName,
+                    timestamp: now.toISOString(),
+                    icon: 'fa-clock',
+                    color: '#f39c12'
+                });
+                
+                broadcastToOrderPage('status_change', message, order.id, order.customerName);
+                
+                updated = true;
+            }
+            
+            if (order.status === 'incubating' && timeElapsed >= 24 * 60 * 60 * 1000) {
+                console.log(`⏩ Auto-progress: Order ${order.id} incubating → ready`);
+                
+                order.status = 'ready';
+                order.readyAt = now.toISOString();
+                order.updatedAt = now.toISOString();
+                
+                const message = `✅ Order ${order.id.slice(-8)} is READY for pickup (24hr incubation complete)`;
+                
+                addActivityToFeed({
+                    type: 'status_change',
+                    message: message,
+                    orderId: order.id,
+                    customerName: order.customerName,
+                    timestamp: now.toISOString(),
+                    icon: 'fa-check-circle',
+                    color: '#2ecc71'
+                });
+                
+                broadcastToOrderPage('status_change', message, order.id, order.customerName);
+                
+                updated = true;
+            }
+        });
+        
+        if (updated) {
+            localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
+            loadDashboardData();
+        }
+    }
+    
+    // ==================== SETUP ACTIVITY FEED LISTENER ====================
+    function setupActivityFeedListener() {
+        console.log('📡 Setting up real-time activity feed listener...');
+        
+        if (typeof BroadcastChannel !== 'undefined') {
+            try {
+                activityChannel = new BroadcastChannel('cleanbite_activities');
+                
+                activityChannel.onmessage = function(event) {
+                    if (event.data && event.data.type === 'NEW_ACTIVITY') {
+                        addActivityToFeed(event.data.activity);
+                    }
+                };
+                
+                console.log('✅ Activity feed broadcast channel active');
+            } catch (e) {
+                console.error('Failed to setup activity channel:', e);
+            }
+        }
+        
+        window.addEventListener('storage', function(event) {
+            if (event.key === 'new_activity_event' && event.newValue) {
+                try {
+                    const activity = JSON.parse(event.newValue);
+                    addActivityToFeed(activity);
+                    setTimeout(() => localStorage.removeItem('new_activity_event'), 100);
+                } catch (e) {}
+            }
+            
+            if (event.key === 'cleanbite_orders' && event.newValue) {
+                setTimeout(() => loadDashboardData(), 100);
+            }
+        });
+    }
+    
+    // ==================== ADD ACTIVITY TO FEED ====================
+    function addActivityToFeed(activity) {
+        const feed = document.getElementById('activityFeed');
+        if (!feed) return;
+        
+        const emptyState = feed.querySelector('.empty-activity');
+        if (emptyState) emptyState.remove();
+        
+        const timeAgo = formatTimeAgo(activity.timestamp || Date.now());
+        const date = new Date(activity.timestamp || Date.now()).toLocaleDateString([], {
+            month: 'short',
+            day: 'numeric'
+        });
+        const time = new Date(activity.timestamp || Date.now()).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        const activityElement = document.createElement('div');
+        activityElement.className = 'activity-item';
+        activityElement.style.borderLeftColor = activity.color || getActivityColor(activity.type);
+        activityElement.style.animation = 'fadeIn 0.4s ease';
+        
+        activityElement.innerHTML = `
+            <div class="activity-icon" style="color: ${activity.color || getActivityColor(activity.type)};">
+                <i class="fas ${activity.icon || getActivityIcon(activity.type)}"></i>
+            </div>
+            <div class="activity-content">
+                <div class="activity-text">${activity.message}</div>
+                <div class="activity-meta">
+                    <span class="activity-time"><i class="far fa-clock"></i> ${timeAgo}</span>
+                    <span class="activity-datetime">${date} ${time}</span>
+                    ${activity.customerName ? 
+                        `<span class="activity-customer"><i class="fas fa-user"></i> ${activity.customerName}</span>` : 
+                        ''}
+                    ${activity.orderId ? 
+                        `<span class="activity-order"><i class="fas fa-hashtag"></i> ${activity.orderId.slice(-8)}</span>` : 
+                        ''}
+                </div>
+            </div>
+        `;
+        
+        feed.insertBefore(activityElement, feed.firstChild);
+        
+        while (feed.children.length > 30) {
+            feed.removeChild(feed.lastChild);
+        }
+    }
+    
+    // ==================== SETUP EVENT LISTENERS ====================
+    function setupEventListeners() {
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) logoutBtn.addEventListener('click', logout);
+        
+        const refreshBtn = document.getElementById('refreshOrders');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function() {
+                loadDashboardData();
+                showNotification('Dashboard refreshed', 'info');
+            });
+        }
+        
+        const refreshActivityBtn = document.getElementById('refreshActivity');
+        if (refreshActivityBtn) {
+            refreshActivityBtn.addEventListener('click', function() {
+                loadDashboardData();
+                showNotification('Activity feed refreshed', 'info');
+            });
+        }
+        
+        const filterBtn = document.getElementById('filterOrders');
+        if (filterBtn) {
+            filterBtn.addEventListener('click', function() {
+                document.getElementById('filterModal').classList.add('active');
+            });
+        }
+        
+        const exportBtn = document.getElementById('exportOrders');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                exportOrdersToCSV();
+            });
+        }
+        
+        const closeFilterModal = document.getElementById('closeFilterModal');
+        if (closeFilterModal) {
+            closeFilterModal.addEventListener('click', () => {
+                document.getElementById('filterModal').classList.remove('active');
+            });
+        }
+        
+        const applyFilters = document.getElementById('applyFilters');
+        if (applyFilters) {
+            applyFilters.addEventListener('click', function() {
+                currentFilter = document.getElementById('filterStatus').value;
+                loadDashboardData();
+                document.getElementById('filterModal').classList.remove('active');
+                showNotification('Filters applied', 'success');
+            });
+        }
+        
+        const clearFilters = document.getElementById('clearFilters');
+        if (clearFilters) {
+            clearFilters.addEventListener('click', function() {
+                document.getElementById('filterStatus').value = 'all';
+                document.getElementById('filterDate').value = 'all';
+                currentFilter = 'all';
+                loadDashboardData();
+                document.getElementById('filterModal').classList.remove('active');
+                showNotification('Filters cleared', 'info');
+            });
+        }
+        
+        // Tab switching
+        document.getElementById('dashboardTab')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            setActiveTab('dashboardTab');
+            showDashboardView();
+        });
+        
+        document.getElementById('verificationTab')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            setActiveTab('verificationTab');
+            showVerificationView();
+        });
+        
+        document.getElementById('ordersTab')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            setActiveTab('ordersTab');
+            showOrdersView();
+        });
+        
+        document.getElementById('customersTab')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            setActiveTab('customersTab');
+            showCustomersView();
+        });
+        
+        document.getElementById('activityTab')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            setActiveTab('activityTab');
+            showActivityView();
+        });
+        
+        document.getElementById('closeVerifyModal')?.addEventListener('click', () => closeModal('verifyModal'));
+        document.getElementById('closeRejectModal')?.addEventListener('click', () => closeModal('rejectModal'));
+        document.getElementById('closeStatusModal')?.addEventListener('click', () => closeModal('statusModal'));
+        document.getElementById('cancelVerification')?.addEventListener('click', () => closeModal('verifyModal'));
+        document.getElementById('cancelRejection')?.addEventListener('click', () => closeModal('rejectModal'));
+        document.getElementById('cancelUpdate')?.addEventListener('click', () => closeModal('statusModal'));
+        
+        document.getElementById('confirmVerification')?.addEventListener('click', verifyPayment);
+        document.getElementById('confirmRejection')?.addEventListener('click', rejectPayment);
+        document.getElementById('confirmUpdate')?.addEventListener('click', updateOrderStatus);
+        
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.remove('active');
+            });
+        });
+    }
+    
+    // ==================== EXPORT ORDERS TO CSV ====================
+    function exportOrdersToCSV() {
+        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+        
+        if (orders.length === 0) {
+            showNotification('No orders to export', 'warning');
+            return;
+        }
+        
+        const headers = ['Order ID', 'Customer', 'Phone', 'Email', 'Amount', 'Status', 'Payment Status', 'Date'];
+        const csvRows = [];
+        
+        csvRows.push(headers.join(','));
+        
+        orders.forEach(order => {
+            const row = [
+                `"${order.id}"`,
+                `"${order.customerName || ''}"`,
+                `"${order.customerPhone || ''}"`,
+                `"${order.customerEmail || ''}"`,
+                order.total || order.totalAmount || 0,
+                `"${order.status || ''}"`,
+                `"${order.paymentStatus || ''}"`,
+                `"${new Date(order.createdAt || order.timestamp || '').toLocaleString()}"`
+            ];
+            csvRows.push(row.join(','));
+        });
+        
+        const csvContent = csvRows.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cleanbite_orders_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        showNotification(`Exported ${orders.length} orders`, 'success');
+    }
+    
+    // ==================== SETUP BROADCAST LISTENERS ====================
+    function setupBroadcastListeners() {
+        console.log('📡 Setting up broadcast listeners...');
+        
+        if (typeof BroadcastChannel !== 'undefined') {
+            try {
+                adminBroadcastChannel = new BroadcastChannel('cleanbite_admin');
+                adminBroadcastChannel.onmessage = function(event) {
+                    if (event.data?.type === 'NEW_ORDER') {
+                        handleNewOrder(event.data.order || event.data);
+                    }
+                    if (event.data?.type === 'ORDER_UPDATED') {
+                        setTimeout(() => loadDashboardData(), 50);
+                    }
+                };
+            } catch (e) {}
+        }
+        
+        window.addEventListener('storage', function(event) {
+            if (event.key === 'admin_new_order' && event.newValue) {
+                try {
+                    const order = JSON.parse(event.newValue);
+                    handleNewOrder(order);
+                } catch (e) {}
+            }
+            
+            if (event.key === 'empire_new_order' && event.newValue) {
+                try {
+                    const data = JSON.parse(event.newValue);
+                    if (data.order) handleNewOrder(data.order);
+                } catch (e) {}
+            }
+            
+            if (event.key === 'ADMIN_NEW_ORDER_FLAG') {
+                setTimeout(() => loadDashboardData(), 100);
+            }
+        });
+    }
+    
+    // ==================== HANDLE NEW ORDER ====================
+    function handleNewOrder(order) {
+        if (!order || !order.id) return;
+        
+        console.log('🆕 New order received:', order.id);
+        
+        playNotificationSound();
+        
+        showNotification(
+            `💰 Payment pending: Order ${order.id.slice(-8)}`,
+            'warning'
+        );
+        
+        const activity = {
+            type: 'order_created',
+            message: `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'} (pending payment)`,
+            orderId: order.id,
+            customerName: order.customerName,
+            timestamp: new Date().toISOString(),
+            icon: 'fa-shopping-cart',
+            color: '#9b59b6'
+        };
+        
+        addActivityToFeed(activity);
+        broadcastToOrderPage('order_created', activity.message, order.id, order.customerName);
+        
+        loadDashboardData();
+    }
+    
+    // ==================== LOAD DASHBOARD DATA ====================
+    function loadDashboardData() {
+        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+        
+        // Apply filter if set
+        let filteredOrders = orders;
+        if (currentFilter !== 'all') {
+            filteredOrders = orders.filter(o => o.status === currentFilter);
+        }
+        
+        const pendingPayments = orders.filter(o => 
+            o.paymentStatus === 'pending' && 
+            o.status !== 'cancelled' && 
+            o.status !== 'rejected'
+        );
+        
+        const verifiedOrders = orders.filter(o => 
+            o.paymentStatus === 'verified' && 
+            o.status !== 'completed' && 
+            o.status !== 'cancelled'
+        );
+        
+        localStorage.setItem('admin_verification_queue', JSON.stringify(pendingPayments));
+        
+        updateStats(orders);
+        renderVerificationQueue(pendingPayments);
+        renderOrders(verifiedOrders);
+    }
+    
+    // ==================== UPDATE STATS ====================
+    function updateStats(orders) {
+        const totalRevenue = orders
+            .filter(o => o.paymentStatus === 'verified')
+            .reduce((sum, o) => sum + (o.total || o.totalAmount || 0), 0);
+        
+        const pendingPayments = orders.filter(o => 
+            o.paymentStatus === 'pending' && 
+            o.status !== 'cancelled' && 
+            o.status !== 'rejected'
+        ).length;
+        
+        // Calculate total products sold
+        const totalProducts = orders.reduce((sum, order) => {
+            if (order.items && Array.isArray(order.items)) {
+                return sum + order.items.reduce((itemSum, item) => itemSum + (item.quantity || 0), 0);
+            }
+            return sum;
+        }, 0);
+        
+        // Calculate unique customers
+        const uniqueCustomers = new Set();
+        orders.forEach(order => {
+            if (order.customerPhone) {
+                uniqueCustomers.add(order.customerPhone);
+            }
+        });
+        
+        document.getElementById('totalRevenue').textContent = `₦${totalRevenue.toLocaleString()}`;
+        document.getElementById('awaitingVerification').textContent = pendingPayments;
+        document.getElementById('totalProducts').textContent = totalProducts.toLocaleString();
+        document.getElementById('totalCustomers').textContent = uniqueCustomers.size;
+        
+        document.getElementById('verificationBadge').textContent = pendingPayments;
+        document.getElementById('pendingBadge').textContent = pendingPayments;
+        document.getElementById('pendingTrend').innerHTML = `<i class="fas fa-clock"></i> ${pendingPayments}`;
+        document.getElementById('verificationCount').innerHTML = `<i class="fas fa-clock"></i> <span id="verificationCountNum">${pendingPayments}</span> pending`;
+        document.getElementById('verificationCountNum').textContent = pendingPayments;
+        
+        const paymentNotice = document.getElementById('paymentNotice');
+        if (pendingPayments > 0) {
+            paymentNotice.style.display = 'flex';
+            document.getElementById('paymentNoticeMessage').textContent = 
+                `${pendingPayments} order${pendingPayments > 1 ? 's' : ''} require payment verification.`;
+            document.getElementById('paymentNoticeCount').innerHTML = `<i class="fas fa-clock"></i> ${pendingPayments} pending`;
+        } else {
+            paymentNotice.style.display = 'none';
+        }
+    }
+    
+    // ==================== RENDER VERIFICATION QUEUE ====================
+    function renderVerificationQueue(pendingPayments) {
+        const container = document.getElementById('verificationList');
+        if (!container) return;
+        
+        if (pendingPayments.length === 0) {
+            container.innerHTML = `
+                <div class="verification-item empty" style="grid-template-columns: 1fr; text-align: center; padding: 40px;">
+                    <div>
+                        <i class="fas fa-check-circle" style="font-size: 48px; color: #2ecc71; margin-bottom: 16px;"></i>
+                        <p style="color: #7f8c8d; margin: 0;">No payments pending verification</p>
+                        <p style="color: #95a5a6; font-size: 13px; margin-top: 8px;">All caught up!</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = pendingPayments.map(order => `
+            <div class="verification-item" data-order-id="${order.id}">
+                <div class="order-id">${order.id}</div>
+                <div class="customer-info">
+                    <h4><i class="fas fa-user-circle"></i> ${order.customerName || 'Customer'}</h4>
+                    <p><i class="fas fa-phone-alt"></i> ${order.customerPhone || 'N/A'}</p>
+                </div>
+                <div class="order-items">
+                    ${order.items?.slice(0, 3).map(item => 
+                        `${item.quantity}x ${item.name}`
+                    ).join('<br>')}
+                    ${order.items?.length > 3 ? `<br><span style="color: #95a5a6;">+${order.items.length - 3} more</span>` : ''}
+                </div>
+                <div class="order-amount">₦${(order.total || order.totalAmount || 0).toLocaleString()}</div>
+                <div class="verification-actions">
+                    <button class="btn-verify" onclick="openVerifyModal('${order.id}')">
+                        <i class="fas fa-check-circle"></i> Verify
+                    </button>
+                    <button class="btn-reject" onclick="openRejectModal('${order.id}')">
+                        <i class="fas fa-times-circle"></i> Reject
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // ==================== RENDER ORDERS ====================
+    function renderOrders(orders) {
+        const container = document.getElementById('ordersList');
+        if (!container) return;
+        
+        if (orders.length === 0) {
+            container.innerHTML = `
+                <div class="order-row empty" style="grid-template-columns: 1fr; text-align: center; padding: 40px;">
+                    <div>
+                        <i class="fas fa-shopping-cart" style="font-size: 48px; color: #95a5a6; margin-bottom: 16px;"></i>
+                        <p style="color: #7f8c8d; margin: 0;">No verified orders</p>
+                        <p style="color: #95a5a6; font-size: 13px;">Orders will appear here after payment verification</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        const sortedOrders = [...orders].sort((a, b) => 
+            new Date(b.verifiedAt || b.createdAt || b.timestamp || 0) - new Date(a.verifiedAt || a.createdAt || a.timestamp || 0)
+        );
+        
+        container.innerHTML = sortedOrders.map(order => {
+            let progressHtml = '';
+            if (order.status === 'incubating' && order.incubatingStarted) {
+                const start = new Date(order.incubatingStarted);
+                const now = new Date();
+                const elapsed = now - start;
+                const total = 24 * 60 * 60 * 1000;
+                const percent = Math.min(100, Math.round((elapsed / total) * 100));
+                const remaining = Math.max(0, Math.round((total - elapsed) / (60 * 60 * 1000)));
+                
+                progressHtml = `
+                    <div style="margin-top: 8px; font-size: 11px;">
+                        <div style="background: #edf2f7; border-radius: 10px; height: 6px; width: 100%;">
+                            <div style="background: #3498db; width: ${percent}%; height: 6px; border-radius: 10px;"></div>
+                        </div>
+                        <span style="color: #7f8c8d;">${remaining}h remaining</span>
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="order-row" data-order-id="${order.id}">
+                    <div class="order-id">${order.id}</div>
+                    <div class="customer-info">
+                        <h4><i class="fas fa-user-circle"></i> ${order.customerName || 'Customer'}</h4>
+                        <p><i class="fas fa-phone-alt"></i> ${order.customerPhone || 'N/A'}</p>
+                    </div>
+                    <div class="order-items">
+                        ${order.items?.slice(0, 2).map(item => 
+                            `${item.quantity}x ${item.name}`
+                        ).join('<br>')}
+                        ${order.items?.length > 2 ? `<br><span style="color: #95a5a6;">+${order.items.length - 2} more</span>` : ''}
+                    </div>
+                    <div class="order-amount">₦${(order.total || order.totalAmount || 0).toLocaleString()}</div>
+                    <div>
+                        <span class="status-badge status-${order.status || 'pending'}">
+                            <i class="fas ${getStatusIcon(order.status)}"></i>
+                            ${(order.status || 'pending').replace('-', ' ')}
+                        </span>
+                        <span class="payment-status payment-verified">
+                            <i class="fas fa-check-circle"></i> Verified
+                        </span>
+                        ${progressHtml}
+                    </div>
+                    <div class="action-buttons">
+                        ${order.status === 'ready' ? `
+                            <button class="btn-action complete" onclick="completeOrderManually('${order.id}')" 
+                                    style="background: #2ecc71; color: white;">
+                                <i class="fas fa-flag-checkered"></i> Complete
+                            </button>
+                        ` : ''}
+                        <button class="btn-action update" onclick="openStatusModal('${order.id}')">
+                            <i class="fas fa-sync-alt"></i> Update
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    // ==================== TAB VIEWS ====================
+    function setActiveTab(tabId) {
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        document.getElementById(tabId)?.classList.add('active');
+    }
+    
+    function showDashboardView() {
+        document.querySelector('.stats-grid').style.display = 'grid';
+        document.getElementById('verificationSection').style.display = 'block';
+        document.querySelector('.orders-container').style.display = 'block';
+        document.querySelector('.activity-section').style.display = 'block';
+        
+        const customersView = document.getElementById('customersView');
+        if (customersView) customersView.style.display = 'none';
+    }
+    
+    function showVerificationView() {
+        document.querySelector('.stats-grid').style.display = 'none';
+        document.getElementById('verificationSection').style.display = 'block';
+        document.querySelector('.orders-container').style.display = 'none';
+        document.querySelector('.activity-section').style.display = 'none';
+        
+        const customersView = document.getElementById('customersView');
+        if (customersView) customersView.style.display = 'none';
+    }
+    
+    function showOrdersView() {
+        document.querySelector('.stats-grid').style.display = 'none';
+        document.getElementById('verificationSection').style.display = 'none';
+        document.querySelector('.orders-container').style.display = 'block';
+        document.querySelector('.activity-section').style.display = 'none';
+        
+        const customersView = document.getElementById('customersView');
+        if (customersView) customersView.style.display = 'none';
+    }
+    
+    function showCustomersView() {
+        document.querySelector('.stats-grid').style.display = 'none';
+        document.getElementById('verificationSection').style.display = 'none';
+        document.querySelector('.orders-container').style.display = 'none';
+        document.querySelector('.activity-section').style.display = 'none';
+        
+        let customersView = document.getElementById('customersView');
+        if (!customersView) {
+            customersView = document.createElement('div');
+            customersView.id = 'customersView';
+            customersView.className = 'customers-section';
+            customersView.innerHTML = `
+                <div class="section-header">
+                    <h2><i class="fas fa-users"></i> Customer Records</h2>
+                    <div class="header-actions">
+                        <button class="refresh-btn" onclick="loadCustomersData()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button class="export-btn" onclick="exportCustomersToCSV()">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
+                </div>
+                <div class="customers-container">
+                    <div class="customers-list" id="customersList">
+                        Loading customers...
+                    </div>
+                </div>
+            `;
+            document.querySelector('.main-content').appendChild(customersView);
+        }
+        
+        customersView.style.display = 'block';
+        loadCustomersData();
+    }
+    
+    function showActivityView() {
+        document.querySelector('.stats-grid').style.display = 'none';
+        document.getElementById('verificationSection').style.display = 'none';
+        document.querySelector('.orders-container').style.display = 'none';
+        document.querySelector('.activity-section').style.display = 'block';
+        
+        const customersView = document.getElementById('customersView');
+        if (customersView) customersView.style.display = 'none';
+    }
+    
+    // ==================== LOAD CUSTOMERS DATA ====================
+    function loadCustomersData() {
+        console.log('📋 Loading customer records...');
+        
+        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+        const customersMap = new Map();
+        
+        orders.forEach(order => {
+            if (order.customerName && order.customerPhone) {
+                const key = `${order.customerName}-${order.customerPhone}`;
+                
+                if (!customersMap.has(key)) {
+                    customersMap.set(key, {
+                        name: order.customerName,
+                        phone: order.customerPhone,
+                        email: order.customerEmail || 'N/A',
+                        totalOrders: 0,
+                        totalSpent: 0,
+                        lastOrder: order.createdAt || order.timestamp,
+                        orders: []
+                    });
+                }
+                
+                const customer = customersMap.get(key);
+                customer.totalOrders++;
+                customer.totalSpent += (order.total || order.totalAmount || 0);
+                customer.orders.push({
+                    id: order.id,
+                    date: order.createdAt || order.timestamp,
+                    amount: order.total || order.totalAmount || 0,
+                    status: order.status,
+                    paymentStatus: order.paymentStatus
+                });
+                
+                const orderDate = new Date(order.createdAt || order.timestamp || 0);
+                const lastDate = new Date(customer.lastOrder || 0);
+                if (orderDate > lastDate) {
+                    customer.lastOrder = order.createdAt || order.timestamp;
+                }
+            }
+        });
+        
+        const customers = Array.from(customersMap.values());
+        renderCustomers(customers);
+    }
+    
+    // ==================== RENDER CUSTOMERS ====================
+    function renderCustomers(customers) {
+        const customersList = document.getElementById('customersList');
+        if (!customersList) return;
+        
+        if (customers.length === 0) {
+            customersList.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-users"></i>
+                    <p>No customer records found</p>
+                </div>
+            `;
+            return;
+        }
+        
+        customers.sort((a, b) => new Date(b.lastOrder) - new Date(a.lastOrder));
+        
+        customersList.innerHTML = `
+            <div class="customers-header">
+                <div>Customer</div>
+                <div>Contact</div>
+                <div>Orders</div>
+                <div>Total Spent</div>
+                <div>Last Order</div>
+                <div>Actions</div>
+            </div>
+            <div class="customers-rows">
+                ${customers.map(customer => {
+                    const lastOrderDate = customer.lastOrder ? 
+                        new Date(customer.lastOrder).toLocaleDateString() : 'N/A';
+                    
+                    return `
+                        <div class="customer-row">
+                            <div class="customer-name">
+                                <i class="fas fa-user-circle"></i>
+                                ${customer.name}
+                            </div>
+                            <div class="customer-contact">
+                                <div><i class="fas fa-phone"></i> ${customer.phone}</div>
+                                <div><i class="fas fa-envelope"></i> ${customer.email}</div>
+                            </div>
+                            <div class="customer-orders-count">
+                                <span class="badge">${customer.totalOrders}</span>
+                            </div>
+                            <div class="customer-total">
+                                ₦${customer.totalSpent.toLocaleString()}
+                            </div>
+                            <div class="customer-last-order">
+                                ${lastOrderDate}
+                            </div>
+                            <div class="customer-actions">
+                                <button class="btn-action" onclick="viewCustomerOrders('${customer.phone}')">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+    
+    // ==================== VIEW CUSTOMER ORDERS ====================
+    window.viewCustomerOrders = function(phone) {
+        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+        const customerOrders = orders.filter(o => o.customerPhone === phone);
+        
+        if (customerOrders.length === 0) {
+            showNotification('No orders found for this customer', 'info');
+            return;
+        }
+        
+        const customer = customerOrders[0];
+        const ordersList = customerOrders.map(order => `
+            <div class="order-history-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #edf2f7;">
+                <span><strong>${order.id}</strong></span>
+                <span>${new Date(order.createdAt || order.timestamp).toLocaleDateString()}</span>
+                <span class="status-badge status-${order.status}" style="padding: 4px 12px; border-radius: 30px; background: ${getStatusColor(order.status)}; color: white;">${order.status}</span>
+                <span>₦${(order.total || order.totalAmount || 0).toLocaleString()}</span>
+            </div>
+        `).join('');
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal active';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h3><i class="fas fa-history"></i> Order History - ${customer.customerName}</h3>
+                    <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="customer-summary" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <p><strong>Phone:</strong> ${customer.customerPhone}</p>
+                        <p><strong>Email:</strong> ${customer.customerEmail || 'N/A'}</p>
+                        <p><strong>Total Orders:</strong> ${customerOrders.length}</p>
+                        <p><strong>Total Spent:</strong> ₦${customerOrders.reduce((sum, o) => sum + (o.total || o.totalAmount || 0), 0).toLocaleString()}</p>
+                    </div>
+                    <div class="orders-history">
+                        <h4>Order History</h4>
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            ${ordersList}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+    };
+    
+    // ==================== EXPORT CUSTOMERS TO CSV ====================
+    window.exportCustomersToCSV = function() {
+        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+        const customersMap = new Map();
+        
+        orders.forEach(order => {
+            if (order.customerName && order.customerPhone) {
+                const key = `${order.customerName}-${order.customerPhone}`;
+                
+                if (!customersMap.has(key)) {
+                    customersMap.set(key, {
+                        name: order.customerName,
+                        phone: order.customerPhone,
+                        email: order.customerEmail || '',
+                        totalOrders: 0,
+                        totalSpent: 0,
+                        lastOrder: order.createdAt || order.timestamp
+                    });
+                }
+                
+                const customer = customersMap.get(key);
+                customer.totalOrders++;
+                customer.totalSpent += (order.total || order.totalAmount || 0);
+            }
+        });
+        
+        const customers = Array.from(customersMap.values());
+        
+        if (customers.length === 0) {
+            showNotification('No customers to export', 'warning');
+            return;
+        }
+        
+        const headers = ['Name', 'Phone', 'Email', 'Total Orders', 'Total Spent', 'Last Order'];
+        const csvRows = [];
+        
+        csvRows.push(headers.join(','));
+        
+        customers.forEach(customer => {
+            const row = [
+                `"${customer.name}"`,
+                `"${customer.phone}"`,
+                `"${customer.email}"`,
+                customer.totalOrders,
+                customer.totalSpent,
+                `"${new Date(customer.lastOrder).toLocaleDateString()}"`
+            ];
+            csvRows.push(row.join(','));
+        });
+        
+        const csvContent = csvRows.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cleanbite_customers_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        showNotification(`Exported ${customers.length} customers`, 'success');
+    };
+    
+    // ==================== COMPLETE ORDER MANUALLY ====================
+    window.completeOrderManually = function(orderId) {
+        console.log('🏁 Manually completing order:', orderId);
+        
+        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+        const orderIndex = orders.findIndex(o => o.id === orderId);
+        
+        if (orderIndex === -1) {
+            showNotification('Order not found', 'error');
+            return;
+        }
+        
+        const order = orders[orderIndex];
+        
+        order.status = 'completed';
+        order.completedAt = new Date().toISOString();
+        order.updatedAt = new Date().toISOString();
+        order.completedBy = 'admin';
+        
+        localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
+        
+        playApprovalSound();
+        
+        const message = `🏁 Order ${orderId.slice(-8)} marked COMPLETED by admin`;
+        
+        addActivityToFeed({
+            type: 'order_completed',
+            message: message,
+            orderId: order.id,
+            customerName: order.customerName,
+            timestamp: new Date().toISOString(),
+            icon: 'fa-flag-checkered',
+            color: '#3498db'
+        });
+        
+        broadcastToOrderPage('order_completed', message, order.id, order.customerName);
+        
+        showNotification(`✅ Order ${orderId.slice(-8)} completed`, 'success');
+        loadDashboardData();
+    };
+    
+    // ==================== VERIFY PAYMENT ====================
+    function verifyPayment() {
+        if (!currentVerificationOrder) {
+            showNotification('No order selected', 'error');
+            return;
+        }
+        
+        console.log('✅ Verifying payment for order:', currentVerificationOrder);
+        
+        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+        const orderIndex = orders.findIndex(o => o.id === currentVerificationOrder);
+        
+        if (orderIndex === -1) {
+            showNotification('Order not found', 'error');
+            closeModal('verifyModal');
+            return;
+        }
+        
+        const order = orders[orderIndex];
+        
+        order.paymentStatus = 'verified';
+        order.status = 'preparing';
+        order.verifiedAt = new Date().toISOString();
+        order.updatedAt = new Date().toISOString();
+        order.preparingStarted = new Date().toISOString();
+        
+        localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
+        console.log('💾 Payment verified - Order now PREPARING');
+        
+        const queue = JSON.parse(localStorage.getItem('admin_verification_queue') || '[]');
+        const updatedQueue = queue.filter(o => o.id !== currentVerificationOrder);
+        localStorage.setItem('admin_verification_queue', JSON.stringify(updatedQueue));
+        
+        const message = `💰 Payment VERIFIED for order ${currentVerificationOrder.slice(-8)} - Now PREPARING`;
+        
+        addActivityToFeed({
+            type: 'payment_verified',
+            message: message,
+            orderId: order.id,
+            customerName: order.customerName,
+            amount: order.total || order.totalAmount,
+            timestamp: new Date().toISOString(),
+            icon: 'fa-check-circle',
+            color: '#2ecc71'
+        });
+        
+        broadcastToOrderPage('payment_verified', message, order.id, order.customerName);
+        
+        showNotification(`✅ Payment verified - Order now preparing`, 'success');
+        
+        playApprovalSound();
+        loadDashboardData();
+        
+        closeModal('verifyModal');
+        currentVerificationOrder = null;
+    }
+    
+    // ==================== REJECT PAYMENT ====================
+    function rejectPayment() {
+        if (!currentVerificationOrder) {
+            showNotification('No order selected', 'error');
+            return;
+        }
+        
+        const reason = document.getElementById('rejectionReason')?.value;
+        if (!reason?.trim()) {
+            showNotification('Please provide a rejection reason', 'warning');
+            return;
+        }
+        
+        console.log('❌ Rejecting payment for order:', currentVerificationOrder);
+        
+        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+        const orderIndex = orders.findIndex(o => o.id === currentVerificationOrder);
+        
+        if (orderIndex === -1) {
+            showNotification('Order not found', 'error');
+            closeModal('rejectModal');
+            return;
+        }
+        
+        const order = orders[orderIndex];
+        
+        order.paymentStatus = 'rejected';
+        order.status = 'cancelled';
+        order.rejectionReason = reason;
+        order.rejectedAt = new Date().toISOString();
+        order.updatedAt = new Date().toISOString();
+        
+        localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
+        
+        const queue = JSON.parse(localStorage.getItem('admin_verification_queue') || '[]');
+        const updatedQueue = queue.filter(o => o.id !== currentVerificationOrder);
+        localStorage.setItem('admin_verification_queue', JSON.stringify(updatedQueue));
+        
+        const pendingPayments = JSON.parse(localStorage.getItem('pending_payments') || '[]');
+        const updatedPending = pendingPayments.filter(o => o.id !== currentVerificationOrder);
+        localStorage.setItem('pending_payments', JSON.stringify(updatedPending));
+        
+        const message = `❌ Payment REJECTED for order ${currentVerificationOrder.slice(-8)}: ${reason}`;
+        
+        addActivityToFeed({
+            type: 'payment_rejected',
+            message: message,
+            orderId: order.id,
+            customerName: order.customerName,
+            timestamp: new Date().toISOString(),
+            icon: 'fa-times-circle',
+            color: '#e74c3c'
+        });
+        
+        broadcastToOrderPage('payment_rejected', message, order.id, order.customerName);
+        
+        showNotification(`❌ Payment rejected - Order removed from queue`, 'warning');
+        
+        setTimeout(() => {
+            loadDashboardData();
+        }, 50);
+        
+        closeModal('rejectModal');
+        document.getElementById('rejectionReason').value = '';
+        currentVerificationOrder = null;
+    }
+    
+    // ==================== UPDATE ORDER STATUS ====================
+    function updateOrderStatus() {
+        if (!currentStatusOrder) return;
+        
+        const selectedStatus = document.querySelector('input[name="status"]:checked');
+        if (!selectedStatus) {
+            showNotification('Please select a status', 'warning');
+            return;
+        }
+        
+        const newStatus = selectedStatus.value;
+        
+        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+        const orderIndex = orders.findIndex(o => o.id === currentStatusOrder);
+        
+        if (orderIndex === -1) return;
+        
+        const order = orders[orderIndex];
+        const oldStatus = order.status;
+        
+        order.status = newStatus;
+        order.updatedAt = new Date().toISOString();
+        
+        if (newStatus === 'completed') {
+            order.completedAt = new Date().toISOString();
+            order.completedBy = 'admin';
+        }
+        
+        localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
+        
+        playApprovalSound();
+        
+        let message = '';
+        if (newStatus === 'preparing') message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
+        if (newStatus === 'incubating') message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (24hr countdown started)`;
+        if (newStatus === 'ready') message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
+        if (newStatus === 'completed') message = `📦 Order ${order.id.slice(-8)} completed and picked up`;
+        
+        if (message) {
+            addActivityToFeed({
+                type: 'status_change',
+                message: message,
+                orderId: order.id,
+                customerName: order.customerName,
+                timestamp: new Date().toISOString(),
+                icon: 'fa-sync-alt',
+                color: '#3498db'
+            });
+            
+            broadcastToOrderPage('status_change', message, order.id, order.customerName);
+        }
+        
+        showNotification(`Order updated to ${newStatus}`, 'info');
+        
+        loadDashboardData();
+        closeModal('statusModal');
+    }
+    
+    // ==================== MODAL FUNCTIONS ====================
+    window.openVerifyModal = function(orderId) {
+        currentVerificationOrder = orderId;
+        
+        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+        const order = orders.find(o => o.id === orderId);
+        
+        if (order) {
+            document.getElementById('verifyOrderId').textContent = order.id;
+            document.getElementById('verifyCustomerName').textContent = order.customerName || 'Customer';
+            document.getElementById('verifyAmount').textContent = `₦${(order.total || order.totalAmount || 0).toLocaleString()}`;
+            document.getElementById('verifyMethod').textContent = order.paymentMethod || 'Bank Transfer';
+            document.getElementById('verifyModal').classList.add('active');
+        }
+    };
+    
+    window.openRejectModal = function(orderId) {
+        currentVerificationOrder = orderId;
+        document.getElementById('rejectModal').classList.add('active');
+    };
+    
+    window.openStatusModal = function(orderId) {
+        currentStatusOrder = orderId;
+        
+        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+        const order = orders.find(o => o.id === orderId);
+        
+        if (order) {
+            document.getElementById('modalOrderInfo').innerHTML = 
+                `Order: <strong>${order.id}</strong> for <strong>${order.customerName || 'Customer'}</strong>`;
+            
+            const statusOptions = document.getElementById('statusOptions');
+            const statuses = ['pending-payment', 'preparing', 'incubating', 'ready', 'completed', 'cancelled'];
+            
+            statusOptions.innerHTML = statuses.map(status => `
+                <label style="display: flex; align-items: center; margin-bottom: 12px; padding: 10px 16px; border: 1px solid #e9ecef; border-radius: 12px; cursor: pointer; background: ${order.status === status ? '#fff9e6' : 'white'};">
+                    <input type="radio" name="status" value="${status}" ${order.status === status ? 'checked' : ''} style="margin-right: 12px; width: 18px; height: 18px; accent-color: var(--primary);">
+                    <span style="display: inline-block; padding: 6px 16px; border-radius: 30px; background: ${getStatusColor(status)}; color: white; font-size: 12px; font-weight: 600;">
+                        <i class="fas ${getStatusIcon(status)}" style="margin-right: 6px;"></i>
+                        ${status.replace('-', ' ')}
+                    </span>
+                    ${order.status === status ? '<span style="margin-left: auto; color: var(--primary);"><i class="fas fa-check-circle"></i> Current</span>' : ''}
+                </label>
+            `).join('');
+            
+            document.getElementById('statusModal').classList.add('active');
+        }
+    };
+    
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.classList.remove('active');
+        
+        if (modalId === 'rejectModal') {
+            document.getElementById('rejectionReason').value = '';
+        }
+        
+        currentVerificationOrder = null;
+        currentStatusOrder = null;
+    }
+    
+    // ==================== BROADCAST TO ORDER PAGE ====================
+    function broadcastToOrderPage(type, message, orderId, customerName) {
+        const activity = {
+            id: Date.now(),
+            type: type,
+            message: message,
+            orderId: orderId,
+            customerName: customerName,
+            timestamp: new Date().toISOString(),
+            icon: getBroadcastIcon(type),
+            color: getBroadcastColor(type)
+        };
+        
+        console.log('📢 INSTANT BROADCAST to Order Page:', message);
+        
+        if (typeof BroadcastChannel !== 'undefined') {
+            try {
+                const channel = new BroadcastChannel('cleanbite_activities');
+                channel.postMessage({
+                    type: 'NEW_ACTIVITY',
+                    activity: activity
+                });
+                setTimeout(() => channel.close(), 100);
+            } catch (e) {
+                console.error('Broadcast error:', e);
+            }
+        }
+        
+        try {
+            localStorage.setItem('admin_broadcast', JSON.stringify({
+                type: 'ACTIVITY',
+                activity: activity,
+                timestamp: Date.now()
+            }));
+            setTimeout(() => localStorage.removeItem('admin_broadcast'), 100);
+        } catch (e) {}
+    }
+    
+    function getBroadcastIcon(type) {
+        const icons = {
+            'payment_verified': 'fa-check-circle',
+            'payment_rejected': 'fa-times-circle',
+            'order_created': 'fa-cart-plus',
+            'status_change': 'fa-sync-alt',
+            'order_completed': 'fa-flag-checkered',
+            'preparing': 'fa-utensils',
+            'incubating': 'fa-fire',
+            'ready': 'fa-check-circle',
+            'completed': 'fa-flag-checkered'
+        };
+        return icons[type] || 'fa-bell';
+    }
+    
+    function getBroadcastColor(type) {
+        const colors = {
+            'payment_verified': '#2ecc71',
+            'payment_rejected': '#e74c3c',
+            'order_created': '#9b59b6',
+            'status_change': '#3498db',
+            'order_completed': '#3498db',
+            'preparing': '#f39c12',
+            'incubating': '#e74c3c',
+            'ready': '#2ecc71',
+            'completed': '#27ae60'
+        };
+        return colors[type] || '#95a5a6';
+    }
+    
+    // ==================== UTILITY FUNCTIONS ====================
+    function getStatusColor(status) {
+        const colors = {
+            'pending-payment': '#f39c12',
+            'preparing': '#3498db',
+            'incubating': '#9b59b6',
+            'ready': '#2ecc71',
+            'completed': '#95a5a6',
+            'cancelled': '#e74c3c'
+        };
+        return colors[status] || '#3498db';
+    }
+    
+    function getStatusIcon(status) {
+        const icons = {
+            'pending-payment': 'fa-clock',
+            'preparing': 'fa-utensils',
+            'incubating': 'fa-clock',
+            'ready': 'fa-check-circle',
+            'completed': 'fa-flag-checkered',
+            'cancelled': 'fa-ban'
+        };
+        return icons[status] || 'fa-circle';
+    }
+    
+    function getActivityColor(type) {
+        const colors = {
+            'payment_verified': '#2ecc71',
+            'payment_rejected': '#e74c3c',
+            'order_created': '#9b59b6',
+            'status_change': '#3498db',
+            'order_completed': '#3498db',
+            'system': '#3498db',
+            'warning': '#f39c12',
+            'info': '#3498db',
+            'success': '#2ecc71',
+            'error': '#e74c3c'
+        };
+        return colors[type] || '#95a5a6';
+    }
+    
+    function getActivityIcon(type) {
+        const icons = {
+            'payment_verified': 'fa-check-circle',
+            'payment_rejected': 'fa-times-circle',
+            'order_created': 'fa-cart-plus',
+            'status_change': 'fa-sync-alt',
+            'order_completed': 'fa-flag-checkered',
+            'system': 'fa-broadcast-tower',
+            'warning': 'fa-exclamation-triangle',
+            'info': 'fa-info-circle',
+            'success': 'fa-check-circle',
+            'error': 'fa-times-circle'
+        };
+        return icons[type] || 'fa-bell';
+    }
+    
+    function formatTimeAgo(timestamp) {
+        if (!timestamp) return 'Just now';
+        
+        const now = new Date();
+        const time = new Date(timestamp);
+        const diffMinutes = Math.floor((now - time) / 60000);
+        
+        if (diffMinutes < 1) return 'Just now';
+        if (diffMinutes < 60) return `${diffMinutes}m ago`;
+        if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)}h ago`;
+        return `${Math.floor(diffMinutes / 1440)}d ago`;
+    }
+    
+    function addActivity(user, message, type = 'info') {
+        const activity = {
+            type: type,
+            message: user ? `${user}: ${message}` : message,
+            timestamp: new Date().toISOString(),
+            icon: getActivityIcon(type),
+            color: getActivityColor(type)
+        };
+        
+        addActivityToFeed(activity);
+        broadcastActivity(activity);
+    }
+    
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `notification-toast ${type}`;
+        
+        const icons = {
+            success: 'fa-check-circle',
+            warning: 'fa-exclamation-triangle',
+            error: 'fa-times-circle',
+            info: 'fa-info-circle'
+        };
+        
+        const titles = {
+            success: 'Success',
+            warning: 'Payment Required',
+            error: 'Error',
+            info: 'Information'
+        };
+        
+        notification.innerHTML = `
+            <i class="fas ${icons[type] || icons.info}" style="font-size: 24px; color: ${type === 'success' ? '#2ecc71' : type === 'warning' ? '#f39c12' : type === 'error' ? '#e74c3c' : '#3498db'};"></i>
+            <div style="flex: 1;">
+                <div style="font-weight: 700; margin-bottom: 6px; color: #2c3e50; font-size: 15px;">
+                    ${titles[type] || type}
+                </div>
+                <div style="color: #7f8c8d; font-size: 13px;">
+                    ${message}
+                </div>
+            </div>
+            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: #95a5a6; cursor: pointer;">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            if (notification.parentNode) notification.remove();
+        }, 5000);
+    }
+    
+    function requestNotificationPermission() {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    }
+    
+    function startAutoRefresh() {
+        setInterval(() => {
+            loadDashboardData();
+        }, 15000);
+    }
+    
+    function logout() {
+        if (progressionInterval) clearInterval(progressionInterval);
+        if (activityChannel) activityChannel.close();
+        
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('empire_admin_auth');
+        window.location.href = '/admin-login.html';
+    }
+    
+    console.log('✅ Enhanced Admin Dashboard Loaded - All buttons functional, Modern UI');
+    </script>
+</body>
+</html>

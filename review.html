@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Share your CleanBite Empire experience. Leave a review and let others know how our premium Nigerian yoghurt honoured your sovereignty. Your voice builds our empire.">
+    <title>Share Your Sovereignty | CleanBite Empire</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ==================== ROOT VARIABLES - EMPIRE STANDARD ==================== */
+        :root {
+            --primary: #ffd700;
+            --primary-dark: #e6c200;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --info: #3498db;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --gray: #95a5a6;
+            --white: #ffffff;
+            --shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --border-radius: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        /* ==================== MAIN REVIEW CONTAINER ==================== */
+        .review-wrapper {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .review-container {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 32px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            padding: 50px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ==================== HEADER SECTION ==================== */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .empire-logo {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .empire-logo span {
+            color: var(--primary);
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .review-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 215, 0, 0.1);
+            padding: 8px 20px;
+            border-radius: 40px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .review-badge i {
+            color: var(--primary);
+        }
+
+        .review-badge span {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, #f9c74f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .header p {
+            color: var(--gray);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .view-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 40px;
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .view-link:hover {
+            background: rgba(255, 215, 0, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 215, 0, 0.1);
+        }
+
+        /* ==================== REVIEW FORM ==================== */
+        .review-form {
+            max-width: 800px;
+            margin: 0 auto 50px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        label i {
+            color: var(--primary);
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            color: var(--white);
+            font-size: 1rem;
+            transition: all 0.3s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.1);
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        /* ==================== RATING SYSTEM ==================== */
+        .rating-group {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 30px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+            margin-bottom: 25px;
+        }
+
+        .stars-container {
+            display: inline-flex;
+            gap: 15px;
+            font-size: 3.5rem;
+            margin: 20px 0;
+        }
+
+        .star {
+            color: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .star:hover,
+        .star.active {
+            color: var(--primary);
+            transform: scale(1.2);
+            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+        }
+
+        .rating-text {
+            color: var(--gray);
+            font-size: 0.95rem;
+            margin-top: 10px;
+        }
+
+        .rating-value {
+            display: inline-block;
+            background: var(--primary);
+            color: var(--dark);
+            padding: 5px 15px;
+            border-radius: 30px;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+
+        /* ==================== SUBMIT BUTTON ==================== */
+        .submit-btn {
+            width: 100%;
+            padding: 18px 30px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--dark);
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.2);
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(255, 215, 0, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* ==================== THANK YOU MESSAGE ==================== */
+        .thank-you {
+            text-align: center;
+            padding: 60px 20px;
+            display: none;
+            animation: scaleIn 0.5s ease;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .thank-you.show {
+            display: block;
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--success), #27ae60);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            font-size: 3rem;
+            color: white;
+            box-shadow: 0 20px 40px rgba(46, 204, 113, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 20px 40px rgba(46, 204, 113, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 30px 50px rgba(46, 204, 113, 0.4); }
+            100% { transform: scale(1); box-shadow: 0 20px 40px rgba(46, 204, 113, 0.3); }
+        }
+
+        .thank-you h2 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        .thank-you p {
+            color: var(--gray);
+            font-size: 1.1rem;
+            line-height: 1.7;
+            max-width: 500px;
+            margin: 0 auto 20px;
+        }
+
+        .review-id {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 16px;
+            display: inline-block;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .review-id span {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 15px 35px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--light);
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--dark);
+            border: none;
+            box-shadow: 0 10px 20px rgba(255, 215, 0, 0.2);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .action-btn.primary:hover {
+            box-shadow: 0 15px 30px rgba(255, 215, 0, 0.3);
+        }
+
+        /* ==================== RECENT REVIEWS SECTION ==================== */
+        .recent-reviews-section {
+            margin-top: 60px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .section-title h3 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .section-title p {
+            color: var(--gray);
+        }
+
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .review-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 20px;
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .review-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            border-color: var(--primary);
+        }
+
+        .review-stars {
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        .review-stars i {
+            margin-right: 3px;
+        }
+
+        .review-text {
+            color: var(--light);
+            font-style: italic;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .review-author {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .author-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .author-name i {
+            color: var(--primary);
+        }
+
+        .review-date {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.8rem;
+        }
+
+        .view-all-link {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .view-all-link a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 12px 25px;
+            border-radius: 40px;
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            transition: all 0.3s;
+        }
+
+        .view-all-link a:hover {
+            background: rgba(255, 215, 0, 0.1);
+            transform: translateX(5px);
+        }
+
+        /* ==================== ERROR STYLING ==================== */
+        .error {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        input.error,
+        textarea.error {
+            border-color: var(--danger);
+        }
+
+        /* ==================== RESPONSIVE DESIGN ==================== */
+        @media (max-width: 992px) {
+            .review-container {
+                padding: 40px 30px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .empire-logo {
+                font-size: 2.2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 15px;
+            }
+
+            .review-container {
+                padding: 30px 20px;
+                border-radius: 24px;
+            }
+
+            .stars-container {
+                font-size: 2.5rem;
+                gap: 10px;
+            }
+
+            .rating-group {
+                padding: 20px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .reviews-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .recent-reviews-section {
+                padding: 30px 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .review-container {
+                padding: 25px 15px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .stars-container {
+                font-size: 2rem;
+                gap: 8px;
+            }
+
+            .review-badge {
+                padding: 5px 15px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="review-wrapper">
+        <div class="review-container">
+            <!-- Header -->
+            <div class="header">
+                <div class="empire-logo">Clean<span>Bite</span> Empire</div>
+                
+                <div class="review-badge">
+                    <i class="fas fa-crown"></i>
+                    <span>SOVEREIGN VOICES</span>
+                </div>
+                
+                <h1>Share Your Sovereignty</h1>
+                <p>Your voice builds our empire. Share how CleanBite honored your sovereignty.</p>
+                
+                <a href="review-dashboard.html" class="view-link">
+                    <i class="fas fa-crown"></i> View Sovereign Testimonials
+                </a>
+            </div>
+
+            <!-- Review Form -->
+            <div id="reviewForm" class="review-form">
+                <form id="reviewFormElement">
+                    <input type="hidden" id="orderId" value="">
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="reviewerName">
+                                <i class="fas fa-user-circle"></i> Your Name *
+                            </label>
+                            <input type="text" id="reviewerName" placeholder="Enter your sovereign name" required>
+                            <div class="error" id="nameError">Please enter your name</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reviewerEmail">
+                                <i class="fas fa-envelope"></i> Email (Optional)
+                            </label>
+                            <input type="email" id="reviewerEmail" placeholder="your@email.com">
+                        </div>
+                    </div>
+
+                    <!-- Rating -->
+                    <div class="rating-group">
+                        <label><i class="fas fa-star"></i> Empire Rating *</label>
+                        <div class="stars-container" id="ratingStars">
+                            <span class="star" data-rating="1">☆</span>
+                            <span class="star" data-rating="2">☆</span>
+                            <span class="star" data-rating="3">☆</span>
+                            <span class="star" data-rating="4">☆</span>
+                            <span class="star" data-rating="5">☆</span>
+                        </div>
+                        <input type="hidden" id="rating" value="5">
+                        <div class="rating-value" id="ratingValue">5 Stars</div>
+                        <div class="rating-text">Click stars to rate your sovereignty (5 is maximum honor)</div>
+                        <div class="error" id="ratingError">Please honor us with your rating</div>
+                    </div>
+
+                    <!-- Review Comment -->
+                    <div class="form-group full-width">
+                        <label for="reviewComment">
+                            <i class="fas fa-comment-alt"></i> Your Experience *
+                        </label>
+                        <textarea id="reviewComment" placeholder="How did CleanBite honor your sovereignty? Share the details of your experience..." required></textarea>
+                        <div class="error" id="commentError">Please share your sovereign experience</div>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="form-group full-width">
+                        <label for="reviewerLocation">
+                            <i class="fas fa-map-marked-alt"></i> Empire Territory (Optional)
+                        </label>
+                        <input type="text" id="reviewerLocation" placeholder="e.g., Lagos, Abuja, Ibadan">
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <i class="fas fa-paper-plane"></i> Submit to Empire Archives
+                    </button>
+                </form>
+            </div>
+
+            <!-- Thank You Message -->
+            <div id="thankYouMessage" class="thank-you">
+                <div class="success-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h2>Sovereignty Recorded!</h2>
+                <p>Your testimonial has been added to the Empire Archives. Thank you for honoring the CleanBite covenant.</p>
+                <p>Your voice helps others discover intentional, clean eating that honors their sovereignty.</p>
+                
+                <div class="review-id">
+                    Testimonial ID: <span id="reviewIdDisplay">CB-REV-000000</span>
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="index.html" class="action-btn">
+                        <i class="fas fa-home"></i> Return to Empire
+                    </a>
+                    <a href="review-dashboard.html" class="action-btn primary">
+                        <i class="fas fa-crown"></i> View All Testimonials
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Reviews Section -->
+            <div class="recent-reviews-section">
+                <div class="section-title">
+                    <h3><i class="fas fa-comments"></i> Recent Sovereign Voices</h3>
+                    <p>Hear from fellow patrons who honored the CleanBite covenant</p>
+                </div>
+                
+                <div class="reviews-grid" id="recentReviewsGrid">
+                    <!-- Reviews will be loaded here -->
+                </div>
+                
+                <div class="view-all-link">
+                    <a href="review-dashboard.html">
+                        <i class="fas fa-crown"></i> View All Testimonials
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const reviewFormElement = document.getElementById('reviewFormElement');
+        const thankYouMessage = document.getElementById('thankYouMessage');
+        const reviewIdDisplay = document.getElementById('reviewIdDisplay');
+        const stars = document.querySelectorAll('.star');
+        const ratingInput = document.getElementById('rating');
+        const ratingValue = document.getElementById('ratingValue');
+        const submitBtn = document.getElementById('submitBtn');
+        const recentReviewsGrid = document.getElementById('recentReviewsGrid');
+        
+        // Get order ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('order') || '';
+        document.getElementById('orderId').value = orderId;
+        
+        // Generate a random review ID
+        const generateReviewId = () => {
+            const timestamp = Date.now().toString().slice(-6);
+            const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+            return `CB-REV-${timestamp}-${random}`;
+        };
+        
+        // Star Rating System
+        function setRating(rating) {
+            ratingInput.value = rating;
+            ratingValue.textContent = rating === 5 ? '5 Stars (Maximum Honor)' : 
+                                     rating === 4 ? '4 Stars (Great Honor)' :
+                                     rating === 3 ? '3 Stars (Good Honor)' :
+                                     rating === 2 ? '2 Stars (Partial Honor)' : '1 Star (Needs Honor)';
+            
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.textContent = '★';
+                    star.classList.add('active');
+                } else {
+                    star.textContent = '☆';
+                    star.classList.remove('active');
+                }
+            });
+        }
+        
+        // Initialize with 5 stars
+        setRating(5);
+        
+        // Star interaction
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                const rating = parseInt(star.getAttribute('data-rating'));
+                setRating(rating);
+            });
+            
+            star.addEventListener('mouseover', () => {
+                const rating = parseInt(star.getAttribute('data-rating'));
+                stars.forEach((s, index) => {
+                    if (index < rating) {
+                        s.style.color = 'var(--primary)';
+                    } else {
+                        s.style.color = 'rgba(255,255,255,0.2)';
+                    }
+                });
+            });
+            
+            star.addEventListener('mouseout', () => {
+                const currentRating = parseInt(ratingInput.value);
+                stars.forEach((s, index) => {
+                    if (index < currentRating) {
+                        s.style.color = 'var(--primary)';
+                    } else {
+                        s.style.color = 'rgba(255,255,255,0.2)';
+                    }
+                });
+            });
+        });
+        
+        // Form Validation
+        function validateForm() {
+            let isValid = true;
+            
+            // Reset errors
+            document.querySelectorAll('.error').forEach(error => {
+                error.classList.remove('show');
+            });
+            
+            // Validate name
+            const name = document.getElementById('reviewerName').value.trim();
+            if (!name) {
+                document.getElementById('nameError').classList.add('show');
+                isValid = false;
+            }
+            
+            // Validate comment
+            const comment = document.getElementById('reviewComment').value.trim();
+            if (!comment) {
+                document.getElementById('commentError').classList.add('show');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+        
+        // Load Recent Reviews
+        function loadRecentReviews() {
+            try {
+                const reviews = JSON.parse(localStorage.getItem('cleanbite_reviews') || '[]');
+                
+                if (reviews.length === 0) {
+                    recentReviewsGrid.innerHTML = '<p style="color: var(--gray); text-align: center; grid-column: 1/-1;">No reviews yet. Be the first to share your sovereignty!</p>';
+                    return;
+                }
+                
+                // Get 3 most recent approved reviews
+                const recent = reviews
+                    .filter(r => r.approved !== false)
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .slice(0, 3);
+                
+                displayReviews(recent);
+                
+            } catch (error) {
+                console.error('Error loading recent reviews:', error);
+            }
+        }
+        
+        function displayReviews(reviews) {
+            recentReviewsGrid.innerHTML = '';
+            
+            reviews.forEach(review => {
+                // Create stars
+                let starsHtml = '';
+                for (let i = 1; i <= 5; i++) {
+                    starsHtml += i <= review.rating ? '★' : '☆';
+                }
+                
+                // Truncate comment
+                const truncatedComment = review.comment.length > 120 
+                    ? review.comment.substring(0, 120) + '...' 
+                    : review.comment;
+                
+                const date = new Date(review.date).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+                
+                const card = document.createElement('div');
+                card.className = 'review-card';
+                card.innerHTML = `
+                    <div class="review-stars">${starsHtml}</div>
+                    <div class="review-text">"${truncatedComment}"</div>
+                    <div class="review-author">
+                        <span class="author-name">
+                            <i class="fas fa-user-circle"></i> ${review.name}
+                            ${review.location ? ` · ${review.location}` : ''}
+                        </span>
+                        <span class="review-date">${date}</span>
+                    </div>
+                `;
+                
+                recentReviewsGrid.appendChild(card);
+            });
+        }
+        
+        // Form Submission
+        reviewFormElement.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            if (!validateForm()) return;
+            
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Archiving to Empire Records...';
+            
+            // Create review object
+            const review = {
+                id: generateReviewId(),
+                orderId: document.getElementById('orderId').value || undefined,
+                name: document.getElementById('reviewerName').value.trim(),
+                email: document.getElementById('reviewerEmail').value.trim() || undefined,
+                rating: parseInt(document.getElementById('rating').value),
+                comment: document.getElementById('reviewComment').value.trim(),
+                location: document.getElementById('reviewerLocation').value.trim() || undefined,
+                date: new Date().toISOString(),
+                approved: true
+            };
+            
+            // Simulate API delay
+            setTimeout(() => {
+                try {
+                    // Save to localStorage
+                    const existingReviews = JSON.parse(localStorage.getItem('cleanbite_reviews') || '[]');
+                    existingReviews.push(review);
+                    localStorage.setItem('cleanbite_reviews', JSON.stringify(existingReviews));
+                    
+                    // Show success message
+                    reviewFormElement.style.display = 'none';
+                    thankYouMessage.classList.add('show');
+                    reviewIdDisplay.textContent = review.id;
+                    
+                    // Update recent reviews
+                    loadRecentReviews();
+                    
+                    console.log('✅ Review submitted:', review);
+                    
+                } catch (error) {
+                    alert('Error saving review: ' + error.message);
+                    console.error('Review error:', error);
+                    
+                    // Reset button
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit to Empire Archives';
+                }
+            }, 1500);
+        });
+        
+        // Load recent reviews on page load
+        document.addEventListener('DOMContentLoaded', loadRecentReviews);
+        
+        // Auto-focus name input
+        document.getElementById('reviewerName').focus();
+    </script>
+</body>
+</html>

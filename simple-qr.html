@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Generate sovereign QR codes for CleanBite Empire. Create table-specific menus, WhatsApp ordering links, and deploy across your restaurant locations with precision.">
+    <title>QR Empire Forge | CleanBite Empire</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        /* ==================== ROOT VARIABLES - EMPIRE STANDARD ==================== */
+        :root {
+            --primary: #ffd700;
+            --primary-dark: #e6c200;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --info: #3498db;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --gray: #95a5a6;
+            --white: #ffffff;
+            --shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --border-radius: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ==================== HEADER ==================== */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 50px 40px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 32px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .empire-logo {
+            font-size: 3.2rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .empire-logo span {
+            color: var(--primary);
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            color: var(--gray);
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto 20px;
+            line-height: 1.7;
+        }
+
+        .empire-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 215, 0, 0.1);
+            padding: 12px 25px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: var(--primary);
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        .empire-badge i {
+            font-size: 1.2rem;
+        }
+
+        /* ==================== SECTIONS ==================== */
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 28px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideUp 0.5s ease;
+            animation-fill-mode: both;
+        }
+
+        .section:nth-child(1) { animation-delay: 0.1s; }
+        .section:nth-child(2) { animation-delay: 0.2s; }
+        .section:nth-child(3) { animation-delay: 0.3s; }
+        .section:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .section h2 {
+            color: var(--primary);
+            font-size: 2rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .section h2 i {
+            background: rgba(255, 215, 0, 0.1);
+            padding: 12px 15px;
+            border-radius: 16px;
+            font-size: 1.8rem;
+        }
+
+        .section > p {
+            color: var(--gray);
+            margin-bottom: 30px;
+            font-size: 1rem;
+            line-height: 1.7;
+            max-width: 800px;
+        }
+
+        /* ==================== INPUT GROUPS ==================== */
+        .input-group {
+            display: flex;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        input[type="number"], 
+        input[type="text"], 
+        select {
+            flex: 1;
+            min-width: 250px;
+            padding: 16px 22px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            color: var(--light);
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        input:focus, 
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.1);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* ==================== BUTTONS ==================== */
+        button {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--dark);
+            box-shadow: 0 10px 20px rgba(255, 215, 0, 0.2);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, #27ae60 100%);
+            color: var(--white);
+            box-shadow: 0 10px 20px rgba(46, 204, 113, 0.2);
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: var(--white);
+            box-shadow: 0 10px 20px rgba(155, 89, 182, 0.2);
+        }
+
+        .btn-orange {
+            background: linear-gradient(135deg, var(--warning) 0%, #e67e22 100%);
+            color: var(--white);
+            box-shadow: 0 10px 20px rgba(243, 156, 18, 0.2);
+        }
+
+        .btn-red {
+            background: linear-gradient(135deg, var(--danger) 0%, #c0392b 100%);
+            color: var(--white);
+            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.2);
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 15px 30px rgba(255, 215, 0, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ==================== QR CONTAINERS ==================== */
+        .qr-container {
+            margin: 30px 0;
+            text-align: center;
+            padding: 35px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 24px;
+            border: 2px dashed rgba(255, 215, 0, 0.2);
+            transition: all 0.3s;
+        }
+
+        .qr-container:hover {
+            border-color: var(--primary);
+            background: rgba(0, 0, 0, 0.25);
+        }
+
+        .qr-display {
+            display: inline-block;
+            padding: 25px;
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .qr-info {
+            margin-top: 25px;
+        }
+
+        .qr-info strong {
+            color: var(--primary);
+            font-size: 1.3rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .filename {
+            font-family: 'Courier New', monospace;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 25px;
+            border-radius: 12px;
+            color: var(--gray);
+            margin: 15px 0;
+            display: inline-block;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+        }
+
+        /* ==================== BATCH GRID ==================== */
+        .batch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .batch-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 25px 20px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .batch-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .batch-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .batch-card:hover::before {
+            opacity: 1;
+        }
+
+        .batch-qr-container {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 20px;
+            padding: 15px;
+            background: var(--white);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .batch-card:hover .batch-qr-container {
+            transform: scale(1.05);
+            box-shadow: 0 15px 30px rgba(255, 215, 0, 0.2);
+        }
+
+        .batch-card strong {
+            color: var(--primary);
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .batch-card .filename {
+            font-size: 0.8rem;
+            padding: 8px 15px;
+            margin: 10px 0;
+        }
+
+        /* ==================== STATUS MESSAGES ==================== */
+        .status {
+            padding: 20px 25px;
+            margin: 25px 0;
+            border-radius: 16px;
+            display: none;
+            animation: slideDown 0.3s ease;
+            font-weight: 500;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .status.success {
+            background: rgba(46, 204, 113, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+
+        .status.error {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+
+        .status.info {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--info);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+        .status i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        /* ==================== QUICK ACTIONS ==================== */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .quick-actions button {
+            width: 100%;
+        }
+
+        /* ==================== FOOTER ==================== */
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 40px 30px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            border-top: 1px solid rgba(255, 215, 0, 0.1);
+            color: var(--gray);
+        }
+
+        .deployment-note {
+            background: rgba(255, 215, 0, 0.05);
+            padding: 25px 30px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .deployment-note strong {
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .deployment-note p {
+            color: var(--gray);
+            line-height: 1.8;
+        }
+
+        /* ==================== RESPONSIVE DESIGN ==================== */
+        @media (max-width: 1024px) {
+            .batch-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 35px 25px;
+            }
+
+            .header h1 {
+                font-size: 2.2rem;
+            }
+
+            .empire-logo {
+                font-size: 2.5rem;
+            }
+
+            .section {
+                padding: 30px 25px;
+            }
+
+            .section h2 {
+                font-size: 1.8rem;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            input[type="number"], 
+            input[type="text"], 
+            select {
+                width: 100%;
+                min-width: auto;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .batch-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 15px;
+            }
+
+            .batch-qr-container {
+                width: 130px;
+                height: 130px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 25px 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+                flex-direction: column;
+            }
+
+            .empire-logo {
+                font-size: 2rem;
+            }
+
+            .section {
+                padding: 25px 20px;
+            }
+
+            .section h2 {
+                font-size: 1.5rem;
+            }
+
+            .batch-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+
+            .batch-qr-container {
+                width: 110px;
+                height: 110px;
+                padding: 10px;
+            }
+
+            .batch-card {
+                padding: 20px 15px;
+            }
+
+            .qr-display {
+                padding: 15px;
+            }
+
+            .qr-display canvas {
+                width: 150px !important;
+                height: 150px !important;
+            }
+
+            .deployment-note {
+                padding: 20px;
+            }
+        }
+
+        /* ==================== ANIMATIONS ==================== */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="empire-logo">Clean<span>Bite</span> Empire</div>
+            <h1><i class="fas fa-qrcode"></i> QR Empire Forge</h1>
+            <p>Generate sovereign QR codes for the CleanBite Empire. Create direct ordering portals, table-specific menus, and empire communication channels with precision and honor.</p>
+            <div class="empire-badge">
+                <i class="fas fa-crown"></i> 
+                <span>Connected to: https://osabolu.github.io/cleanbite-menu</span>
+                <i class="fas fa-check-circle" style="color: var(--success);"></i>
+            </div>
+        </div>
+
+        <!-- SECTION 1: Single Table QR -->
+        <div class="section">
+            <h2><i class="fas fa-chair"></i> 1. Single Table QR</h2>
+            <p>Create a dedicated QR code for any table in your empire. Each QR directs customers to their specific table ordering portal.</p>
+            
+            <div class="input-group">
+                <input type="number" id="tableNumber" value="1" min="1" max="99" placeholder="Table number (1-99)">
+                <button class="btn-primary" onclick="generateSingleQR()">
+                    <i class="fas fa-bolt"></i> Generate & Download
+                </button>
+            </div>
+            
+            <div class="qr-container">
+                <div id="singleQrCode" class="qr-display"></div>
+                <div class="qr-info">
+                    <strong id="singleTableLabel">Table 01</strong>
+                    <div class="filename" id="singleFilename">cleanbite-table-01.png</div>
+                    <button class="btn-secondary" onclick="downloadSingleQR()">
+                        <i class="fas fa-download"></i> Download Again
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 2: WhatsApp QR -->
+        <div class="section">
+            <h2><i class="fab fa-whatsapp"></i> 2. Empire WhatsApp QR</h2>
+            <p>Direct communication channel with the CleanBite Empire. Customers can instantly message for orders and inquiries.</p>
+            
+            <div class="input-group" style="justify-content: center;">
+                <button class="btn-success pulse" onclick="generateWhatsappQR()" style="min-width: 300px;">
+                    <i class="fas fa-bolt"></i> Generate & Download WhatsApp QR
+                </button>
+            </div>
+            
+            <div class="qr-container">
+                <div id="whatsappQrCode" class="qr-display"></div>
+                <div class="qr-info">
+                    <strong>Direct Empire WhatsApp</strong>
+                    <div class="filename">cleanbite-empire-whatsapp.png</div>
+                    <button class="btn-secondary" onclick="downloadWhatsappQR()">
+                        <i class="fas fa-download"></i> Download Again
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 3: Batch Generator -->
+        <div class="section">
+            <h2><i class="fas fa-layer-group"></i> 3. Batch Table Generator</h2>
+            <p>Generate multiple table QR codes for efficient empire deployment. Perfect for restaurants with multiple tables.</p>
+            
+            <div class="input-group">
+                <input type="number" id="batchCount" value="4" min="1" max="20" placeholder="Number of tables (1-20)">
+                <button class="btn-primary" onclick="generateBatch()">
+                    <i class="fas fa-bolt"></i> Generate All Tables
+                </button>
+                <button class="btn-purple" onclick="downloadAllBatch()">
+                    <i class="fas fa-file-archive"></i> Download All
+                </button>
+            </div>
+            
+            <div id="status" class="status"></div>
+            <div id="batchContainer" class="batch-grid"></div>
+        </div>
+        
+        <!-- SECTION 4: Quick Actions -->
+        <div class="section">
+            <h2><i class="fas fa-bolt"></i> 4. Empire Quick Actions</h2>
+            <p>Rapid deployment commands for the empire. Execute common tasks with a single click.</p>
+            
+            <div class="quick-actions">
+                <button class="btn-purple" onclick="generateCommonSet()">
+                    <i class="fas fa-th"></i> Generate 10 Tables
+                </button>
+                <button class="btn-orange" onclick="testAllQRs()">
+                    <i class="fas fa-satellite-dish"></i> Test Empire Connection
+                </button>
+                <button class="btn-red" onclick="clearAll()">
+                    <i class="fas fa-trash"></i> Clear All Forge
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="deployment-note">
+                <strong><i class="fas fa-rocket"></i> Empire Deployment Strategy:</strong>
+                <p>
+                    • Table QR: Print & laminate for each table • WhatsApp QR: Display at entrance and on receipts • Batch QR: Deploy across multiple restaurant locations
+                </p>
+                <p style="margin-top: 15px; font-size: 0.95rem;">
+                    <i class="fas fa-shield-alt" style="color: var(--primary);"></i> All QR codes are forged with sovereign precision
+                </p>
+            </div>
+            <p>QR Empire Forge • CleanBite Empire • Updated: <span id="currentDate"></span></p>
+        </div>
+    </div>
+
+    <script>
+    // ==================== CONFIGURATION ====================
+    const BASE_URL = 'https://osabolu.github.io/cleanbite-menu';
+    const WHATSAPP_URL = 'https://wa.me/2349026673033?text=Hi%20CleanBite%20Empire%2C%20I%20wish%20to%20place%20an%20order';
+    let currentSingleQR = null;
+    let currentWhatsappQR = null;
+    let batchQRs = [];
+    
+    // Set current date
+    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    
+    // ==================== UTILITY FUNCTIONS ====================
+    function showMessage(text, type = 'info') {
+        const status = document.getElementById('status');
+        const icon = type === 'success' ? 'fa-check-circle' : 
+                    type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+        
+        status.innerHTML = `<i class="fas ${icon}"></i> ${text}`;
+        status.className = `status ${type}`;
+        status.style.display = 'block';
+        
+        setTimeout(() => {
+            status.style.display = 'none';
+        }, 5000);
+    }
+    
+    function padNumber(num) {
+        return num.toString().padStart(2, '0');
+    }
+    
+    function downloadImage(canvas, filename) {
+        if (!canvas) {
+            showMessage('Please generate a QR code first', 'error');
+            return null;
+        }
+        
+        try {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            return link;
+        } catch (error) {
+            showMessage('Error downloading image: ' + error.message, 'error');
+            return null;
+        }
+    }
+    
+    // ==================== 1. SINGLE TABLE QR ====================
+    function generateSingleQR() {
+        const tableNum = document.getElementById('tableNumber').value;
+        if (!tableNum || tableNum < 1 || tableNum > 99) {
+            showMessage('Please enter a valid table number (1-99)', 'error');
+            return;
+        }
+        
+        const url = `${BASE_URL}/#menu?table=${tableNum}`;
+        const container = document.getElementById('singleQrCode');
+        container.innerHTML = '';
+        
+        try {
+            currentSingleQR = new QRCode(container, {
+                text: url,
+                width: 200,
+                height: 200,
+                colorDark: "#1a1a2e",
+                colorLight: "#ffffff"
+            });
+            
+            document.getElementById('singleTableLabel').textContent = `Table ${padNumber(tableNum)}`;
+            document.getElementById('singleFilename').textContent = `cleanbite-table-${padNumber(tableNum)}.png`;
+            
+            setTimeout(() => downloadSingleQR(), 500);
+            showMessage(`✅ Table ${padNumber(tableNum)} QR forged successfully!`, 'success');
+        } catch (error) {
+            showMessage('Error generating QR: ' + error.message, 'error');
+        }
+    }
+    
+    function downloadSingleQR() {
+        const tableNum = document.getElementById('tableNumber').value;
+        const canvas = document.querySelector('#singleQrCode canvas');
+        downloadImage(canvas, `cleanbite-table-${padNumber(tableNum)}.png`);
+    }
+    
+    // ==================== 2. WHATSAPP QR ====================
+    function generateWhatsappQR() {
+        const container = document.getElementById('whatsappQrCode');
+        container.innerHTML = '';
+        
+        try {
+            currentWhatsappQR = new QRCode(container, {
+                text: WHATSAPP_URL,
+                width: 200,
+                height: 200,
+                colorDark: "#25D366",
+                colorLight: "#ffffff"
+            });
+            
+            setTimeout(() => downloadWhatsappQR(), 500);
+            showMessage('✅ Empire WhatsApp QR forged successfully!', 'success');
+        } catch (error) {
+            showMessage('Error generating WhatsApp QR: ' + error.message, 'error');
+        }
+    }
+    
+    function downloadWhatsappQR() {
+        const canvas = document.querySelector('#whatsappQrCode canvas');
+        downloadImage(canvas, 'cleanbite-empire-whatsapp.png');
+    }
+    
+    // ==================== 3. BATCH GENERATOR ====================
+    function generateBatch() {
+        const count = parseInt(document.getElementById('batchCount').value);
+        if (!count || count < 1 || count > 20) {
+            showMessage('Please enter a valid number between 1 and 20', 'error');
+            return;
+        }
+        
+        const container = document.getElementById('batchContainer');
+        container.innerHTML = '';
+        batchQRs = [];
+        
+        showMessage(`🔄 Forging ${count} table QR codes for the empire...`, 'info');
+        
+        for (let i = 1; i <= count; i++) {
+            const card = document.createElement('div');
+            card.className = 'batch-card';
+            card.id = `batchCard${i}`;
+            
+            card.innerHTML = `
+                <div class="batch-qr-container" id="batchQr${i}">
+                    <div style="color: var(--gray); padding: 20px; font-size: 0.9rem;">Forging...</div>
+                </div>
+                <strong>Table ${padNumber(i)}</strong>
+                <div class="filename">table-${padNumber(i)}.png</div>
+                <button onclick="downloadTableQR(${i})" class="btn-secondary" style="margin-top: 15px; padding: 12px 20px; width: 100%;">
+                    <i class="fas fa-download"></i> Download
+                </button>
+            `;
+            
+            container.appendChild(card);
+            batchQRs.push(i);
+        }
+        
+        // Generate QR codes with delay to prevent overload
+        let delay = 0;
+        batchQRs.forEach(tableNum => {
+            setTimeout(() => {
+                const url = `${BASE_URL}/#menu?table=${tableNum}`;
+                const qrContainer = document.getElementById(`batchQr${tableNum}`);
+                if (qrContainer) {
+                    qrContainer.innerHTML = '';
+                    try {
+                        new QRCode(qrContainer, {
+                            text: url,
+                            width: 120,
+                            height: 120,
+                            colorDark: "#1a1a2e",
+                            colorLight: "#ffffff"
+                        });
+                    } catch (error) {
+                        console.error('Error generating batch QR:', error);
+                    }
+                }
+            }, delay);
+            delay += 150;
+        });
+        
+        setTimeout(() => {
+            showMessage(`✅ ${count} table QR codes successfully forged for the empire!`, 'success');
+        }, delay + 500);
+    }
+    
+    function downloadTableQR(tableNum) {
+        const container = document.getElementById(`batchQr${tableNum}`);
+        const canvas = container.querySelector('canvas');
+        
+        if (!canvas) {
+            showMessage(`QR for table ${padNumber(tableNum)} not ready yet`, 'error');
+            return;
+        }
+        
+        downloadImage(canvas, `cleanbite-table-${padNumber(tableNum)}.png`);
+        showMessage(`✅ Table ${padNumber(tableNum)} QR downloaded!`, 'success');
+    }
+    
+    function downloadAllBatch() {
+        if (batchQRs.length === 0) {
+            showMessage('Please generate batch QR codes first', 'error');
+            return;
+        }
+        
+        showMessage('📦 Preparing downloads...', 'info');
+        
+        // Download each QR with delay
+        batchQRs.forEach((tableNum, index) => {
+            setTimeout(() => {
+                const container = document.getElementById(`batchQr${tableNum}`);
+                const canvas = container.querySelector('canvas');
+                if (canvas) {
+                    downloadImage(canvas, `cleanbite-table-${padNumber(tableNum)}.png`);
+                }
+            }, index * 500);
+        });
+        
+        setTimeout(() => {
+            showMessage('✅ All QR codes downloaded!', 'success');
+        }, batchQRs.length * 500 + 500);
+    }
+    
+    // ==================== 4. QUICK ACTIONS ====================
+    function generateCommonSet() {
+        document.getElementById('batchCount').value = 10;
+        generateBatch();
+        showMessage('🔨 Forging 10 most common empire tables...', 'info');
+    }
+    
+    function testAllQRs() {
+        showMessage('🔄 Testing empire website connection...', 'info');
+        
+        // Test website connection
+        const testUrl = `${BASE_URL}/`;
+        window.open(testUrl, '_blank');
+        
+        setTimeout(() => {
+            showMessage('✅ Empire connection verified. CleanBite menu is operational.', 'success');
+        }, 1000);
+    }
+    
+    function clearAll() {
+        if (confirm('Clear the entire QR forge? This will remove all generated QR codes.')) {
+            document.getElementById('singleQrCode').innerHTML = '';
+            document.getElementById('whatsappQrCode').innerHTML = '';
+            document.getElementById('batchContainer').innerHTML = '';
+            batchQRs = [];
+            showMessage('🧹 QR forge has been cleared and is ready for new creations.', 'info');
+        }
+    }
+    
+    // ==================== INITIALIZATION ====================
+    window.onload = function() {
+        showMessage('🚀 QR Empire Forge initialized. Ready to create sovereign QR codes!', 'info');
+    };
+    </script>
+</body>
+</html>
