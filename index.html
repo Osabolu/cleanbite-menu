@@ -1690,830 +1690,83 @@
 
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
 
-     <!-- ==================== FIREBASE SDKs (ADD ONCE ONLY) ==================== -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    
-    <script>
-    // ==================== FIREBASE CONFIGURATION ====================
-    const firebaseConfig = {
-        apiKey: "AIzaSyC1WaO1WE-LFayAqLeql0BP5vD8bddgUuE",
-        authDomain: "cleanbite-empire.firebaseapp.com",
-        databaseURL: "https://cleanbite-empire-default-rtdb.firebaseio.com",
-        projectId: "cleanbite-empire",
-        storageBucket: "cleanbite-empire.firebasestorage.app",
-        messagingSenderId: "733995841314",
-        appId: "1:733995841314:web:d82f5452f1fff0fdfad77b"
-    };
-    
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    console.log('🔥 Firebase connected on order page');
-    
-    // ==================== LIVE KITCHEN STATS ====================
-    function loadKitchenStats() {
-        database.ref('orders').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (!data) return;
-            
-            const orders = Object.values(data);
-            
-            document.getElementById('preparingCount').textContent = 
-                orders.filter(o => o.paymentStatus === 'verified' && o.status === 'preparing').length;
-            document.getElementById('incubatingCount').textContent = 
-                orders.filter(o => o.paymentStatus === 'verified' && o.status === 'incubating').length;
-            document.getElementById('readyCount').textContent = 
-                orders.filter(o => o.paymentStatus === 'verified' && o.status === 'ready').length;
-            document.getElementById('completedCount').textContent = 
-                orders.filter(o => o.paymentStatus === 'verified' && o.status === 'completed').length;
-            
-            console.log('📊 Kitchen stats updated');
-        });
-    }
-    
-    // ==================== LIVE ACTIVITY FEED ====================
-    function loadActivityFeed() {
-        database.ref('orders').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (!data) return;
-            
-            const orders = Object.values(data);
-            const activities = [];
-            
-            orders.forEach(order => {
-                // Payment verifications
-                if (order.verifiedAt) {
-                    activities.push({
-                        message: `💰 Payment verified for order ${order.id.slice(-8)}`,
-                        timestamp: order.verifiedAt,
-                        icon: 'fa-check-circle',
-                        color: '#2ecc71'
-                    });
-                }
-                
-                // Status changes
-                if (order.updatedAt && order.status) {
-                    let msg = '';
-                    if (order.status === 'preparing') 
-                        msg = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
-                    if (order.status === 'incubating') 
-                        msg = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
-                    if (order.status === 'ready') 
-                        msg = `✅ Order ${order.id.slice(-8)} is READY`;
-                    if (order.status === 'completed') 
-                        msg = `📦 Order ${order.id.slice(-8)} completed`;
-                    
-                    if (msg) activities.push({
-                        message: msg,
-                        timestamp: order.updatedAt,
-                        icon: 'fa-sync-alt',
-                        color: '#3498db'
-                    });
-                }
-                
-                // New orders
-                if (order.createdAt && !order.verifiedAt) {
-                    activities.push({
-                        message: `🛒 New order ${order.id.slice(-8)} received`,
-                        timestamp: order.createdAt,
-                        icon: 'fa-cart-plus',
-                        color: '#9b59b6'
-                    });
-                }
-            });
-            
-            // Sort by most recent
-            activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            
-            // Update feed
-            const feed = document.getElementById('activityFeed');
-            if (feed) {
-                feed.innerHTML = activities.slice(0, 10).map(a => `
-                    <div class="activity-item" style="border-left-color: ${a.color}">
-                        <div class="activity-icon" style="color: ${a.color}">
-                            <i class="fas ${a.icon}"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-text">${a.message}</div>
-                            <div class="activity-time">${getTimeAgo(a.timestamp)}</div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        });
-    }
-    
-    // Helper: Convert timestamp to "X ago"
-    function getTimeAgo(t) {
-        if (!t) return 'Just now';
-        const m = Math.floor((new Date() - new Date(t)) / 60000);
-        if (m < 1) return 'Just now';
-        if (m < 60) return `${m}m ago`;
-        if (m < 1440) return `${Math.floor(m / 60)}h ago`;
-        return `${Math.floor(m / 1440)}d ago`;
-    }
-    
-    // ==================== MODIFY YOUR SUBMIT BUTTON TO USE FIREBASE ====================
-    // Find your submit button code and REPLACE the localStorage part with this:
-    function saveOrderToFirebase(order) {
-        return new Promise((resolve, reject) => {
-            const ordersRef = database.ref('orders');
-            const newOrderRef = ordersRef.push();
-            
-            order.firebaseKey = newOrderRef.key;
-            order.createdAt = new Date().toISOString();
-            order.status = order.status || 'pending-payment';
-            
-            newOrderRef.set(order)
-                .then(() => {
-                    console.log('✅ Order saved to Firebase:', order.id);
-                    resolve(order);
-                })
-                .catch((error) => {
-                    console.error('❌ Firebase error:', error);
-                    reject(error);
-                });
-        });
-    }
-    
-    // ==================== INITIALIZE EVERYTHING ====================
-    document.addEventListener('DOMContentLoaded', function() {
-        loadKitchenStats();
-        loadActivityFeed();
-        console.log('✅ Live Kitchen and Activity Feed initialized with Firebase');
-    });
-    </script>
-    
-    <script>
-    // ==================== COMPLETE ORDER PAGE SCRIPT ====================
-    // ALL FIXES APPLIED:
-    // ✅ Place Order button stops spinning after 2 seconds
-    // ✅ Order ID popup with close button
-    // ✅ Track Order link works with most recent order
-    // ✅ Live kitchen system working
-    // ✅ Parallax scroll working
-    // ✅ Cart system working
-    
-    // ==================== GLOBAL VARIABLES ====================
-    let cart = JSON.parse(localStorage.getItem('cleanbite_cart') || '[]');
-    
-    // ==================== MENU DATA ====================
-    const menuItems = [
-        {
-            id: 1,
-            name: 'Plain Yoghurt',
-            description: 'The Foundation: Creamy, classic plain yoghurt. Made from fresh cow milk.',
-            price: 4000,
-            image: 'images/sara-cervera-4caIPcmVDII-unsplash.jpg',
-            badge: 'Best Seller'
-        },
-        {
-            id: 2,
-            name: 'Strawberry, Hibiscus & Dates',
-            description: 'The Sentinel - Sweet strawberry flavour with real fruit pieces.',
-            price: 6000,
-            image: 'images/strawberry-photo.jpg',
-            badge: 'Popular'
-        },
-        {
-            id: 3,
-            name: 'Vanilla, Cinnamon & Honey',
-            description: 'The Warden - Smooth vanilla bean infused yoghurt.',
-            price: 5000,
-            image: 'https://images.unsplash.com/photo-1571212515416-fef01fc43637?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            badge: null
-        },
-        {
-            id: 4,
-            name: 'Coconut Milk & Dates',
-            description: 'Blend of Coconut Milk extract mixed with Dates puree.',
-            price: 5500,
-            image: 'images/coconuts-dates.jpg',
-            badge: 'New'
-        },
-        {
-            id: 5,
-            name: 'Cacao, Moringa & Dates',
-            description: 'Thick, strained yoghurt with high protein.',
-            price: 6000,
-            image: 'images/coconut-dates (1).jpg',
-            badge: 'Premium'
-        },
-        {
-            id: 6,
-            name: 'The Diplomat - Coconut Milk, Roasted Plantain & Cinnamon',
-            description: 'Topped with honey and crunchy granola.',
-            price: 5500,
-            image: 'images/plantain-puree.png',
-            badge: null
-        }
-    ];
+    <!-- Firebase SDKs (ONLY ONCE) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-    // ==================== INITIALIZE PAGE ====================
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('🍽️ Order Page Initializing...');
-        
-        renderMenu();
-        updateCartDisplay();
-        
-        // Initialize Live Kitchen System
-        window.liveKitchen = new LiveKitchenSystem();
-        
-        setupEventListeners();
-        setupParallax();
-        setupTrackOrderLink(); // ✅ NEW: Setup track order link
-        
-        console.log('✅ Order Page Ready');
-    });
+<script>
+// ==================== FIREBASE CONFIGURATION ====================
+const firebaseConfig = {
+    apiKey: "AIzaSyC1WaO1WE-LFayAqLeql0BP5vD8bddgUuE",
+    authDomain: "cleanbite-empire.firebaseapp.com",
+    databaseURL: "https://cleanbite-empire-default-rtdb.firebaseio.com",
+    projectId: "cleanbite-empire",
+    storageBucket: "cleanbite-empire.firebasestorage.app",
+    messagingSenderId: "733995841314",
+    appId: "1:733995841314:web:d82f5452f1fff0fdfad77b"
+};
 
-    // ==================== SETUP TRACK ORDER LINK ====================
-    function setupTrackOrderLink() {
-        const trackLink = document.getElementById('trackOrderLink');
-        
-        if (trackLink) {
-            trackLink.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                // Get all orders
-                const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
-                
-                if (orders.length === 0) {
-                    alert('No orders found to track. Please place an order first.');
-                    return;
-                }
-                
-                // Get the most recent order
-                const latestOrder = orders[orders.length - 1];
-                
-                if (latestOrder && latestOrder.id) {
-                    // Open track.html with the order ID
-                    const trackUrl = `track.html?order=${latestOrder.id}`;
-                    window.open(trackUrl, '_blank');
-                    console.log('📍 Opening track page with order:', latestOrder.id);
-                } else {
-                    alert('Could not find your order. Please enter your Order ID manually.');
-                    window.open('track.html', '_blank');
-                }
-            });
-            
-            console.log('✅ Track order link initialized');
-        }
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+console.log('🔥 Firebase connected');
+
+// ==================== GLOBAL VARIABLES ====================
+let cart = JSON.parse(localStorage.getItem('cleanbite_cart') || '[]');
+
+// ==================== MENU DATA ====================
+const menuItems = [
+    {
+        id: 1,
+        name: 'Plain Yoghurt',
+        description: 'The Foundation: Creamy, classic plain yoghurt. Made from fresh cow milk.',
+        price: 4000,
+        image: 'images/sara-cervera-4caIPcmVDII-unsplash.jpg',
+        badge: 'Best Seller'
+    },
+    {
+        id: 2,
+        name: 'Strawberry, Hibiscus & Dates',
+        description: 'The Sentinel - Sweet strawberry flavour with real fruit pieces.',
+        price: 6000,
+        image: 'images/strawberry-photo.jpg',
+        badge: 'Popular'
+    },
+    {
+        id: 3,
+        name: 'Vanilla, Cinnamon & Honey',
+        description: 'The Warden - Smooth vanilla bean infused yoghurt.',
+        price: 5000,
+        image: 'https://images.unsplash.com/photo-1571212515416-fef01fc43637?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        badge: null
+    },
+    {
+        id: 4,
+        name: 'Coconut Milk & Dates',
+        description: 'Blend of Coconut Milk extract mixed with Dates puree.',
+        price: 5500,
+        image: 'images/coconuts-dates.jpg',
+        badge: 'New'
+    },
+    {
+        id: 5,
+        name: 'Cacao, Moringa & Dates',
+        description: 'Thick, strained yoghurt with high protein.',
+        price: 6000,
+        image: 'images/coconut-dates (1).jpg',
+        badge: 'Premium'
+    },
+    {
+        id: 6,
+        name: 'The Diplomat - Coconut Milk, Roasted Plantain & Cinnamon',
+        description: 'Topped with honey and crunchy granola.',
+        price: 5500,
+        image: 'images/plantain-puree.png',
+        badge: null
     }
+];
 
-    // ==================== RENDER MENU ====================
-    function renderMenu() {
-        const menuGrid = document.getElementById('menuGrid');
-        if (!menuGrid) return;
-        
-        menuGrid.innerHTML = menuItems.map(item => `
-            <div class="menu-card">
-                ${item.badge ? `<span class="menu-badge">${item.badge}</span>` : ''}
-                <div class="menu-image" style="background-image: url('${item.image}');"></div>
-                <div class="menu-content">
-                    <div class="menu-header">
-                        <h3>${item.name}</h3>
-                        <span class="menu-price">₦${item.price.toLocaleString()}</span>
-                    </div>
-                    <p class="menu-desc">${item.description}</p>
-                    <div class="menu-footer">
-                        <div class="quantity-selector" data-id="${item.id}">
-                            <button class="quantity-btn minus" data-id="${item.id}">-</button>
-                            <span class="quantity-value" id="qty-${item.id}">1</span>
-                            <button class="quantity-btn plus" data-id="${item.id}">+</button>
-                        </div>
-                        <button class="btn-add" data-id="${item.id}">
-                            <i class="fas fa-cart-plus"></i> Add
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    // ==================== SETUP EVENT LISTENERS ====================
-    function setupEventListeners() {
-        // Cart icon
-        document.getElementById('cartIcon')?.addEventListener('click', openCartModal);
-        
-        // Close cart modal
-        document.getElementById('closeCartModal')?.addEventListener('click', () => closeModal('cartModal'));
-        
-        // Close checkout modal
-        document.getElementById('closeCheckoutModal')?.addEventListener('click', () => closeModal('checkoutModal'));
-        
-        // Close confirmation modal
-        document.getElementById('closeConfirmationModal')?.addEventListener('click', () => closeModal('confirmationModal'));
-        
-        // Back to cart button
-        document.getElementById('backToCart')?.addEventListener('click', function() {
-            closeModal('checkoutModal');
-            openCartModal();
-        });
-        
-        // Clear cart button
-        document.getElementById('clearCartBtn')?.addEventListener('click', clearCart);
-        
-        // Checkout button
-        document.getElementById('checkoutBtn')?.addEventListener('click', openCheckoutModal);
-        
-        // Payment method toggle
-        document.getElementById('paymentTransfer')?.addEventListener('change', function(e) {
-            if (e.target.checked) {
-                document.getElementById('bankDetails').style.display = 'block';
-                document.getElementById('cashDetails').style.display = 'none';
-            }
-        });
-        
-        document.getElementById('paymentCash')?.addEventListener('change', function(e) {
-            if (e.target.checked) {
-                document.getElementById('bankDetails').style.display = 'none';
-                document.getElementById('cashDetails').style.display = 'block';
-            }
-        });
-        
-        // Menu quantity buttons (delegation)
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('plus')) {
-                const id = e.target.dataset.id;
-                const qtyEl = document.getElementById(`qty-${id}`);
-                let qty = parseInt(qtyEl.textContent);
-                qtyEl.textContent = qty + 1;
-            }
-            
-            if (e.target.classList.contains('minus')) {
-                const id = e.target.dataset.id;
-                const qtyEl = document.getElementById(`qty-${id}`);
-                let qty = parseInt(qtyEl.textContent);
-                if (qty > 1) {
-                    qtyEl.textContent = qty - 1;
-                }
-            }
-            
-            if (e.target.classList.contains('btn-add') || e.target.closest('.btn-add')) {
-                const btn = e.target.classList.contains('btn-add') ? e.target : e.target.closest('.btn-add');
-                const id = btn.dataset.id;
-                addToCart(id);
-            }
-        });
-        
-        // ============================================
-        // ✅ FIXED: submitOrderBtn - STOPS SPINNING AFTER 2 SECONDS
-        // ============================================
-        setupSubmitButton();
-    }
-
-    // ==================== SETUP SUBMIT BUTTON ====================
-    function setupSubmitButton() {
-        const submitOrderBtn = document.getElementById('submitOrderBtn');
-        if (!submitOrderBtn) return;
-        
-        // Create fresh button
-        const freshButton = document.createElement('button');
-        freshButton.type = 'submit';
-        freshButton.className = 'btn btn-primary';
-        freshButton.id = 'submitOrderBtn';
-        freshButton.innerHTML = '<i class="fas fa-paper-plane"></i> Place Order';
-        
-        // Replace old button
-        submitOrderBtn.parentNode.replaceChild(freshButton, submitOrderBtn);
-        
-        freshButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            console.log('🟢 ORDER BUTTON CLICKED');
-            
-            // Validate form
-            const name = document.getElementById('customerName')?.value.trim();
-            const phone = document.getElementById('customerPhone')?.value.trim();
-            
-            if (!name || name.length < 2) {
-                alert('❌ Please enter your full name');
-                return;
-            }
-            
-            if (!phone || phone.length < 10) {
-                alert('❌ Please enter a valid phone number');
-                return;
-            }
-            
-            // Get cart
-            const cart = JSON.parse(localStorage.getItem('cleanbite_cart') || '[]');
-            if (cart.length === 0) {
-                alert('❌ Your cart is empty');
-                return;
-            }
-            
-            // Disable button & show spinner
-            const originalText = this.innerHTML;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            this.disabled = true;
-            
-            // Generate order ID
-            const timestamp = Date.now();
-            const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-            const orderId = `CB-${timestamp.toString().slice(-6)}-${random}`;
-            
-            // Calculate totals
-            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const vat = subtotal * 0.075;
-            const total = subtotal + vat;
-            
-            const order = {
-                id: orderId,
-                orderId: orderId,
-                customerName: name,
-                customerPhone: phone,
-                customerEmail: document.getElementById('customerEmail')?.value.trim() || '',
-                deliveryNotes: document.getElementById('deliveryNotes')?.value.trim() || '',
-                paymentMethod: document.querySelector('input[name="payment"]:checked')?.value || 'transfer',
-                items: cart,
-                subtotal: subtotal,
-                vat: vat,
-                total: total,
-                totalAmount: total,
-                status: 'pending-payment',
-                paymentStatus: 'pending',
-                createdAt: new Date().toISOString(),
-                timestamp: new Date().toISOString(),
-                timeline: {
-                    orderPlaced: new Date().toISOString()
-                }
-            };
-            
-            console.log('📦 ORDER CREATED:', orderId);
-            
-           // NEW CODE - Save to Firebase instead
-    function saveOrderToFirebase(order) {
-        return new Promise((resolve, reject) => {
-            const ordersRef = database.ref('orders');
-            const newOrderRef = ordersRef.push();
-            
-            // Add Firebase metadata
-            order.firebaseKey = newOrderRef.key;
-            order.createdAt = new Date().toISOString();
-            order.status = order.status || 'pending-payment';
-            
-            newOrderRef.set(order)
-                .then(() => {
-                    console.log('✅ Order saved to Firebase:', order.id);
-                    resolve(order);
-                })
-                .catch((error) => {
-                    console.error('❌ Firebase error:', error);
-                    reject(error);
-                });
-        });
-    }
-    
-    // In your submit button click handler, REPLACE the localStorage part with:
-    saveOrderToFirebase(order).then(() => {
-        // Continue with your existing success flow
-        showNotification(`Order ${order.id} placed!`, 'success');
-        
-        // Clear cart
-        cart = [];
-        localStorage.setItem('cleanbite_cart', JSON.stringify(cart));
-        updateCartDisplay();
-        
-        // Close modal
-        closeModal('checkoutModal');
-        
-        // Show confirmation
-        showOrderConfirmation(order);
-    }).catch((error) => {
-        showNotification('Error saving order. Please try again.', 'error');
-        console.error(error);
-    });
-            
-            // Also save to tracking storage
-            const trackingOrders = JSON.parse(localStorage.getItem('cleanbite_tracking_orders') || '[]');
-            trackingOrders.push(order);
-            localStorage.setItem('cleanbite_tracking_orders', JSON.stringify(trackingOrders));
-            
-            // Send to kitchen system
-            if (window.liveKitchen) {
-                window.liveKitchen.handleNewOrder(order);
-            }
-            
-            // Broadcast to admin
-            localStorage.setItem('admin_new_order', JSON.stringify(order));
-            localStorage.setItem('ADMIN_NEW_ORDER_FLAG', Date.now().toString());
-            localStorage.setItem('ADMIN_LATEST_ORDER_ID', order.id);
-            
-            // Show order popup
-            showOrderPopup(order, name);
-            
-            // Clear cart
-            localStorage.setItem('cleanbite_cart', '[]');
-            
-            // Update cart display
-            const cartCount = document.getElementById('cartCount');
-            if (cartCount) cartCount.textContent = '0';
-            
-            // Close checkout modal
-            const checkoutModal = document.getElementById('checkoutModal');
-            if (checkoutModal) checkoutModal.classList.remove('active');
-            
-            // Reset button after 2 seconds
-            setTimeout(() => {
-                this.innerHTML = originalText;
-                this.disabled = false;
-                console.log('✅ Button reset after 2 seconds');
-            }, 2000);
-        });
-        
-        console.log('✅ Submit button ready');
-    }
-
-    // ==================== SHOW ORDER POPUP ====================
-    function showOrderPopup(order, customerName) {
-        // Create popup container
-        const popupContainer = document.createElement('div');
-        popupContainer.id = 'orderPopup';
-        popupContainer.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            backdrop-filter: blur(5px);
-            cursor: pointer;
-        `;
-        
-        // Close when clicking backdrop
-        popupContainer.addEventListener('click', function(e) {
-            if (e.target === popupContainer) {
-                popupContainer.remove();
-            }
-        });
-        
-        // Popup content
-        popupContainer.innerHTML = `
-            <div style="
-                background: white;
-                padding: 30px;
-                border-radius: 20px;
-                max-width: 450px;
-                width: 90%;
-                text-align: center;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                position: relative;
-                cursor: default;
-            ">
-                <!-- Close button -->
-                <button onclick="document.getElementById('orderPopup').remove()" style="
-                    position: absolute;
-                    top: 15px;
-                    right: 15px;
-                    background: #f1f5f9;
-                    border: none;
-                    width: 35px;
-                    height: 35px;
-                    border-radius: 50%;
-                    font-size: 20px;
-                    color: #64748b;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                ">✕</button>
-                
-                <div style="font-size: 60px; color: #2ecc71; margin-bottom: 15px;">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                
-                <h2 style="color: #2c3e50; margin-bottom: 10px;">Order Received!</h2>
-                <p style="color: #7f8c8d; margin-bottom: 20px;">Thank you, <strong>${customerName}</strong>!</p>
-                
-                <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                    <p style="color: #2c3e50; margin-bottom: 5px; font-size: 13px;">YOUR ORDER ID</p>
-                    <p style="font-size: 24px; font-weight: 700; color: #2ecc71; letter-spacing: 1px; word-break: break-all; background: white; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        ${order.id}
-                    </p>
-                    <p style="color: #f39c12; font-weight: 600; margin-top: 10px; font-size: 14px;">
-                        <i class="fas fa-clock"></i> Pending Payment Verification
-                    </p>
-                </div>
-                
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <button onclick="document.getElementById('orderPopup').remove()" style="
-                        background: #2ecc71;
-                        color: white;
-                        border: none;
-                        padding: 12px 25px;
-                        border-radius: 50px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        flex: 1;
-                    ">OK</button>
-                    
-                    <button onclick="window.open('track.html?order=${order.id}', '_blank'); document.getElementById('orderPopup').remove()" style="
-                        background: #3498db;
-                        color: white;
-                        border: none;
-                        padding: 12px 25px;
-                        border-radius: 50px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        flex: 1;
-                    ">Track Order</button>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(popupContainer);
-    }
-
-    // ==================== ADD TO CART ====================
-    function addToCart(itemId) {
-        const item = menuItems.find(i => i.id == itemId);
-        const qtyEl = document.getElementById(`qty-${itemId}`);
-        const quantity = parseInt(qtyEl.textContent);
-        
-        const existingItem = cart.find(i => i.id == itemId);
-        
-        if (existingItem) {
-            existingItem.quantity += quantity;
-        } else {
-            cart.push({
-                id: item.id,
-                name: item.name,
-                price: item.price,
-                quantity: quantity,
-                image: item.image
-            });
-        }
-        
-        qtyEl.textContent = 1;
-        localStorage.setItem('cleanbite_cart', JSON.stringify(cart));
-        updateCartDisplay();
-        showNotification(`${item.name} added to cart`, 'success');
-    }
-
-    // ==================== UPDATE CART DISPLAY ====================
-    function updateCartDisplay() {
-        const cartCount = document.getElementById('cartCount');
-        if (cartCount) {
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            cartCount.textContent = totalItems;
-        }
-        
-        const cartItemsContainer = document.getElementById('cartItems');
-        if (cartItemsContainer) {
-            if (cart.length === 0) {
-                cartItemsContainer.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fas fa-shopping-cart" style="font-size: 48px; color: #ddd;"></i><p style="color: #7f8c8d;">Your cart is empty</p></div>';
-            } else {
-                cartItemsContainer.innerHTML = cart.map(item => `
-                    <div class="cart-item">
-                        <div class="cart-item-image" style="background-image: url('${item.image}');"></div>
-                        <div class="cart-item-details">
-                            <div class="cart-item-title">${item.name}</div>
-                            <div class="cart-item-price">₦${item.price.toLocaleString()}</div>
-                        </div>
-                        <div class="cart-item-quantity">
-                            <button class="cart-quantity-btn" onclick="window.updateCartQuantity(${item.id}, -1)">-</button>
-                            <span style="font-weight: 600; min-width: 30px; text-align: center;">${item.quantity}</span>
-                            <button class="cart-quantity-btn" onclick="window.updateCartQuantity(${item.id}, 1)">+</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        }
-        
-        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const vat = subtotal * 0.075;
-        const total = subtotal + vat;
-        
-        document.getElementById('cartSubtotal').textContent = `₦${subtotal.toLocaleString()}`;
-        document.getElementById('cartVat').textContent = `₦${vat.toLocaleString()}`;
-        document.getElementById('cartTotal').textContent = `₦${total.toLocaleString()}`;
-    }
-
-    // ==================== UPDATE CART QUANTITY ====================
-    window.updateCartQuantity = function(itemId, change) {
-        const item = cart.find(i => i.id == itemId);
-        if (item) {
-            item.quantity += change;
-            if (item.quantity <= 0) {
-                cart = cart.filter(i => i.id != itemId);
-            }
-            localStorage.setItem('cleanbite_cart', JSON.stringify(cart));
-            updateCartDisplay();
-        }
-    };
-
-    // ==================== CLEAR CART ====================
-    function clearCart() {
-        cart = [];
-        localStorage.setItem('cleanbite_cart', JSON.stringify(cart));
-        updateCartDisplay();
-        showNotification('Cart cleared', 'info');
-    }
-
-    // ==================== OPEN CART MODAL ====================
-    function openCartModal() {
-        updateCartDisplay();
-        document.getElementById('cartModal').classList.add('active');
-    }
-
-    // ==================== OPEN CHECKOUT MODAL ====================
-    function openCheckoutModal() {
-        if (cart.length === 0) {
-            showNotification('Your cart is empty', 'warning');
-            return;
-        }
-        document.getElementById('orderForm')?.reset();
-        document.getElementById('paymentTransfer').checked = true;
-        document.getElementById('bankDetails').style.display = 'block';
-        document.getElementById('cashDetails').style.display = 'none';
-        closeModal('cartModal');
-        document.getElementById('checkoutModal').classList.add('active');
-    }
-
-    // ==================== SHOW ORDER CONFIRMATION ====================
-    function showOrderConfirmation(order) {
-        document.getElementById('confirmCustomerName').textContent = order.customerName || 'Customer';
-        document.getElementById('confirmOrderId').textContent = order.id;
-        document.getElementById('confirmTotal').textContent = `₦${(order.total || 0).toLocaleString()}`;
-        
-        const trackBtn = document.getElementById('trackOrderBtn');
-        if (trackBtn) {
-            trackBtn.href = `track.html?order=${order.id}`;
-        }
-        
-        document.getElementById('confirmationModal').classList.add('active');
-    }
-
-    // ==================== VALIDATE CHECKOUT FORM ====================
-    function validateCheckoutForm() {
-        const name = document.getElementById('customerName')?.value.trim();
-        const phone = document.getElementById('customerPhone')?.value.trim();
-        
-        if (!name || name.length < 2) {
-            showNotification('Please enter a valid name', 'warning');
-            return false;
-        }
-        if (!phone || phone.length < 10) {
-            showNotification('Please enter a valid phone number', 'warning');
-            return false;
-        }
-        return true;
-    }
-
-    // ==================== CLOSE MODAL ====================
-    window.closeModal = function(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) modal.classList.remove('active');
-    };
-
-    // ==================== SETUP PARALLAX ====================
-    function setupParallax() {
-        window.addEventListener('scroll', function() {
-            const scrolled = window.pageYOffset;
-            const layer2 = document.getElementById('parallaxLayer2');
-            if (layer2) {
-                layer2.style.transform = `translateY(${scrolled * 0.2}px)`;
-            }
-        });
-    }
-
-    // ==================== SHOW NOTIFICATION ====================
-    function showNotification(message, type = 'success') {
-        const notification = document.createElement('div');
-        notification.className = `notification-toast ${type}`;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: white;
-            color: #2c3e50;
-            padding: 16px 24px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 9999;
-            border-left: 4px solid ${type === 'success' ? '#2ecc71' : '#f39c12'};
-            animation: slideIn 0.3s ease;
-        `;
-        notification.innerHTML = `
-            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}" style="color: ${type === 'success' ? '#2ecc71' : '#f39c12'};"></i>
-            <span>${message}</span>
-            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: #95a5a6; cursor: pointer; margin-left: auto;">✕</button>
-        `;
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), 5000);
-    }
-
-   // ==================== LIVE KITCHEN SYSTEM - FIREBASE VERSION ====================
-    // ==================== LIVE KITCHEN SYSTEM - FIREBASE VERSION ====================
+// ==================== LIVE KITCHEN SYSTEM - FIREBASE VERSION ====================
 class LiveKitchenSystem {
     constructor() {
         this.kitchenData = { preparing: 0, incubating: 0, ready: 0, completed: 0 };
@@ -2523,8 +1776,6 @@ class LiveKitchenSystem {
 
     init() {
         console.log('👨‍🍳 Live Kitchen Ready (Firebase Mode)');
-        
-        // Listen to Firebase for real-time kitchen stats
         this.loadKitchenStats();
     }
 
@@ -2535,191 +1786,26 @@ class LiveKitchenSystem {
             const data = snapshot.val();
             
             if (!data) {
-                // No orders
                 this.kitchenData = { preparing: 0, incubating: 0, ready: 0, completed: 0 };
                 this.updateDisplay();
                 return;
             }
             
-            // Convert to array
             const orders = Object.values(data);
             
-            // Calculate stats based on paymentStatus and status
-            const preparing = orders.filter(o => 
-                o.paymentStatus === 'verified' && o.status === 'preparing'
-            ).length;
+            this.kitchenData = {
+                preparing: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'preparing').length,
+                incubating: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'incubating').length,
+                ready: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'ready').length,
+                completed: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'completed').length
+            };
             
-            const incubating = orders.filter(o => 
-                o.paymentStatus === 'verified' && o.status === 'incubating'
-            ).length;
-            
-            const ready = orders.filter(o => 
-                o.paymentStatus === 'verified' && o.status === 'ready'
-            ).length;
-            
-            const completed = orders.filter(o => 
-                o.paymentStatus === 'verified' && o.status === 'completed'
-            ).length;
-            
-            this.kitchenData = { preparing, incubating, ready, completed };
-            
-            // Update the display
             this.updateDisplay();
-            
             console.log('📊 Kitchen stats updated:', this.kitchenData);
-            
-            // Generate activities for recent changes
-            this.generateActivitiesFromOrders(orders);
         });
-    }
-
-    generateActivitiesFromOrders(orders) {
-        // Sort by most recent
-        const recentOrders = [...orders].sort((a, b) => 
-            new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)
-        ).slice(0, 10);
-        
-        recentOrders.forEach(order => {
-            // Payment verifications (last 5 minutes)
-            if (order.verifiedAt) {
-                const verifiedTime = new Date(order.verifiedAt).getTime();
-                const fiveMinAgo = Date.now() - (5 * 60 * 1000);
-                
-                if (verifiedTime > fiveMinAgo && !this.isActivityLogged(order.id, 'payment_verified')) {
-                    this.logActivity(
-                        `💰 Payment verified for order ${order.id.slice(-8)}`,
-                        'payment_verified',
-                        order.id,
-                        order.customerName
-                    );
-                }
-            }
-            
-            // Status changes (last 5 minutes)
-            if (order.updatedAt && order.status) {
-                const updateTime = new Date(order.updatedAt).getTime();
-                const fiveMinAgo = Date.now() - (5 * 60 * 1000);
-                
-                if (updateTime > fiveMinAgo && !this.isActivityLogged(order.id, 'status_change', order.status)) {
-                    let message = '';
-                    if (order.status === 'preparing') 
-                        message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
-                    if (order.status === 'incubating') 
-                        message = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
-                    if (order.status === 'ready') 
-                        message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
-                    if (order.status === 'completed') 
-                        message = `📦 Order ${order.id.slice(-8)} completed`;
-                    if (order.status === 'cancelled') 
-                        message = `❌ Order ${order.id.slice(-8)} was cancelled`;
-                    
-                    if (message) {
-                        this.logActivity(message, 'status_change', order.id, order.customerName);
-                    }
-                }
-            }
-            
-            // New orders (last 5 minutes)
-            if (order.createdAt && !order.verifiedAt) {
-                const createTime = new Date(order.createdAt).getTime();
-                const fiveMinAgo = Date.now() - (5 * 60 * 1000);
-                
-                if (createTime > fiveMinAgo && !this.isActivityLogged(order.id, 'order_created')) {
-                    this.logActivity(
-                        `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
-                        'order_created',
-                        order.id,
-                        order.customerName
-                    );
-                }
-            }
-        });
-    }
-
-    isActivityLogged(orderId, type, status = null) {
-        return this.activityLog.some(a => 
-            a.orderId === orderId && 
-            a.type === type && 
-            (status ? a.message.includes(status) : true) &&
-            (Date.now() - new Date(a.timestamp).getTime() < 30000) // Last 30 seconds
-        );
-    }
-
-    logActivity(message, type, orderId, customerName) {
-        const activity = {
-            id: Date.now(),
-            message,
-            type,
-            orderId,
-            customerName,
-            timestamp: new Date().toISOString(),
-            icon: this.getActivityIcon(type),
-            color: this.getActivityColor(type)
-        };
-        
-        this.activityLog.unshift(activity);
-        
-        // Keep only last 20 activities
-        if (this.activityLog.length > 20) {
-            this.activityLog = this.activityLog.slice(0, 20);
-        }
-        
-        this.updateActivityFeed();
-    }
-
-    getActivityIcon(type) {
-        const icons = { 
-            'order_created': 'fa-cart-plus', 
-            'payment_verified': 'fa-check-circle',
-            'status_change': 'fa-sync-alt',
-            'preparing': 'fa-utensils',
-            'incubating': 'fa-fire',
-            'ready': 'fa-check-circle',
-            'completed': 'fa-flag-checkered',
-            'cancelled': 'fa-ban'
-        };
-        return icons[type] || 'fa-bell';
-    }
-
-    getActivityColor(type) {
-        const colors = { 
-            'order_created': '#9b59b6', 
-            'payment_verified': '#2ecc71',
-            'status_change': '#3498db',
-            'preparing': '#f39c12',
-            'incubating': '#e74c3c',
-            'ready': '#2ecc71',
-            'completed': '#27ae60',
-            'cancelled': '#95a5a6'
-        };
-        return colors[type] || '#3498db';
-    }
-
-    updateActivityFeed() {
-        const feed = document.getElementById('activityFeed');
-        if (!feed) return;
-        
-        if (this.activityLog.length === 0) {
-            feed.innerHTML = '<div class="activity-item"><div class="activity-icon"><i class="fas fa-mug-hot"></i></div><div class="activity-content"><div class="activity-text">Waiting for orders...</div></div></div>';
-            return;
-        }
-        
-        feed.innerHTML = this.activityLog.slice(0, 8).map(activity => {
-            const time = new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            return `
-                <div class="activity-item" style="border-left-color: ${activity.color};">
-                    <div class="activity-icon" style="color: ${activity.color};"><i class="fas ${activity.icon}"></i></div>
-                    <div class="activity-content">
-                        <div class="activity-text">${activity.message}</div>
-                        <div class="activity-meta"><span class="activity-time">${time}</span></div>
-                    </div>
-                </div>
-            `;
-        }).join('');
     }
 
     updateDisplay() {
-        // Update the stat counters
         const preparingEl = document.getElementById('preparingCount');
         const incubatingEl = document.getElementById('incubatingCount');
         const readyEl = document.getElementById('readyCount');
@@ -2729,13 +1815,6 @@ class LiveKitchenSystem {
         if (incubatingEl) incubatingEl.textContent = this.kitchenData.incubating;
         if (readyEl) readyEl.textContent = this.kitchenData.ready;
         if (completedEl) completedEl.textContent = this.kitchenData.completed;
-        
-        console.log('🔄 Display updated:', this.kitchenData);
-    }
-
-    handleNewOrder(order) {
-        // This will be handled by Firebase listener now
-        console.log('New order detected by Firebase:', order.id);
     }
 
     generateOrderId() {
@@ -2743,212 +1822,149 @@ class LiveKitchenSystem {
     }
 }
 
-    // Make functions globally available
-    window.addToCart = addToCart;
-    window.openCartModal = openCartModal;
-    window.closeModal = closeModal;
-    window.showNotification = showNotification;
-    window.updateCartQuantity = updateCartQuantity;
-    
-    console.log('✅ COMPLETE ORDER PAGE LOADED - ALL FIXES APPLIED');
-
-// ==================== LIVE ACTIVITY FEED - SYNC WITH DASHBOARD ====================
-// This code goes in your Order Page - replaces existing activity feed logic
-
-// Initialize broadcast listener when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    initActivityFeed();
-});
-
-// ==================== LIVE ACTIVITY FEED - SYNC WITH ADMIN DASHBOARD ====================
-// Uses EXACT same message format as Admin Dashboard
-
-document.addEventListener('DOMContentLoaded', function() {
-    initActivityFeed();
-});
-
-// ==================== ORDER PAGE LIVE ACTIVITY FEED ====================
-// Listens to the SAME data source as Admin Dashboard
-
-function initActivityFeed() {
-    console.log('📡 Initializing Live Activity Feed - Reading from cleanbite_orders');
+// ==================== ORDER PAGE LIVE FEED - BROADCAST RECEIVER ====================
+function initOrderPageActivityFeed() {
+    console.log('📡 Order Page: Setting up live feed - listening for admin broadcasts');
     
     const feed = document.getElementById('activityFeed');
     if (feed) {
-        feed.innerHTML = '<div class="activity-loading"><i class="fas fa-circle-notch fa-spin"></i> Loading kitchen activities...</div>';
+        feed.innerHTML = '<div class="activity-loading"><i class="fas fa-circle-notch fa-spin"></i> Connecting to kitchen...</div>';
     }
     
-    // Load activities immediately
-    loadActivityFeed();
+    // Listen for BroadcastChannel messages from admin
+    if (typeof BroadcastChannel !== 'undefined') {
+        try {
+            const channel = new BroadcastChannel('cleanbite_activities');
+            
+            channel.onmessage = function(event) {
+                if (event.data && event.data.type === 'NEW_ACTIVITY') {
+                    console.log('📢 ORDER PAGE: Received from admin:', event.data.activity.message);
+                    addActivityToOrderFeed(event.data.activity);
+                }
+            };
+            
+            console.log('✅ Order Page: BroadcastChannel listener active');
+        } catch (e) {
+            console.error('BroadcastChannel error:', e);
+        }
+    }
     
-    // Listen for changes to cleanbite_orders (INSTANT updates)
+    // Listen for localStorage events (backup)
     window.addEventListener('storage', function(event) {
-        if (event.key === 'cleanbite_orders') {
-            console.log('🔄 Orders updated - refreshing feed');
-            loadActivityFeed();
+        if (event.key === 'admin_broadcast' && event.newValue) {
+            try {
+                const data = JSON.parse(event.newValue);
+                if (data.type === 'ACTIVITY') {
+                    addActivityToOrderFeed(data.activity);
+                }
+            } catch (e) {}
         }
     });
     
-    // Poll every 5 seconds as backup (in case storage event doesn't fire)
-    setInterval(loadActivityFeed, 5000);
+    // Load recent activities from Firebase
+    loadRecentOrderActivities();
 }
 
-function loadActivityFeed() {
-    try {
-        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+function loadRecentOrderActivities() {
+    if (!database) return;
+    
+    const ordersRef = database.ref('orders');
+    
+    ordersRef.limitToLast(10).once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+        
+        const orders = Object.values(data);
         const activities = [];
         
-        // Sort orders by most recent first
-        const sortedOrders = [...orders].sort((a, b) => 
-            new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)
-        );
-        
-        // Take last 20 orders
-        sortedOrders.slice(0, 20).forEach(order => {
-            // Payment verifications
+        orders.forEach(order => {
             if (order.verifiedAt) {
                 activities.push({
-                    type: 'payment_verified',
                     message: `💰 Payment verified for order ${order.id.slice(-8)}`,
-                    customerName: order.customerName,
-                    orderId: order.id,
                     timestamp: order.verifiedAt,
                     icon: 'fa-check-circle',
-                    color: '#2ecc71'
+                    color: '#2ecc71',
+                    customerName: order.customerName,
+                    orderId: order.id
                 });
             }
             
-            // Status changes
             if (order.updatedAt && order.status) {
                 let message = '';
-                let icon = '';
-                let color = '';
-                
-                switch(order.status) {
-                    case 'preparing':
-                        message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
-                        icon = 'fa-utensils';
-                        color = '#f39c12';
-                        break;
-                    case 'incubating':
-                        message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (24hr countdown started)`;
-                        icon = 'fa-fire';
-                        color = '#e74c3c';
-                        break;
-                    case 'ready':
-                        message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
-                        icon = 'fa-check-circle';
-                        color = '#2ecc71';
-                        break;
-                    case 'completed':
-                        message = `📦 Order ${order.id.slice(-8)} completed and picked up`;
-                        icon = 'fa-flag-checkered';
-                        color = '#27ae60';
-                        break;
-                    case 'cancelled':
-                        message = `❌ Order ${order.id.slice(-8)} was cancelled`;
-                        icon = 'fa-times-circle';
-                        color = '#e74c3c';
-                        break;
-                }
+                if (order.status === 'preparing') message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
+                if (order.status === 'incubating') message = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
+                if (order.status === 'ready') message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
+                if (order.status === 'completed') message = `📦 Order ${order.id.slice(-8)} completed`;
                 
                 if (message) {
                     activities.push({
-                        type: 'status_change',
                         message: message,
-                        customerName: order.customerName,
-                        orderId: order.id,
                         timestamp: order.updatedAt,
-                        icon: icon,
-                        color: color
+                        icon: 'fa-sync-alt',
+                        color: '#3498db',
+                        customerName: order.customerName,
+                        orderId: order.id
                     });
                 }
             }
-            
-            // New orders
-            if (order.createdAt && !order.verifiedAt && order.paymentStatus === 'pending') {
-                activities.push({
-                    type: 'order_created',
-                    message: `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
-                    customerName: order.customerName,
-                    orderId: order.id,
-                    timestamp: order.createdAt,
-                    icon: 'fa-cart-plus',
-                    color: '#9b59b6'
-                });
-            }
         });
         
-        // Sort by timestamp (most recent first)
         activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         
-        // Remove duplicates (keep only most recent of each type per order)
-        const uniqueActivities = [];
-        const seen = new Set();
-        
-        activities.forEach(activity => {
-            const key = `${activity.orderId}-${activity.type}`;
-            if (!seen.has(key)) {
-                seen.add(key);
-                uniqueActivities.push(activity);
-            }
+        activities.slice(0, 10).forEach(activity => {
+            addActivityToOrderFeed(activity, false);
         });
-        
-        renderActivityFeed(uniqueActivities.slice(0, 15));
-        
-    } catch (error) {
-        console.error('Error loading activity feed:', error);
-    }
+    });
 }
 
-function renderActivityFeed(activities) {
-    const feedContainer = document.getElementById('activityFeed');
-    if (!feedContainer) return;
+function addActivityToOrderFeed(activity, animate = true) {
+    const feed = document.getElementById('activityFeed');
+    if (!feed) return;
     
-    if (activities.length === 0) {
-        feedContainer.innerHTML = `
-            <div class="empty-activity">
-                <i class="fas fa-mug-hot"></i>
-                <p>No recent activities</p>
-                <small>Activities will appear here as orders progress</small>
-            </div>
-        `;
-        return;
+    const emptyState = feed.querySelector('.activity-loading, .empty-activity');
+    if (emptyState) emptyState.remove();
+    
+    // Prevent duplicates (last 2 seconds)
+    const lastItem = feed.firstChild;
+    if (lastItem) {
+        const lastText = lastItem.querySelector('.activity-text')?.textContent || '';
+        if (lastText.includes(activity.message.slice(0, 20))) {
+            return;
+        }
     }
     
-    const activitiesHTML = activities.map(activity => {
-        const timeAgo = getTimeAgo(activity.timestamp);
-        const timeFull = new Date(activity.timestamp).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-        
-        return `
-            <div class="activity-item" style="border-left-color: ${activity.color}">
-                <div class="activity-icon" style="color: ${activity.color}">
-                    <i class="fas ${activity.icon}"></i>
-                </div>
-                <div class="activity-content">
-                    <div class="activity-text">${activity.message}</div>
-                    <div class="activity-meta">
-                        <span class="activity-time" title="${timeFull}">
-                            <i class="far fa-clock"></i> ${timeAgo}
-                        </span>
-                        ${activity.customerName ? 
-                            `<span class="activity-customer">
-                                <i class="fas fa-user"></i> ${activity.customerName}
-                            </span>` : ''}
-                        ${activity.orderId ? 
-                            `<span class="activity-order">
-                                <i class="fas fa-hashtag"></i> ${activity.orderId.slice(-8)}
-                            </span>` : ''}
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
+    const timeAgo = getTimeAgo(activity.timestamp);
     
-    feedContainer.innerHTML = activitiesHTML;
+    const activityElement = document.createElement('div');
+    activityElement.className = 'activity-item';
+    activityElement.style.borderLeftColor = activity.color || '#3498db';
+    activityElement.style.animation = animate ? 'slideInRight 0.3s ease' : 'none';
+    
+    activityElement.innerHTML = `
+        <div class="activity-icon" style="color: ${activity.color || '#3498db'};">
+            <i class="fas ${activity.icon || 'fa-bell'}"></i>
+        </div>
+        <div class="activity-content">
+            <div class="activity-text">${activity.message}</div>
+            <div class="activity-meta">
+                <span class="activity-time"><i class="far fa-clock"></i> ${timeAgo}</span>
+                ${activity.customerName ? 
+                    `<span class="activity-customer"><i class="fas fa-user"></i> ${activity.customerName}</span>` : ''}
+                ${activity.orderId ? 
+                    `<span class="activity-order"><i class="fas fa-hashtag"></i> ${activity.orderId.slice(-8)}</span>` : ''}
+            </div>
+        </div>
+    `;
+    
+    if (feed.firstChild) {
+        feed.insertBefore(activityElement, feed.firstChild);
+    } else {
+        feed.appendChild(activityElement);
+    }
+    
+    while (feed.children.length > 20) {
+        feed.removeChild(feed.lastChild);
+    }
 }
 
 function getTimeAgo(timestamp) {
@@ -2956,61 +1972,366 @@ function getTimeAgo(timestamp) {
     
     const now = new Date();
     const past = new Date(timestamp);
-    const diffMs = now - past;
-    const diffMin = Math.floor(diffMs / 60000);
-    const diffHour = Math.floor(diffMin / 60);
-    const diffDay = Math.floor(diffHour / 24);
+    const diffMin = Math.floor((now - past) / 60000);
     
     if (diffMin < 1) return 'Just now';
-    if (diffMin < 60) return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
-    if (diffHour < 24) return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
-    if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
-    
-    return past.toLocaleDateString();
+    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffMin < 1440) return `${Math.floor(diffMin / 60)}h ago`;
+    return `${Math.floor(diffMin / 1440)}d ago`;
 }
 
-// Initialize on page load
+// ==================== CART FUNCTIONS ====================
+function renderMenu() {
+    const menuGrid = document.getElementById('menuGrid');
+    if (!menuGrid) return;
+    
+    menuGrid.innerHTML = menuItems.map(item => `
+        <div class="menu-card">
+            ${item.badge ? `<span class="menu-badge">${item.badge}</span>` : ''}
+            <div class="menu-image" style="background-image: url('${item.image}');"></div>
+            <div class="menu-content">
+                <div class="menu-header">
+                    <h3>${item.name}</h3>
+                    <span class="menu-price">₦${item.price.toLocaleString()}</span>
+                </div>
+                <p class="menu-desc">${item.description}</p>
+                <div class="menu-footer">
+                    <div class="quantity-selector" data-id="${item.id}">
+                        <button class="quantity-btn minus" data-id="${item.id}">-</button>
+                        <span class="quantity-value" id="qty-${item.id}">1</span>
+                        <button class="quantity-btn plus" data-id="${item.id}">+</button>
+                    </div>
+                    <button class="btn-add" data-id="${item.id}">
+                        <i class="fas fa-cart-plus"></i> Add
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function addToCart(itemId) {
+    const item = menuItems.find(i => i.id == itemId);
+    const qtyEl = document.getElementById(`qty-${itemId}`);
+    const quantity = parseInt(qtyEl.textContent);
+    
+    const existingItem = cart.find(i => i.id == itemId);
+    
+    if (existingItem) {
+        existingItem.quantity += quantity;
+    } else {
+        cart.push({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: quantity,
+            image: item.image
+        });
+    }
+    
+    qtyEl.textContent = 1;
+    localStorage.setItem('cleanbite_cart', JSON.stringify(cart));
+    updateCartDisplay();
+    showNotification(`${item.name} added to cart`, 'success');
+}
+
+function updateCartDisplay() {
+    const cartCount = document.getElementById('cartCount');
+    if (cartCount) {
+        cartCount.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+    }
+    
+    const cartItemsContainer = document.getElementById('cartItems');
+    if (cartItemsContainer) {
+        if (cart.length === 0) {
+            cartItemsContainer.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fas fa-shopping-cart" style="font-size: 48px; color: #ddd;"></i><p style="color: #7f8c8d;">Your cart is empty</p></div>';
+        } else {
+            cartItemsContainer.innerHTML = cart.map(item => `
+                <div class="cart-item">
+                    <div class="cart-item-image" style="background-image: url('${item.image}');"></div>
+                    <div class="cart-item-details">
+                        <div class="cart-item-title">${item.name}</div>
+                        <div class="cart-item-price">₦${item.price.toLocaleString()}</div>
+                    </div>
+                    <div class="cart-item-quantity">
+                        <button class="cart-quantity-btn" onclick="window.updateCartQuantity(${item.id}, -1)">-</button>
+                        <span style="font-weight: 600; min-width: 30px; text-align: center;">${item.quantity}</span>
+                        <button class="cart-quantity-btn" onclick="window.updateCartQuantity(${item.id}, 1)">+</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+    
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const vat = subtotal * 0.075;
+    const total = subtotal + vat;
+    
+    document.getElementById('cartSubtotal').textContent = `₦${subtotal.toLocaleString()}`;
+    document.getElementById('cartVat').textContent = `₦${vat.toLocaleString()}`;
+    document.getElementById('cartTotal').textContent = `₦${total.toLocaleString()}`;
+}
+
+window.updateCartQuantity = function(itemId, change) {
+    const item = cart.find(i => i.id == itemId);
+    if (item) {
+        item.quantity += change;
+        if (item.quantity <= 0) {
+            cart = cart.filter(i => i.id != itemId);
+        }
+        localStorage.setItem('cleanbite_cart', JSON.stringify(cart));
+        updateCartDisplay();
+    }
+};
+
+function clearCart() {
+    cart = [];
+    localStorage.setItem('cleanbite_cart', JSON.stringify(cart));
+    updateCartDisplay();
+    showNotification('Cart cleared', 'info');
+}
+
+function openCartModal() {
+    updateCartDisplay();
+    document.getElementById('cartModal').classList.add('active');
+}
+
+function openCheckoutModal() {
+    if (cart.length === 0) {
+        showNotification('Your cart is empty', 'warning');
+        return;
+    }
+    document.getElementById('orderForm')?.reset();
+    document.getElementById('paymentTransfer').checked = true;
+    document.getElementById('bankDetails').style.display = 'block';
+    document.getElementById('cashDetails').style.display = 'none';
+    closeModal('cartModal');
+    document.getElementById('checkoutModal').classList.add('active');
+}
+
+function saveOrderToFirebase(order) {
+    return new Promise((resolve, reject) => {
+        const ordersRef = database.ref('orders');
+        const newOrderRef = ordersRef.push();
+        order.firebaseKey = newOrderRef.key;
+        order.createdAt = new Date().toISOString();
+        newOrderRef.set(order)
+            .then(() => {
+                console.log('✅ Order saved to Firebase:', order.id);
+                resolve(order);
+            })
+            .catch(reject);
+    });
+}
+
+function setupSubmitButton() {
+    const submitOrderBtn = document.getElementById('submitOrderBtn');
+    if (!submitOrderBtn) return;
+    
+    const freshButton = document.createElement('button');
+    freshButton.type = 'submit';
+    freshButton.className = 'btn btn-primary';
+    freshButton.id = 'submitOrderBtn';
+    freshButton.innerHTML = '<i class="fas fa-paper-plane"></i> Place Order';
+    
+    submitOrderBtn.parentNode.replaceChild(freshButton, submitOrderBtn);
+    
+    freshButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const name = document.getElementById('customerName')?.value.trim();
+        const phone = document.getElementById('customerPhone')?.value.trim();
+        
+        if (!name || name.length < 2) {
+            alert('❌ Please enter your full name');
+            return;
+        }
+        
+        if (!phone || phone.length < 10) {
+            alert('❌ Please enter a valid phone number');
+            return;
+        }
+        
+        const cart = JSON.parse(localStorage.getItem('cleanbite_cart') || '[]');
+        if (cart.length === 0) {
+            alert('❌ Your cart is empty');
+            return;
+        }
+        
+        const originalText = this.innerHTML;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        this.disabled = true;
+        
+        const orderId = window.liveKitchen?.generateOrderId() || 'CB-' + Date.now().toString().slice(-6) + '-' + Math.floor(Math.random()*1000);
+        
+        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const total = subtotal + (subtotal * 0.075);
+        
+        const order = {
+            id: orderId,
+            customerName: name,
+            customerPhone: phone,
+            customerEmail: document.getElementById('customerEmail')?.value.trim() || '',
+            items: cart,
+            total: total,
+            status: 'pending-payment',
+            paymentStatus: 'pending',
+            createdAt: new Date().toISOString()
+        };
+        
+        saveOrderToFirebase(order).then(() => {
+            showNotification(`Order ${orderId} placed!`, 'success');
+            localStorage.setItem('cleanbite_cart', '[]');
+            cart = [];
+            updateCartDisplay();
+            closeModal('checkoutModal');
+            showOrderConfirmation(order);
+            
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            }, 2000);
+        }).catch(error => {
+            console.error('Error:', error);
+            showNotification('Error placing order', 'error');
+            this.innerHTML = originalText;
+            this.disabled = false;
+        });
+    });
+}
+
+function showOrderConfirmation(order) {
+    document.getElementById('confirmCustomerName').textContent = order.customerName || 'Customer';
+    document.getElementById('confirmOrderId').textContent = order.id;
+    document.getElementById('confirmTotal').textContent = `₦${(order.total || 0).toLocaleString()}`;
+    document.getElementById('confirmationModal').classList.add('active');
+}
+
+window.closeModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.remove('active');
+};
+
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notification-toast ${type}`;
+    notification.style.cssText = `
+        position: fixed; top: 20px; right: 20px; background: white; color: #2c3e50;
+        padding: 16px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        display: flex; align-items: center; gap: 12px; z-index: 9999;
+        border-left: 4px solid ${type === 'success' ? '#2ecc71' : '#f39c12'};
+        animation: slideIn 0.3s ease;
+    `;
+    notification.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}" 
+           style="color: ${type === 'success' ? '#2ecc71' : '#f39c12'};"></i>
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()" style="background: none; border: none; color: #95a5a6; cursor: pointer;">✕</button>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 5000);
+}
+
+function setupParallax() {
+    window.addEventListener('scroll', function() {
+        const layer2 = document.getElementById('parallaxLayer2');
+        if (layer2) {
+            layer2.style.transform = `translateY(${window.pageYOffset * 0.2}px)`;
+        }
+    });
+}
+
+function setupTrackOrderLink() {
+    const trackLink = document.getElementById('trackOrderLink');
+    if (trackLink) {
+        trackLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+            if (orders.length === 0) {
+                alert('No orders found');
+                return;
+            }
+            const latestOrder = orders[orders.length - 1];
+            if (latestOrder?.id) {
+                window.open(`track.html?order=${latestOrder.id}`, '_blank');
+            }
+        });
+    }
+}
+
+// ==================== INITIALIZE EVERYTHING ====================
 document.addEventListener('DOMContentLoaded', function() {
-    initActivityFeed();
+    console.log('🍽️ Order Page Initializing...');
+    
+    renderMenu();
+    updateCartDisplay();
+    
+    window.liveKitchen = new LiveKitchenSystem();
+    initOrderPageActivityFeed();
+    
+    setupEventListeners();
+    setupParallax();
+    setupTrackOrderLink();
+    setupSubmitButton();
+    
+    console.log('✅ Order Page Ready');
 });
 
-// Add CSS for the activity feed
-const style = document.createElement('style');
-style.textContent = `
-    .empty-activity {
-        text-align: center;
-        padding: 40px 20px;
-        background: rgba(255,255,255,0.05);
-        border-radius: 16px;
-        color: rgba(255,255,255,0.6);
-    }
+function setupEventListeners() {
+    document.getElementById('cartIcon')?.addEventListener('click', openCartModal);
+    document.getElementById('closeCartModal')?.addEventListener('click', () => closeModal('cartModal'));
+    document.getElementById('closeCheckoutModal')?.addEventListener('click', () => closeModal('checkoutModal'));
+    document.getElementById('closeConfirmationModal')?.addEventListener('click', () => closeModal('confirmationModal'));
+    document.getElementById('backToCart')?.addEventListener('click', () => {
+        closeModal('checkoutModal');
+        openCartModal();
+    });
+    document.getElementById('clearCartBtn')?.addEventListener('click', clearCart);
+    document.getElementById('checkoutBtn')?.addEventListener('click', openCheckoutModal);
     
-    .empty-activity i {
-        font-size: 48px;
-        color: #ffd166;
-        margin-bottom: 15px;
-    }
+    document.getElementById('paymentTransfer')?.addEventListener('change', function(e) {
+        if (e.target.checked) {
+            document.getElementById('bankDetails').style.display = 'block';
+            document.getElementById('cashDetails').style.display = 'none';
+        }
+    });
     
-    .activity-loading {
-        text-align: center;
-        padding: 40px;
-        color: rgba(255,255,255,0.6);
-    }
+    document.getElementById('paymentCash')?.addEventListener('change', function(e) {
+        if (e.target.checked) {
+            document.getElementById('bankDetails').style.display = 'none';
+            document.getElementById('cashDetails').style.display = 'block';
+        }
+    });
     
-    .activity-loading i {
-        color: #ffd166;
-        margin-right: 8px;
-    }
-`;
-document.head.appendChild(style);
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('plus')) {
+            const id = e.target.dataset.id;
+            const qtyEl = document.getElementById(`qty-${id}`);
+            qtyEl.textContent = parseInt(qtyEl.textContent) + 1;
+        }
+        
+        if (e.target.classList.contains('minus')) {
+            const id = e.target.dataset.id;
+            const qtyEl = document.getElementById(`qty-${id}`);
+            let qty = parseInt(qtyEl.textContent);
+            if (qty > 1) qtyEl.textContent = qty - 1;
+        }
+        
+        if (e.target.classList.contains('btn-add') || e.target.closest('.btn-add')) {
+            const btn = e.target.classList.contains('btn-add') ? e.target : e.target.closest('.btn-add');
+            addToCart(btn.dataset.id);
+        }
+    });
+}
 
-console.log('✅ Live Activity Feed initialized - Listening to cleanbite_orders');        
+// Make functions global
+window.addToCart = addToCart;
+window.openCartModal = openCartModal;
+window.closeModal = closeModal;
+window.showNotification = showNotification;
+window.updateCartQuantity = updateCartQuantity;
+
+console.log('✅ ORDER PAGE COMPLETE - Firebase + Broadcast Ready');
 </script>
-  
 </body>
 </html>
-
-
-
-
-
