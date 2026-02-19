@@ -2721,36 +2721,12 @@ document.head.appendChild(style);
 console.log('✅ Live Activity Feed initialized - Listening to cleanbite_orders');        
 </script>
 
-    <!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
-<script>
-// Your Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyC1WaO1WE-LFayAqLeql0BP5vD8bddgUuE",
-    authDomain: "cleanbite-empire.firebaseapp.com",
-    databaseURL: "https://cleanbite-empire-default-rtdb.firebaseio.com",
-    projectId: "cleanbite-empire",
-    storageBucket: "cleanbite-empire.firebasestorage.app",
-    messagingSenderId: "733995841314",
-    appId: "1:733995841314:web:d82f5452f1fff0fdfad77b"
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-console.log('🔥 Firebase connected on order page');
-</script>
-
-    
-    <!-- ===== ADD FIREBASE CODE HERE - RIGHT BEFORE </body> ===== -->
-    <!-- Firebase SDKs -->
+    <!-- ==================== FIREBASE SDKs (ADD ONCE ONLY) ==================== -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
     <script>
-    // Firebase Configuration
+    // ==================== FIREBASE CONFIGURATION ====================
     const firebaseConfig = {
         apiKey: "AIzaSyC1WaO1WE-LFayAqLeql0BP5vD8bddgUuE",
         authDomain: "cleanbite-empire.firebaseapp.com",
@@ -2764,8 +2740,9 @@ console.log('🔥 Firebase connected on order page');
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+    console.log('🔥 Firebase connected on order page');
     
-    // ===== LIVE KITCHEN STATS =====
+    // ==================== LIVE KITCHEN STATS ====================
     function loadKitchenStats() {
         database.ref('orders').on('value', (snapshot) => {
             const data = snapshot.val();
@@ -2781,10 +2758,12 @@ console.log('🔥 Firebase connected on order page');
                 orders.filter(o => o.paymentStatus === 'verified' && o.status === 'ready').length;
             document.getElementById('completedCount').textContent = 
                 orders.filter(o => o.paymentStatus === 'verified' && o.status === 'completed').length;
+            
+            console.log('📊 Kitchen stats updated');
         });
     }
     
-    // ===== LIVE ACTIVITY FEED =====
+    // ==================== LIVE ACTIVITY FEED ====================
     function loadActivityFeed() {
         database.ref('orders').on('value', (snapshot) => {
             const data = snapshot.val();
@@ -2793,142 +2772,6 @@ console.log('🔥 Firebase connected on order page');
             const orders = Object.values(data);
             const activities = [];
             
-            orders.forEach(order => {
-                if (order.verifiedAt) activities.push({
-                    message: `💰 Payment verified for order ${order.id.slice(-8)}`,
-                    timestamp: order.verifiedAt,
-                    icon: 'fa-check-circle',
-                    color: '#2ecc71'
-                });
-                
-                if (order.updatedAt && order.status) {
-                    let msg = '';
-                    if (order.status === 'preparing') msg = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
-                    if (order.status === 'incubating') msg = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
-                    if (order.status === 'ready') msg = `✅ Order ${order.id.slice(-8)} is READY`;
-                    if (order.status === 'completed') msg = `📦 Order ${order.id.slice(-8)} completed`;
-                    
-                    if (msg) activities.push({
-                        message: msg,
-                        timestamp: order.updatedAt,
-                        icon: 'fa-sync-alt',
-                        color: '#3498db'
-                    });
-                }
-            });
-            
-            activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            
-            const feed = document.getElementById('activityFeed');
-            if (feed) {
-                feed.innerHTML = activities.slice(0, 10).map(a => `
-                    <div class="activity-item" style="border-left-color: ${a.color}">
-                        <div class="activity-icon" style="color: ${a.color}"><i class="fas ${a.icon}"></i></div>
-                        <div class="activity-content">
-                            <div class="activity-text">${a.message}</div>
-                            <div class="activity-time">${getTimeAgo(a.timestamp)}</div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        });
-    }
-    
-    function getTimeAgo(t) {
-        if (!t) return 'Just now';
-        const m = Math.floor((new Date() - new Date(t)) / 60000);
-        if (m < 1) return 'Just now';
-        if (m < 60) return `${m}m ago`;
-        if (m < 1440) return `${Math.floor(m / 60)}h ago`;
-        return `${Math.floor(m / 1440)}d ago`;
-    }
-    
-    // Initialize
-    loadKitchenStats();
-    loadActivityFeed();
-    </script>
-        <!-- Your existing HTML content -->
-    
-    <!-- Your existing script with cart, menu, checkout functions -->
-    <script>
-        // ==================== YOUR EXISTING ORDER PAGE CODE ====================
-        // All your current functions: renderMenu(), addToCart(), updateCartDisplay(), 
-        // openCheckoutModal(), submitOrderBtn, etc.
-    </script>
-    
-    <!-- ===== ADD LIVE KITCHEN STATS AND FEEDS HERE - RIGHT BEFORE </body> ===== -->
-    <!-- Firebase SDKs (if not already added) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    
-    <script>
-    // ==================== FIREBASE CONFIG ====================
-    const firebaseConfig = {
-        apiKey: "AIzaSyC1WaO1WE-LFayAqLeql0BP5vD8bddgUuE",
-        authDomain: "cleanbite-empire.firebaseapp.com",
-        databaseURL: "https://cleanbite-empire-default-rtdb.firebaseio.com",
-        projectId: "cleanbite-empire",
-        storageBucket: "cleanbite-empire.firebasestorage.app",
-        messagingSenderId: "733995841314",
-        appId: "1:733995841314:web:d82f5452f1fff0fdfad77b"
-    };
-    
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    
-    // ==================== LIVE KITCHEN STATS ====================
-    // This updates the 4 stat boxes (Preparing, Incubating, Ready, Completed)
-    function loadKitchenStats() {
-        const ordersRef = database.ref('orders');
-        
-        ordersRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (!data) return;
-            
-            // Convert to array
-            const orders = Object.values(data);
-            
-            // Calculate counts
-            const preparing = orders.filter(o => 
-                o.paymentStatus === 'verified' && o.status === 'preparing'
-            ).length;
-            
-            const incubating = orders.filter(o => 
-                o.paymentStatus === 'verified' && o.status === 'incubating'
-            ).length;
-            
-            const ready = orders.filter(o => 
-                o.paymentStatus === 'verified' && o.status === 'ready'
-            ).length;
-            
-            const completed = orders.filter(o => 
-                o.paymentStatus === 'verified' && o.status === 'completed'
-            ).length;
-            
-            // Update the DOM
-            document.getElementById('preparingCount').textContent = preparing;
-            document.getElementById('incubatingCount').textContent = incubating;
-            document.getElementById('readyCount').textContent = ready;
-            document.getElementById('completedCount').textContent = completed;
-            
-            console.log('📊 Kitchen stats updated:', { preparing, incubating, ready, completed });
-        });
-    }
-    
-    // ==================== LIVE ACTIVITY FEED ====================
-    // This updates the activity feed with real-time events
-    function loadActivityFeed() {
-        const ordersRef = database.ref('orders');
-        
-        ordersRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (!data) return;
-            
-            const orders = Object.values(data);
-            const activities = [];
-            
-            // Generate activities from orders
             orders.forEach(order => {
                 // Payment verifications
                 if (order.verifiedAt) {
@@ -2942,24 +2785,22 @@ console.log('🔥 Firebase connected on order page');
                 
                 // Status changes
                 if (order.updatedAt && order.status) {
-                    let message = '';
+                    let msg = '';
                     if (order.status === 'preparing') 
-                        message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
+                        msg = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
                     if (order.status === 'incubating') 
-                        message = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
+                        msg = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
                     if (order.status === 'ready') 
-                        message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
+                        msg = `✅ Order ${order.id.slice(-8)} is READY`;
                     if (order.status === 'completed') 
-                        message = `📦 Order ${order.id.slice(-8)} completed`;
+                        msg = `📦 Order ${order.id.slice(-8)} completed`;
                     
-                    if (message) {
-                        activities.push({
-                            message: message,
-                            timestamp: order.updatedAt,
-                            icon: 'fa-sync-alt',
-                            color: '#3498db'
-                        });
-                    }
+                    if (msg) activities.push({
+                        message: msg,
+                        timestamp: order.updatedAt,
+                        icon: 'fa-sync-alt',
+                        color: '#3498db'
+                    });
                 }
                 
                 // New orders
@@ -2973,10 +2814,10 @@ console.log('🔥 Firebase connected on order page');
                 }
             });
             
-            // Sort by most recent first
+            // Sort by most recent
             activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             
-            // Render to feed
+            // Update feed
             const feed = document.getElementById('activityFeed');
             if (feed) {
                 feed.innerHTML = activities.slice(0, 10).map(a => `
@@ -2995,27 +2836,48 @@ console.log('🔥 Firebase connected on order page');
     }
     
     // Helper: Convert timestamp to "X ago"
-    function getTimeAgo(timestamp) {
-        if (!timestamp) return 'Just now';
-        
-        const now = new Date();
-        const past = new Date(timestamp);
-        const diffMin = Math.floor((now - past) / 60000);
-        
-        if (diffMin < 1) return 'Just now';
-        if (diffMin < 60) return `${diffMin}m ago`;
-        if (diffMin < 1440) return `${Math.floor(diffMin / 60)}h ago`;
-        return `${Math.floor(diffMin / 1440)}d ago`;
+    function getTimeAgo(t) {
+        if (!t) return 'Just now';
+        const m = Math.floor((new Date() - new Date(t)) / 60000);
+        if (m < 1) return 'Just now';
+        if (m < 60) return `${m}m ago`;
+        if (m < 1440) return `${Math.floor(m / 60)}h ago`;
+        return `${Math.floor(m / 1440)}d ago`;
     }
     
-    // ==================== INITIALIZE ====================
-    // Start both listeners when page loads
+    // ==================== MODIFY YOUR SUBMIT BUTTON TO USE FIREBASE ====================
+    // Find your submit button code and REPLACE the localStorage part with this:
+    function saveOrderToFirebase(order) {
+        return new Promise((resolve, reject) => {
+            const ordersRef = database.ref('orders');
+            const newOrderRef = ordersRef.push();
+            
+            order.firebaseKey = newOrderRef.key;
+            order.createdAt = new Date().toISOString();
+            order.status = order.status || 'pending-payment';
+            
+            newOrderRef.set(order)
+                .then(() => {
+                    console.log('✅ Order saved to Firebase:', order.id);
+                    resolve(order);
+                })
+                .catch((error) => {
+                    console.error('❌ Firebase error:', error);
+                    reject(error);
+                });
+        });
+    }
+    
+    // ==================== INITIALIZE EVERYTHING ====================
     document.addEventListener('DOMContentLoaded', function() {
         loadKitchenStats();
         loadActivityFeed();
         console.log('✅ Live Kitchen and Activity Feed initialized with Firebase');
     });
-    </script>  
+    </script>
+    
+  
 </body>
 </html>
+
 
