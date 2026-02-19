@@ -1462,12 +1462,12 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs (add before your existing script) -->
+   <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
     <script>
-    // Your Firebase configuration (SAME as order page)
+    // ==================== FIREBASE CONFIGURATION ====================
     const firebaseConfig = {
         apiKey: "AIzaSyC1WaO1WE-LFayAqLeql0BP5vD8bddgUuE",
         authDomain: "cleanbite-empire.firebaseapp.com",
@@ -1480,70 +1480,94 @@
     
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
+    
+    // 🔥 CREATE THE DATABASE VARIABLE (THIS WAS MISSING)
     const database = firebase.database();
     
-    // Global variable to store orders
+    // Global variable for orders
     let allOrders = [];
+    
+    console.log('✅ Firebase initialized successfully');
+    console.log('✅ Database object created:', database ? 'OK' : 'FAILED');
     
     // ==================== LOAD ORDERS FROM FIREBASE ====================
     function loadOrdersFromFirebase() {
+        console.log('📡 Loading orders from Firebase...');
+        
         const ordersRef = database.ref('orders');
         
-        // Listen for changes in real-time
         ordersRef.on('value', (snapshot) => {
             const data = snapshot.val();
+            console.log('📦 Firebase snapshot received:', data ? 'Has data' : 'Empty');
             
             if (!data) {
-                console.log('No orders found in Firebase');
                 allOrders = [];
                 updateDashboardWithFirebaseOrders([]);
                 return;
             }
             
-            // Convert Firebase object to array and add firebaseKey
+            // Convert Firebase object to array with keys
             allOrders = Object.keys(data).map(key => {
                 return {
                     ...data[key],
-                    firebaseKey: key  // Store the Firebase key for updates
+                    firebaseKey: key
                 };
             });
             
             console.log(`✅ Loaded ${allOrders.length} orders from Firebase`);
+            if (allOrders.length > 0) {
+                console.log('Sample order:', {
+                    id: allOrders[0].id,
+                    firebaseKey: allOrders[0].firebaseKey
+                });
+            }
             
-            // Update the dashboard with these orders
             updateDashboardWithFirebaseOrders(allOrders);
         }, (error) => {
-            console.error('❌ Error loading from Firebase:', error);
+            console.error('❌ Firebase load error:', error);
         });
     }
     
-    // ==================== UPDATE DASHBOARD WITH FIREBASE ORDERS ====================
+    // ==================== UPDATE DASHBOARD ====================
     function updateDashboardWithFirebaseOrders(orders) {
-        // Get pending payments
+        console.log('🔄 Updating dashboard with', orders.length, 'orders');
+        
         const pendingPayments = orders.filter(o => 
             o.paymentStatus === 'pending' && 
             o.status !== 'cancelled'
         );
         
-        // Get verified active orders
         const verifiedOrders = orders.filter(o => 
             o.paymentStatus === 'verified' && 
             o.status !== 'completed' && 
             o.status !== 'cancelled'
         );
         
-        // Update stats
-        updateStats(orders, pendingPayments);
+        // Update stats if function exists
+        if (typeof updateStats === 'function') {
+            updateStats(orders, pendingPayments);
+        }
         
         // Update verification queue
-        renderVerificationQueue(pendingPayments);
+        if (typeof renderVerificationQueue === 'function') {
+            renderVerificationQueue(pendingPayments);
+        }
         
         // Update orders list
-        renderOrders(verifiedOrders);
+        if (typeof renderOrders === 'function') {
+            renderOrders(verifiedOrders);
+        }
         
-        // Update verification queue in localStorage (optional, for backward compatibility)
+        // Update localStorage backup
         localStorage.setItem('admin_verification_queue', JSON.stringify(pendingPayments));
     }
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 Admin dashboard initializing...');
+        loadOrdersFromFirebase();
+    });
+    </script>
     
     // ==================== CALL THIS WHEN PAGE LOADS ====================
     document.addEventListener('DOMContentLoaded', function() {
@@ -3098,4 +3122,5 @@
 </body>
 
 </html>
+
 
