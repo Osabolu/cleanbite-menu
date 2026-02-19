@@ -2608,72 +2608,92 @@
         loadDashboardData();
     };
     
-    function verifyPayment() {
-    if (!currentVerificationOrder) {
-        showNotification('No order selected', 'error');
-        return;
-    }
-    
-    console.log('✅ Verifying payment for order:', currentVerificationOrder);
-    
-    // Find the order in the Firebase orders array (allOrders)
-    const order = allOrders.find(o => o.id === currentVerificationOrder);
-    
-    if (!order) {
-        showNotification('Order not found', 'error');
-        closeModal('verifyModal');
-        return;
-    }
-    
-    // Update order in Firebase
-    const orderRef = database.ref(`orders/${order.firebaseKey}`);
-    
-    orderRef.update({
-        paymentStatus: 'verified',
-        status: 'preparing',
-        verifiedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        preparingStarted: new Date().toISOString()
-    })
-    .then(() => {
-        console.log('💾 Payment verified in Firebase - Order now PREPARING');
+        function verifyPayment() {
+        console.log('🔍 STEP 1: verifyPayment started');
         
-        // Remove from local verification queue (if you still use it)
-        const queue = JSON.parse(localStorage.getItem('admin_verification_queue') || '[]');
-        const updatedQueue = queue.filter(o => o.id !== currentVerificationOrder);
-        localStorage.setItem('admin_verification_queue', JSON.stringify(updatedQueue));
+        if (!currentVerificationOrder) {
+            console.log('❌ STEP 1a: No order selected');
+            showNotification('No order selected', 'error');
+            return;
+        }
         
-        const message = `💰 Payment VERIFIED for order ${currentVerificationOrder.slice(-8)} - Now PREPARING`;
+        console.log('✅ STEP 2: currentVerificationOrder =', currentVerificationOrder);
         
-        // Add to activity feed
-        addActivityToFeed({
-            type: 'payment_verified',
-            message: message,
-            orderId: order.id,
-            customerName: order.customerName,
-            amount: order.total || order.totalAmount,
-            timestamp: new Date().toISOString(),
-            icon: 'fa-check-circle',
-            color: '#2ecc71'
+        // Find the order in Firebase
+        console.log('🔍 STEP 3: Searching allOrders, length =', allOrders.length);
+        const order = allOrders.find(o => o.id === currentVerificationOrder);
+        
+        if (!order) {
+            console.log('❌ STEP 3a: Order not found in allOrders');
+            console.log('Available orders:', allOrders.map(o => o.id));
+            showNotification('Order not found', 'error');
+            closeModal('verifyModal');
+            return;
+        }
+        
+        console.log('✅ STEP 4: Order found:', order.id);
+        console.log('✅ STEP 4a: firebaseKey =', order.firebaseKey);
+        
+        if (!order.firebaseKey) {
+            console.log('❌ STEP 4b: No firebaseKey for order');
+            showNotification('Error: Order missing Firebase reference', 'error');
+            return;
+        }
+        
+        // Disable button
+        const verifyBtn = document.getElementById('confirmVerification');
+        if (verifyBtn) {
+            console.log('✅ STEP 5: Disabling verify button');
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+        }
+        
+        // Update in Firebase
+        console.log('🔍 STEP 6: Preparing Firebase update');
+        const orderRef = database.ref(`orders/${order.firebaseKey}`);
+        
+        orderRef.update({
+            paymentStatus: 'verified',
+            status: 'preparing',
+            verifiedAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            preparingStarted: new Date().toISOString()
+        })
+        .then(() => {
+            console.log('✅ STEP 7: Firebase update SUCCESSFUL!');
+            
+            // Rest of your code...
+            const message = `💰 Payment VERIFIED for order ${currentVerificationOrder.slice(-8)} - Now PREPARING`;
+            
+            addActivityToFeed({
+                type: 'payment_verified',
+                message: message,
+                orderId: order.id,
+                customerName: order.customerName,
+                amount: order.total || order.totalAmount,
+                timestamp: new Date().toISOString(),
+                icon: 'fa-check-circle',
+                color: '#2ecc71'
+            });
+            
+            broadcastToOrderPage('payment_verified', message, order.id, order.customerName);
+            showNotification(`✅ Payment verified - Order now preparing`, 'success');
+            playApprovalSound();
+            closeModal('verifyModal');
+            currentVerificationOrder = null;
+        })
+        .catch(error => {
+            console.log('❌ STEP 7 ERROR: Firebase update failed');
+            console.error('Error details:', error);
+            showNotification('Error verifying payment: ' + error.message, 'error');
+            
+            // Re-enable button
+            if (verifyBtn) {
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = '<i class="fas fa-check"></i> Verify Payment';
+            }
         });
-        
-        // Broadcast to order page
-        broadcastToOrderPage('payment_verified', message, order.id, order.customerName);
-        
-        showNotification(`✅ Payment verified - Order now preparing`, 'success');
-        
-        playApprovalSound();
-        
-        // No need to call loadDashboardData() - Firebase updates automatically
-        
-        closeModal('verifyModal');
-        currentVerificationOrder = null;
-    })
-    .catch((error) => {
-        console.error('❌ Error updating order in Firebase:', error);
-        showNotification('Error verifying payment. Please try again.', 'error');
-    });
-}
+    }
     
     // ==================== REJECT PAYMENT ====================
     function rejectPayment() {
@@ -3078,3 +3098,4 @@
 </body>
 
 </html>
+
