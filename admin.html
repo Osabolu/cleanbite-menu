@@ -3207,101 +3207,10 @@ window.openStatusModal = function(orderId) {
     
     console.log('✅ Enhanced Admin Dashboard Loaded - All buttons functional, Modern UI');
     </script>
-    <!-- Add Firebase SDKs right after your existing scripts -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
-<script>
-// ==================== FIREBASE CONFIGURATION ====================
-const firebaseConfig = {
-    apiKey: "AIzaSyC1WaO1WE-LFayAqLeql0BP5vD8bddgUuE",
-    authDomain: "cleanbite-empire.firebaseapp.com",
-    databaseURL: "https://cleanbite-empire-default-rtdb.firebaseio.com",
-    projectId: "cleanbite-empire",
-    storageBucket: "cleanbite-empire.firebasestorage.app",
-    messagingSenderId: "733995841314",
-    appId: "1:733995841314:web:d82f5452f1fff0fdfad77b"
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-
-// Global variable for orders
-let allOrders = [];
-let currentOrderId = null;
-
-// ==================== LOAD ORDERS FROM FIREBASE ====================
-function loadOrdersFromFirebase() {
-    const ordersRef = database.ref('orders');
-    
-    ordersRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        
-        if (!data) {
-            allOrders = [];
-            return;
-        }
-        
-        // Convert Firebase object to array with keys
-        allOrders = Object.keys(data).map(key => ({
-            ...data[key],
-            firebaseKey: key
-        }));
-        
-        console.log(`✅ Track: Loaded ${allOrders.length} orders from Firebase`);
-        
-        // If we're tracking a specific order, update it
-        if (currentOrderId) {
-            const order = allOrders.find(o => o.id === currentOrderId);
-            if (order) {
-                displayOrderData(order);
-            }
-        }
-    });
-}
-
-// Modify your existing findOrderById function
-function findOrderById(orderId) {
-    return allOrders.find(o => o.id === orderId || 
-                              o.id?.slice(-8) === orderId?.slice(-8));
-}
-
-// Modify your existing trackOrder function
-function trackOrder(orderId) {
-    currentOrderId = orderId;
-    showLoading();
-    hideError();
-    
-    const order = findOrderById(orderId);
-    
-    if (order) {
-        displayOrderData(order);
-        document.getElementById('trackingDisplay').style.display = 'block';
-    } else {
-        showError(`Order "${orderId}" not found. Please check your Order ID.`);
-    }
-    
-    hideLoading();
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    loadOrdersFromFirebase();
-    
-    // Get order ID from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const orderIdFromUrl = urlParams.get('order');
-    
-    if (orderIdFromUrl) {
-        document.getElementById('orderIdInput').value = orderIdFromUrl;
-        setTimeout(() => trackOrder(orderIdFromUrl), 1000);
-    }
-});
-</script>
 </body>
 
 </html>
+
 
 
 
