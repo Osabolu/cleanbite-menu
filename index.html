@@ -2358,104 +2358,124 @@
     }
 
     // ==================== LIVE KITCHEN SYSTEM ====================
-    class LiveKitchenSystem {
-        constructor() {
-            this.kitchenData = { preparing: 0, incubating: 0, ready: 0, completed: 0 };
-            this.activityLog = [];
-            this.init();
-        }
+   // ==================== LIVE KITCHEN SYSTEM - FIREBASE VERSION ====================
+class LiveKitchenSystem {
+    constructor() {
+        this.kitchenData = { preparing: 0, incubating: 0, ready: 0, completed: 0 };
+        this.activityLog = [];
+        this.init();
+    }
 
-        init() {
-            console.log('👨‍🍳 Live Kitchen Ready');
-            this.loadKitchenData();
-            this.setupActivityFeed();
-            setInterval(() => this.loadKitchenData(), 10000);
-        }
-
-        loadKitchenData() {
-            const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
-            this.kitchenData = { preparing: 0, incubating: 0, ready: 0, completed: 0 };
-            
-            orders.forEach(order => {
-                if (order.paymentStatus === 'verified') {
-                    if (order.status === 'preparing') this.kitchenData.preparing++;
-                    else if (order.status === 'incubating') this.kitchenData.incubating++;
-                    else if (order.status === 'ready') this.kitchenData.ready++;
-                    else if (order.status === 'completed') this.kitchenData.completed++;
-                }
-            });
-            
-            this.updateDisplay();
-        }
-
-        handleNewOrder(order) {
-            this.logActivity(`🛒 New order ${order.id.slice(-8)} from ${order.customerName}`, 'order_created', order.id, order.customerName);
-        }
-
-        logActivity(message, type, orderId, customerName) {
-            const activity = {
-                id: Date.now(),
-                message,
-                type,
-                orderId,
-                customerName,
-                timestamp: new Date().toISOString(),
-                icon: this.getActivityIcon(type),
-                color: this.getActivityColor(type)
-            };
-            this.activityLog.unshift(activity);
-            if (this.activityLog.length > 20) this.activityLog.pop();
-            this.updateActivityFeed();
-        }
-
-        getActivityIcon(type) {
-            const icons = { 'order_created': 'fa-cart-plus', 'payment_verified': 'fa-check-circle' };
-            return icons[type] || 'fa-bell';
-        }
-
-        getActivityColor(type) {
-            const colors = { 'order_created': '#9b59b6', 'payment_verified': '#2ecc71' };
-            return colors[type] || '#3498db';
-        }
-
-        setupActivityFeed() {
-            setInterval(() => this.updateActivityFeed(), 10000);
-        }
-
-        updateActivityFeed() {
-            const feed = document.getElementById('activityFeed');
-            if (!feed) return;
-            
-            if (this.activityLog.length === 0) {
-                feed.innerHTML = '<div class="activity-item"><div class="activity-icon"><i class="fas fa-mug-hot"></i></div><div class="activity-content"><div class="activity-text">Waiting for orders...</div></div></div>';
+    init() {
+        console.log('👨‍🍳 Live Kitchen Ready (Firebase Mode)');
+        
+        // Listen to Firebase for real-time updates
+        database.ref('orders').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (!data) {
+                this.kitchenData = { preparing: 0, incubating: 0, ready: 0, completed: 0 };
+                this.updateDisplay();
                 return;
             }
             
-            feed.innerHTML = this.activityLog.slice(0, 8).map(activity => {
-                const time = new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                return `
-                    <div class="activity-item" style="border-left-color: ${activity.color};">
-                        <div class="activity-icon" style="color: ${activity.color};"><i class="fas ${activity.icon}"></i></div>
-                        <div class="activity-content">
-                            <div class="activity-text">${activity.message}</div>
-                            <div class="activity-meta"><span class="activity-time">${time}</span></div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        updateDisplay() {
-            document.getElementById('preparingCount').textContent = this.kitchenData.preparing;
-            document.getElementById('incubatingCount').textContent = this.kitchenData.incubating;
-            document.getElementById('readyCount').textContent = this.kitchenData.ready;
-            document.getElementById('completedCount').textContent = this.kitchenData.completed;
-        }
-
-        generateOrderId() {
-            return 'CB-' + Date.now().toString().slice(-6) + '-' + Math.random().toString(36).substring(2, 5).toUpperCase();
-        }
+            // Convert to array
+            const orders = Object.values(data);
+            
+            // Calculate stats
+            this.kitchenData = {
+                preparing: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'preparing').length,
+                incubating: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'incubating').length,
+                ready: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'ready').length,
+                completed: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'completed').length
+            };
+            
+            this.updateDisplay();
+            
+            // Log changes for debugging
+            console.log('📊 Kitchen stats updated:', this.kitchenData);
+        });
+        
+        // Also listen for new orders to add to activity log
+        database.ref('orders').limitToLast(1).on('child_added', (snapshot) => {
+            const order = snapshot.val();
+            if (order) {
+                this.logActivity(`🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`, 'order_created', order.id, order.customerName);
+            }
+        });
     }
+
+    logActivity(message, type, orderId, customerName) {
+        const activity = {
+            id: Date.now(),
+            message,
+            type,
+            orderId,
+            customerName,
+            timestamp: new Date().toISOString(),
+            icon: this.getActivityIcon(type),
+            color: this.getActivityColor(type)
+        };
+        this.activityLog.unshift(activity);
+        if (this.activityLog.length > 20) this.activityLog.pop();
+        this.updateActivityFeed();
+    }
+
+    getActivityIcon(type) {
+        const icons = { 
+            'order_created': 'fa-cart-plus', 
+            'payment_verified': 'fa-check-circle',
+            'status_change': 'fa-sync-alt'
+        };
+        return icons[type] || 'fa-bell';
+    }
+
+    getActivityColor(type) {
+        const colors = { 
+            'order_created': '#9b59b6', 
+            'payment_verified': '#2ecc71',
+            'status_change': '#3498db'
+        };
+        return colors[type] || '#3498db';
+    }
+
+    updateActivityFeed() {
+        const feed = document.getElementById('activityFeed');
+        if (!feed) return;
+        
+        if (this.activityLog.length === 0) {
+            feed.innerHTML = '<div class="activity-item"><div class="activity-icon"><i class="fas fa-mug-hot"></i></div><div class="activity-content"><div class="activity-text">Waiting for orders...</div></div></div>';
+            return;
+        }
+        
+        feed.innerHTML = this.activityLog.slice(0, 8).map(activity => {
+            const time = new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return `
+                <div class="activity-item" style="border-left-color: ${activity.color};">
+                    <div class="activity-icon" style="color: ${activity.color};"><i class="fas ${activity.icon}"></i></div>
+                    <div class="activity-content">
+                        <div class="activity-text">${activity.message}</div>
+                        <div class="activity-meta"><span class="activity-time">${time}</span></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    updateDisplay() {
+        document.getElementById('preparingCount').textContent = this.kitchenData.preparing;
+        document.getElementById('incubatingCount').textContent = this.kitchenData.incubating;
+        document.getElementById('readyCount').textContent = this.kitchenData.ready;
+        document.getElementById('completedCount').textContent = this.kitchenData.completed;
+    }
+
+    handleNewOrder(order) {
+        // This will be handled by Firebase listener now
+    }
+
+    generateOrderId() {
+        return 'CB-' + Date.now().toString().slice(-6) + '-' + Math.random().toString(36).substring(2, 5).toUpperCase();
+    }
+}
 
     // Make functions globally available
     window.addToCart = addToCart;
@@ -2879,5 +2899,6 @@ console.log('✅ Live Activity Feed initialized - Listening to cleanbite_orders'
   
 </body>
 </html>
+
 
 
