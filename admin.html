@@ -1906,52 +1906,110 @@
         }).join('');
     }
 
-    // ==================== VERIFY PAYMENT ====================
-    window.verifyPayment = function() {
-        if (!currentVerificationOrder) {
-            showNotification('No order selected', 'error');
-            return;
-        }
+// ==================== FIXED VERIFY PAYMENT - NO INFINITE SPINNING ====================
+window.verifyPayment = function() {
+    console.log('🔍 Verify payment started for order:', currentVerificationOrder);
+    
+    // Guard clause - check if we have an order
+    if (!currentVerificationOrder) {
+        showNotification('No order selected', 'error');
+        return;
+    }
+    
+    // Find the order
+    const order = allOrders.find(o => o.id === currentVerificationOrder);
+    if (!order) {
+        showNotification('Order not found in database', 'error');
+        closeModal('verifyModal');
+        currentVerificationOrder = null;
+        return;
+    }
+    
+    if (!order.firebaseKey) {
+        showNotification('Order missing Firebase reference', 'error');
+        closeModal('verifyModal');
+        currentVerificationOrder = null;
+        return;
+    }
+    
+    // Get button and store original text
+    const verifyBtn = document.getElementById('confirmVerification');
+    const originalText = verifyBtn.innerHTML;
+    
+    // Disable button and show spinner
+    verifyBtn.disabled = true;
+    verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+    
+    // 🔥 CRITICAL: Set a timeout to prevent infinite spinning (5 seconds max)
+    const timeoutId = setTimeout(() => {
+        console.warn('⚠️ Verification timeout - resetting button');
         
-        const order = allOrders.find(o => o.id === currentVerificationOrder);
-        if (!order || !order.firebaseKey) {
-            showNotification('Order not found', 'error');
-            closeModal('verifyModal');
-            return;
-        }
+        // Re-enable button
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = originalText;
         
-        const verifyBtn = document.getElementById('confirmVerification');
-        verifyBtn.disabled = true;
-        verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+        // Show timeout notification
+        showNotification('Verification timed out. Please try again.', 'warning');
         
-        database.ref(`orders/${order.firebaseKey}`).update({
-            paymentStatus: 'verified',
-            status: 'preparing',
-            verifiedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            preparingStarted: new Date().toISOString()
-        })
-        .then(() => {
-            if (window.playApprovalSound) window.playApprovalSound();
-            
-            const message = `💰 Payment VERIFIED for order ${currentVerificationOrder.slice(-8)}`;
-            addActivityToFeed({
-                type: 'payment_verified', message: message, orderId: order.id,
-                customerName: order.customerName, timestamp: new Date().toISOString(),
-                icon: 'fa-check-circle', color: '#2ecc71'
-            });
-            
-            showNotification(`✅ Payment verified - Order now preparing`, 'success');
-            closeModal('verifyModal');
-            currentVerificationOrder = null;
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('Error verifying payment', 'error');
-            verifyBtn.disabled = false;
-            verifyBtn.innerHTML = '<i class="fas fa-check"></i> Verify Payment';
+        // Don't close modal - let user try again
+    }, 5000);
+    
+    // Update in Firebase
+    database.ref(`orders/${order.firebaseKey}`).update({
+        paymentStatus: 'verified',
+        status: 'preparing',
+        verifiedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        preparingStarted: new Date().toISOString()
+    })
+    .then(() => {
+        // Clear the timeout since operation completed
+        clearTimeout(timeoutId);
+        
+        console.log('✅ Payment verified successfully');
+        
+        // Play success sound
+        if (window.playApprovalSound) window.playApprovalSound();
+        
+        // Add to activity feed
+        const message = `💰 Payment VERIFIED for order ${currentVerificationOrder.slice(-8)} - Now PREPARING`;
+        addActivityToFeed({
+            type: 'payment_verified',
+            message: message,
+            orderId: order.id,
+            customerName: order.customerName,
+            timestamp: new Date().toISOString(),
+            icon: 'fa-check-circle',
+            color: '#2ecc71'
         });
-    };
+        
+        // Show success notification
+        showNotification(`✅ Payment verified - Order now preparing`, 'success');
+        
+        // Close modal and reset
+        closeModal('verifyModal');
+        currentVerificationOrder = null;
+        
+        // Button will be reset when modal closes, but just in case:
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = originalText;
+    })
+    .catch(error => {
+        // Clear the timeout
+        clearTimeout(timeoutId);
+        
+        console.error('❌ Verification error:', error);
+        
+        // Show error notification
+        showNotification('Error verifying payment: ' + (error.message || 'Unknown error'), 'error');
+        
+        // 🔥 CRITICAL: Re-enable button so user can try again
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = originalText;
+        
+        // Don't close modal - let user try again or cancel
+    });
+};
 
     // ==================== REJECT PAYMENT ====================
     window.rejectPayment = function() {
@@ -2306,4 +2364,5 @@
     </script>
 </body>
 </html>
+
 
