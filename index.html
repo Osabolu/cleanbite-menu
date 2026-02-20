@@ -2217,7 +2217,9 @@ function setupSubmitButton() {
         this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
         this.disabled = true;
         
-        const orderId = window.liveKitchen?.generateOrderId() || 'CB-' + Date.now().toString().slice(-6) + '-' + Math.floor(Math.random()*1000);
+        const orderId = window.liveKitchen?.generateOrderId() || 
+                        'CB-' + Date.now().toString().slice(-6) + '-' + 
+                        Math.floor(Math.random()*1000);
         
         const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         const total = subtotal + (subtotal * 0.075);
@@ -2229,33 +2231,63 @@ function setupSubmitButton() {
             customerEmail: document.getElementById('customerEmail')?.value.trim() || '',
             items: cart,
             total: total,
+            subtotal: subtotal,
+            vat: subtotal * 0.075,
             status: 'pending-payment',
             paymentStatus: 'pending',
-            createdAt: new Date().toISOString()
+            paymentMethod: document.querySelector('input[name="payment"]:checked')?.value || 'transfer',
+            createdAt: new Date().toISOString(),
+            timestamp: new Date().toISOString()
         };
         
+        // Save to localStorage for backup
+        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+        orders.push(order);
+        localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
+        
         saveOrderToFirebase(order).then(() => {
-            showNotification(`Order ${orderId} placed!`, 'success');
+            showNotification(`Order ${orderId} placed successfully!`, 'success');
+            
+            // Clear cart
             localStorage.setItem('cleanbite_cart', '[]');
             cart = [];
             updateCartDisplay();
+            
+            // Close checkout modal
             closeModal('checkoutModal');
+            
+            // SHOW CONFIRMATION MODAL
             showOrderConfirmation(order);
             
+            // Reset button
             setTimeout(() => {
                 this.innerHTML = originalText;
                 this.disabled = false;
             }, 2000);
         }).catch(error => {
-            console.error('Error:', error);
-            showNotification('Error placing order', 'error');
+            console.error('Error saving to Firebase:', error);
+            
+            // Still show confirmation even if Firebase fails
+            showNotification('Order saved locally! Sync pending.', 'warning');
+            
+            // Clear cart
+            localStorage.setItem('cleanbite_cart', '[]');
+            cart = [];
+            updateCartDisplay();
+            
+            // Close checkout modal
+            closeModal('checkoutModal');
+            
+            // SHOW CONFIRMATION MODAL (even if Firebase fails)
+            showOrderConfirmation(order);
+            
+            // Reset button
             this.innerHTML = originalText;
             this.disabled = false;
         });
     });
 }
-
-// ==================== SHOW ORDER CONFIRMATION POPUP - FIXED ====================
+// ==================== SHOW ORDER CONFIRMATION POPUP - COMPLETELY FIXED ====================
 function showOrderConfirmation(order) {
     console.log('🎉 Showing confirmation for order:', order.id);
     
@@ -2263,11 +2295,12 @@ function showOrderConfirmation(order) {
     const modal = document.getElementById('confirmationModal');
     if (!modal) {
         console.error('❌ Confirmation modal not found in DOM');
-        alert(`Order ${order.id} placed successfully! (Modal not found)`);
+        // Fallback alert if modal not found
+        alert(`✅ ORDER PLACED SUCCESSFULLY!\n\nOrder ID: ${order.id}\nTotal: ₦${(order.total || 0).toLocaleString()}\n\nPlease use this Order ID as payment reference.`);
         return;
     }
     
-    // Update modal content
+    // Update modal content with order details
     const nameSpan = document.getElementById('confirmCustomerName');
     const idSpan = document.getElementById('confirmOrderId');
     const totalSpan = document.getElementById('confirmTotal');
@@ -2278,24 +2311,65 @@ function showOrderConfirmation(order) {
     if (idSpan) idSpan.textContent = order.id;
     if (totalSpan) totalSpan.textContent = `₦${(order.total || 0).toLocaleString()}`;
     
-    // Set estimated time (45 minutes from now)
+    // Set estimated ready time (45 minutes from now for preparation)
     if (timeSpan) {
         const estimatedTime = new Date(Date.now() + 45 * 60 * 1000);
         timeSpan.textContent = estimatedTime.toLocaleTimeString([], { 
             hour: '2-digit', 
             minute: '2-digit' 
-        }) + ' (45 mins)';
+        }) + ' (approx. 45 mins)';
     }
     
-    // Set track order link
+    // Set track order link with the order ID
     if (trackBtn) {
         trackBtn.href = `track.html?order=${order.id}`;
         trackBtn.target = '_blank'; // Open in new tab
+        trackBtn.onclick = function(e) {
+            // Optional: track click event
+            console.log('📊 Track order clicked for:', order.id);
+        };
     }
+    
+    // Add click handler for "Back to Cart" equivalent (close modal)
+    const closeBtn = document.getElementById('closeConfirmationModal');
+    if (closeBtn) {
+        closeBtn.onclick = function() {
+            closeModal('confirmationModal');
+        };
+    }
+    
+    // Also close when clicking outside modal
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal('confirmationModal');
+        }
+    });
     
     // SHOW THE MODAL
     console.log('✅ Adding active class to modal');
     modal.classList.add('active');
+    
+    // Also update the bank details section to remind about Order ID
+    const bankDetails = document.getElementById('bankDetails');
+    if (bankDetails) {
+        // Add a temporary highlight to the Order ID reference
+        const note = bankDetails.querySelector('.note');
+        if (note) {
+            note.style.transition = 'all 0.3s';
+            note.style.backgroundColor = '#fff9e6';
+            note.style.padding = '10px';
+            note.style.borderRadius = '8px';
+            note.style.border = '2px solid var(--primary)';
+            
+            // Remove highlight after 3 seconds
+            setTimeout(() => {
+                note.style.backgroundColor = '';
+                note.style.padding = '';
+                note.style.borderRadius = '';
+                note.style.border = '';
+            }, 3000);
+        }
+    }
     
     // Verify it worked
     setTimeout(() => {
@@ -2303,14 +2377,29 @@ function showOrderConfirmation(order) {
             console.log('✅ Modal is visible');
         } else {
             console.error('❌ Modal did not become active');
+            // Fallback alert if modal fails to show
+            alert(`✅ ORDER PLACED SUCCESSFULLY!\n\nOrder ID: ${order.id}\nTotal: ₦${(order.total || 0).toLocaleString()}\n\nPlease use this Order ID as payment reference.`);
         }
     }, 100);
 }
 
-    document.getElementById('closeConfirmationModal')?.addEventListener('click', () => {
+// ==================== ADD CLOSE HANDLER ====================
+document.getElementById('closeConfirmationModal')?.addEventListener('click', () => {
     console.log('Closing confirmation modal');
     closeModal('confirmationModal');
 });
+
+// ==================== ENSURE MODAL CLOSE FUNCTION WORKS ====================
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('active');
+        console.log(`Modal ${modalId} closed`);
+    }
+}
+
+// Make closeModal globally available
+window.closeModal = closeModal;
 
 function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
@@ -2445,3 +2534,4 @@ console.log('✅ ORDER PAGE COMPLETE - Firebase + Broadcast Ready');
 </script>
 </body>
 </html>
+
