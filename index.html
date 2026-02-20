@@ -2327,9 +2327,9 @@
         document.getElementById('confirmOrderId').textContent = order.id;
         document.getElementById('confirmTotal').textContent = `₦${(order.total || 0).toLocaleString()}`;
         
-        const estimatedTime = new Date(Date.now() + 45 * 60 * 1000);
+        const estimatedTime = new Date(Date.now() + 60 * 60 * 1000);
         document.getElementById('confirmEstimatedTime').textContent = 
-            estimatedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (45 mins)';
+            estimatedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (60 mins)';
         
         const trackBtn = document.getElementById('trackOrderBtn');
         trackBtn.onclick = function() {
@@ -2456,3 +2456,4 @@
     </script>
 </body>
 </html>
+
