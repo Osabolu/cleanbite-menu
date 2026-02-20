@@ -1167,243 +1167,359 @@
     </div>
 
 
-<script>
-    // ==================== COMPLETE FIXED TRACKING PAGE SCRIPT ====================
+    <script>
+    <script>
+// ==================== MOBILE-OPTIMIZED TRACKING SYSTEM ====================
+
+// ==================== FIREBASE CONFIG ====================
+const firebaseConfig = {
+    apiKey: "AIzaSyC1WaO1WE-LFayAqLeql0BP5vD8bddgUuE",
+    authDomain: "cleanbite-empire.firebaseapp.com",
+    databaseURL: "https://cleanbite-empire-default-rtdb.firebaseio.com",
+    projectId: "cleanbite-empire",
+    storageBucket: "cleanbite-empire.firebasestorage.app",
+    messagingSenderId: "733995841314",
+    appId: "1:733995841314:web:d82f5452f1fff0fdfad77b"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// ==================== DETECT MOBILE ====================
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+console.log('📱 Device detected:', isMobile ? 'MOBILE' : 'DESKTOP');
+
+// ==================== GLOBAL VARIABLES ====================
+let currentOrderId = null;
+let refreshInterval = null;
+let firebaseListener = null;
+
+// ==================== STATUS CONFIG ====================
+const STATUS_CONFIG = {
+    'pending-payment': { step: 1, title: 'Order Placed', message: 'Awaiting payment verification', icon: 'fa-shopping-cart', color: '#f59e0b' },
+    'preparing': { step: 2, title: 'Preparing', message: 'Kitchen has started preparation', icon: 'fa-utensils', color: '#3498db' },
+    'incubating': { step: 3, title: 'Incubating', message: '24-hour incubation in progress', icon: 'fa-fire', color: '#e74c3c' },
+    'ready': { step: 4, title: 'Ready for Pickup', message: 'Your order is ready!', icon: 'fa-check-double', color: '#2ecc71' },
+    'completed': { step: 5, title: 'Completed', message: 'Thank you for choosing CleanBite', icon: 'fa-flag-checkered', color: '#95a5a6' },
+    'cancelled': { step: 1, title: 'Cancelled', message: 'Order cancelled', icon: 'fa-times-circle', color: '#e74c3c' }
+};
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📍 Track page initializing...');
     
-    // ==================== STATUS CONFIGURATION ====================
-    const STATUS_CONFIG = {
-        'pending-payment': { 
-            step: 1, 
-            title: 'Order Placed', 
-            message: 'Your order has been received. Awaiting payment verification.', 
-            icon: 'fa-shopping-cart', 
-            color: '#f59e0b'
-        },
-        'preparing': { 
-            step: 2, 
-            title: 'Preparing', 
-            message: 'Payment confirmed! Kitchen has started preparing your order.', 
-            icon: 'fa-utensils', 
-            color: '#3498db'
-        },
-        'incubating': { 
-            step: 3, 
-            title: 'Incubating', 
-            message: 'Your yoghurt is incubating for 24 hours to develop perfect flavor.', 
-            icon: 'fa-fire', 
-            color: '#e74c3c'
-        },
-        'ready': { 
-            step: 4, 
-            title: 'Ready for Pickup', 
-            message: 'Your order is ready! Please come to our Ibadan location for pickup.', 
-            icon: 'fa-check-double', 
-            color: '#2ecc71'
-        },
-        'completed': { 
-            step: 5, 
-            title: 'Completed', 
-            message: 'Thank you for choosing CleanBite Empire! Your order has been fulfilled.', 
-            icon: 'fa-flag-checkered', 
-            color: '#95a5a6'
-        },
-        'cancelled': { 
-            step: 1, 
-            title: 'Cancelled', 
-            message: 'This order has been cancelled. Please contact support for more information.', 
-            icon: 'fa-times-circle', 
-            color: '#e74c3c'
-        }
-    };
-
-    // ✅ SINGLE STATUS SEQUENCE - NO DUPLICATES
-    const STATUS_SEQUENCE = ['pending-payment', 'preparing', 'incubating', 'ready', 'completed'];
+    // Hide loading overlay after 2 seconds
+    setTimeout(() => {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }, 2000);
     
-    let currentOrderId = null;
-    let refreshInterval = null;
-
-    // ==================== INITIALIZATION ====================
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('📍 TRACK.HTML initializing...');
+    // Get order ID from URL (handle mobile encoding)
+    const urlParams = new URLSearchParams(window.location.search);
+    let orderIdFromUrl = urlParams.get('order');
+    
+    if (orderIdFromUrl) {
+        // Decode for mobile (handles %2D etc.)
+        orderIdFromUrl = decodeURIComponent(orderIdFromUrl);
+        document.getElementById('orderIdInput').value = orderIdFromUrl;
         
-        // Hide loading overlay after 1 second
-        setTimeout(function() {
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            if (loadingOverlay) {
-                loadingOverlay.style.display = 'none';
-            }
-        }, 1000);
-        
-        // Get order ID from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const orderIdFromUrl = urlParams.get('order');
-        
-        if (orderIdFromUrl) {
-            document.getElementById('orderIdInput').value = orderIdFromUrl;
-            setTimeout(function() {
-                trackOrder(orderIdFromUrl);
-            }, 500);
-        }
-        
-        setupEventListeners();
-        updateKitchenView();
-    });
-
-    // ==================== FIND ORDER BY ID ====================
-    function findOrderById(orderId) {
-        try {
-            console.log('🔍 Searching for order:', orderId);
-            
-            if (!orderId) return null;
-            
-            const ordersJson = localStorage.getItem('cleanbite_orders');
-            if (!ordersJson) {
-                console.log('❌ No orders found');
-                return null;
-            }
-            
-            const orders = JSON.parse(ordersJson);
-            console.log('📦 Total orders:', orders.length);
-            
-            const searchId = orderId.trim();
-            
-            const foundOrder = orders.find(order => 
-                order.id === searchId || 
-                order.orderId === searchId ||
-                order.id?.slice(-8) === searchId.slice(-8)
-            );
-            
-            if (foundOrder) {
-                console.log('✅ Order found:', foundOrder.id);
-                return foundOrder;
-            }
-            
-            console.log('❌ Order not found');
-            return null;
-            
-        } catch (error) {
-            console.error('❌ Error:', error);
-            return null;
-        }
+        // Auto-track after short delay
+        setTimeout(() => {
+            trackOrder(orderIdFromUrl);
+        }, 500);
     }
+    
+    setupEventListeners();
+});
 
-    // ==================== TRACK ORDER ====================
-   // ==================== FIXED: Track Order Function ====================
+// ==================== SETUP EVENT LISTENERS ====================
+function setupEventListeners() {
+    const trackBtn = document.getElementById('trackOrderBtn');
+    const orderInput = document.getElementById('orderIdInput');
+    
+    if (trackBtn) {
+        trackBtn.addEventListener('click', function() {
+            const orderId = orderInput.value.trim();
+            if (orderId) {
+                trackOrder(orderId);
+            } else {
+                showMobileFriendlyMessage('Please enter your Order ID');
+            }
+        });
+    }
+    
+    if (orderInput) {
+        // Mobile keyboard handling
+        orderInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                trackBtn.click();
+            }
+        });
+        
+        // Remove auto-capitalization on mobile
+        orderInput.setAttribute('autocapitalize', 'none');
+        orderInput.setAttribute('autocorrect', 'off');
+        orderInput.setAttribute('spellcheck', 'false');
+    }
+    
+    document.getElementById('copyOrderIdBtn')?.addEventListener('click', copyOrderId);
+    document.getElementById('supportButton')?.addEventListener('click', showSupportModal);
+    document.getElementById('closeSupportModal')?.addEventListener('click', hideSupportModal);
+    document.getElementById('retryButton')?.addEventListener('click', () => {
+        const orderId = document.getElementById('orderIdInput').value.trim();
+        if (orderId) trackOrder(orderId);
+    });
+}
+
+// ==================== FIXED: Track Order (Mobile Optimized) ====================
 function trackOrder(orderId) {
     showLoading();
     hideError();
     
     if (!orderId) {
         hideLoading();
-        showError('Please enter an Order ID');
+        showMobileFriendlyMessage('Please enter your Order ID');
         return;
     }
     
-    // Clean the input (mobile users might add spaces)
-    const cleanOrderId = orderId.toString().trim().replace(/\s+/g, '');
+    // Clean the ID for mobile (remove spaces, handle weird characters)
+    const cleanOrderId = orderId.toString()
+        .trim()
+        .replace(/\s+/g, '')
+        .toUpperCase(); // Convert to uppercase for consistency
     
-    // Try to find order
-    const order = findOrderById(cleanOrderId);
+    console.log('🔍 Searching for order:', cleanOrderId);
+    currentOrderId = cleanOrderId;
     
-    if (order) {
-        currentOrderId = cleanOrderId;
-        displayOrderData(order);
-        document.getElementById('trackingDisplay').style.display = 'block';
-        startAutoRefresh();
-        hideLoading();
+    // METHOD 1: Try Firebase FIRST (works across all devices)
+    searchInFirebase(cleanOrderId);
+}
+
+// ==================== Search in Firebase ====================
+function searchInFirebase(orderId) {
+    console.log('🔥 Searching Firebase for:', orderId);
+    
+    database.ref('orders').orderByChild('id').equalTo(orderId).once('value', (snapshot) => {
+        const data = snapshot.val();
         
-        // Save the successful order ID for future use
-        localStorage.setItem('last_tracked_order', cleanOrderId);
-    } else {
-        hideLoading();
-        
-        // Mobile-friendly error message
-        const errorMessage = `Order "${cleanOrderId}" not found.\n\nPossible reasons:\n• Order was just placed (wait 10 seconds)\n• Check you typed it correctly\n• Try copying and pasting the exact ID`;
-        
-        if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-            // Mobile alert
-            alert(errorMessage);
+        if (data) {
+            // Found in Firebase
+            const order = Object.values(data)[0];
+            console.log('✅ Order found in Firebase:', order.id);
+            handleOrderFound(order);
+        } else {
+            // Try case-insensitive search in Firebase
+            database.ref('orders').once('value', (snapshot) => {
+                const allOrders = snapshot.val();
+                if (!allOrders) {
+                    // Try localStorage as fallback
+                    searchInLocalStorage(orderId);
+                    return;
+                }
+                
+                // Case-insensitive search
+                const orders = Object.values(allOrders);
+                const foundOrder = orders.find(o => 
+                    o.id && o.id.toUpperCase() === orderId.toUpperCase()
+                );
+                
+                if (foundOrder) {
+                    console.log('✅ Order found (case-insensitive Firebase):', foundOrder.id);
+                    handleOrderFound(foundOrder);
+                } else {
+                    // Try partial match in Firebase
+                    const partialMatch = orders.find(o => 
+                        o.id && (o.id.includes(orderId) || orderId.includes(o.id))
+                    );
+                    
+                    if (partialMatch) {
+                        console.log('✅ Order found (partial match Firebase):', partialMatch.id);
+                        handleOrderFound(partialMatch);
+                    } else {
+                        // Last resort: try localStorage
+                        searchInLocalStorage(orderId);
+                    }
+                }
+            });
+        }
+    }).catch(error => {
+        console.error('Firebase error:', error);
+        searchInLocalStorage(orderId);
+    });
+}
+
+// ==================== Search in localStorage ====================
+function searchInLocalStorage(orderId) {
+    console.log('💾 Searching localStorage for:', orderId);
+    
+    try {
+        // METHOD 1: Check individual order (fastest)
+        const singleOrder = localStorage.getItem(`order_${orderId}`);
+        if (singleOrder) {
+            const order = JSON.parse(singleOrder);
+            console.log('✅ Order found in individual storage:', order.id);
+            handleOrderFound(order);
+            return;
         }
         
-        showError(errorMessage);
+        // METHOD 2: Check main orders array
+        const ordersJson = localStorage.getItem('cleanbite_orders');
+        if (ordersJson) {
+            const orders = JSON.parse(ordersJson);
+            
+            // Try exact match
+            let foundOrder = orders.find(o => o.id === orderId);
+            if (foundOrder) {
+                console.log('✅ Order found in orders array:', foundOrder.id);
+                handleOrderFound(foundOrder);
+                return;
+            }
+            
+            // Try case-insensitive
+            foundOrder = orders.find(o => o.id.toUpperCase() === orderId.toUpperCase());
+            if (foundOrder) {
+                console.log('✅ Order found (case-insensitive):', foundOrder.id);
+                handleOrderFound(foundOrder);
+                return;
+            }
+            
+            // Try partial (last 8 chars)
+            const last8 = orderId.slice(-8);
+            foundOrder = orders.find(o => o.id.includes(last8) || o.id.slice(-8) === last8);
+            if (foundOrder) {
+                console.log('✅ Order found (partial match):', foundOrder.id);
+                handleOrderFound(foundOrder);
+                return;
+            }
+        }
+        
+        // Not found anywhere
+        console.log('❌ Order not found in any storage');
+        handleOrderNotFound(orderId);
+        
+    } catch (error) {
+        console.error('localStorage error:', error);
+        handleOrderNotFound(orderId);
     }
 }
-    // ==================== DISPLAY ORDER DATA ====================
-    function displayOrderData(order) {
-        document.getElementById('displayOrderId').textContent = order.id;
-        document.getElementById('customerName').textContent = order.customerName || 'Customer';
-        
-        const amount = order.totalAmount || order.total || 0;
-        document.getElementById('orderAmount').textContent = '₦' + amount.toLocaleString();
-        
-        document.getElementById('itemCount').textContent = (order.items?.length || 0) + ' items';
-        
-        if (order.createdAt) {
-            const orderTime = new Date(order.createdAt);
-            document.getElementById('orderTime').textContent = 
-                orderTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        }
-        
-        updateTimeline(order);
-        updateCurrentStatus(order);
-        updateETA(order);
-        updateKitchenView();
-    }
 
-    // ==================== UPDATE TIMELINE ====================
-    function updateTimeline(order) {
-        const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG['pending-payment'];
-        let currentStep = statusConfig.step;
+// ==================== Order Found Handler ====================
+function handleOrderFound(order) {
+    hideLoading();
+    hideError();
+    
+    // Save to all storage locations for future (mobile needs redundancy)
+    try {
+        localStorage.setItem(`order_${order.id}`, JSON.stringify(order));
         
-        // Reset all steps
-        for (let i = 1; i <= 5; i++) {
-            const step = document.getElementById('step' + i);
-            if (step) {
-                step.classList.remove('active', 'completed');
-            }
+        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+        const existingIndex = orders.findIndex(o => o.id === order.id);
+        if (existingIndex === -1) {
+            orders.push(order);
+            localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
         }
         
-        // Update steps
-        for (let i = 1; i <= 5; i++) {
-            const step = document.getElementById('step' + i);
-            if (step) {
-                if (i < currentStep) {
-                    step.classList.add('completed');
-                } else if (i === currentStep) {
-                    step.classList.add('active');
-                }
-            }
-        }
-        
-        // Hide step 6 if it exists
-        const step6 = document.getElementById('step6');
-        if (step6) step6.style.display = 'none';
-    }
+        // Also save to sessionStorage for current tab
+        sessionStorage.setItem(`order_${order.id}`, JSON.stringify(order));
+    } catch (e) {}
+    
+    displayOrderData(order);
+    document.getElementById('trackingDisplay').style.display = 'block';
+    
+    // Set up real-time Firebase listener for updates
+    setupFirebaseListener(order.id);
+    
+    startAutoRefresh();
+}
 
-    // ==================== UPDATE CURRENT STATUS ====================
-    function updateCurrentStatus(order) {
-        const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG['pending-payment'];
-        
-        let displayTitle = statusConfig.title;
-        let displayMessage = statusConfig.message;
-        
-        if (order.paymentStatus === 'pending' && order.status === 'pending-payment') {
-            displayTitle = 'Awaiting Payment Verification';
-            displayMessage = 'Your payment is being verified. The kitchen will start preparation once payment is confirmed.';
-        }
-        
-        document.getElementById('currentStatusTitle').textContent = displayTitle;
-        document.getElementById('statusMessage').textContent = displayMessage;
+// ==================== Setup Firebase Real-time Listener ====================
+function setupFirebaseListener(orderId) {
+    if (firebaseListener) {
+        firebaseListener.off();
     }
+    
+    firebaseListener = database.ref('orders').orderByChild('id').equalTo(orderId).on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            const updatedOrder = Object.values(data)[0];
+            console.log('🔄 Order updated in real-time:', updatedOrder.status);
+            displayOrderData(updatedOrder);
+            
+            // Update localStorage with latest
+            try {
+                localStorage.setItem(`order_${updatedOrder.id}`, JSON.stringify(updatedOrder));
+            } catch (e) {}
+        }
+    });
+}
 
-    // ==================== UPDATE ETA ====================
-    // ==================== CORRECTED ETA CALCULATION ====================
+// ==================== Order Not Found Handler ====================
+function handleOrderNotFound(orderId) {
+    hideLoading();
+    
+    const errorMessage = `Order "${orderId}" not found.\n\nPossible reasons:\n• Order was just placed (wait 10 seconds)\n• Check you typed it correctly\n• Try copying and pasting the exact ID`;
+    
+    if (isMobile) {
+        // Mobile-friendly alert with instructions
+        alert(errorMessage);
+    }
+    
+    showError(errorMessage);
+}
+
+// ==================== Display Order Data ====================
+function displayOrderData(order) {
+    // Basic info
+    document.getElementById('displayOrderId').textContent = order.id;
+    document.getElementById('customerName').textContent = order.customerName || 'Customer';
+    
+    const amount = order.totalAmount || order.total || 0;
+    document.getElementById('orderAmount').textContent = '₦' + amount.toLocaleString();
+    document.getElementById('itemCount').textContent = (order.items?.length || 0) + ' items';
+    
+    if (order.createdAt) {
+        const orderTime = new Date(order.createdAt);
+        document.getElementById('orderTime').textContent = 
+            orderTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    
+    // Status badge
+    const status = order.status || 'pending-payment';
+    const statusConfig = STATUS_CONFIG[status] || STATUS_CONFIG['pending-payment'];
+    
+    const badge = document.getElementById('orderStatusBadge');
+    badge.className = `order-status-badge status-${status}`;
+    badge.innerHTML = `<i class="fas ${statusConfig.icon}"></i> ${statusConfig.title}`;
+    
+    // Update timeline
+    updateTimeline(order);
+    
+    // Update status message
+    document.getElementById('currentStatusTitle').textContent = statusConfig.title;
+    document.getElementById('statusMessage').textContent = statusConfig.message;
+    
+    // Update ETA
+    updateETA(order);
+    
+    // Update kitchen view
+    updateKitchenView();
+}
+
+// ==================== Mobile-Friendly Message ====================
+function showMobileFriendlyMessage(message) {
+    if (isMobile) {
+        alert(message);
+    }
+    showError(message);
+}
+
+// ==================== Update ETA (Mobile Compatible) ====================
 function updateETA(order) {
     const etaTimer = document.getElementById('etaTimer');
     const etaProgress = document.getElementById('etaProgress');
     if (!etaTimer || !etaProgress) return;
     
-    // If order is ready or completed
     if (order.status === 'ready') {
         etaTimer.textContent = 'READY NOW';
         etaProgress.style.width = '100%';
@@ -1416,11 +1532,15 @@ function updateETA(order) {
         return;
     }
     
-    // Get the time when order entered current status
+    if (order.status === 'pending-payment') {
+        etaTimer.textContent = 'Pending Payment';
+        etaProgress.style.width = '0%';
+        return;
+    }
+    
+    // Get status start time
     let statusStartTime;
-    if (order.status === 'pending-payment' && order.createdAt) {
-        statusStartTime = new Date(order.createdAt);
-    } else if (order.status === 'preparing' && (order.preparingStarted || order.verifiedAt)) {
+    if (order.status === 'preparing' && (order.preparingStarted || order.verifiedAt)) {
         statusStartTime = new Date(order.preparingStarted || order.verifiedAt);
     } else if (order.status === 'incubating' && order.incubatingStarted) {
         statusStartTime = new Date(order.incubatingStarted);
@@ -1431,415 +1551,131 @@ function updateETA(order) {
     const now = new Date();
     const elapsedMinutes = Math.floor((now - statusStartTime) / (60 * 1000));
     
-    // CORRECT TIMELINE (24 hours total)
-    // Preparing: 30 minutes
-    // Incubating: 23 hours (1380 minutes)
-    // Packing/Ready: 30 minutes
-    // Total: 24 hours (1440 minutes)
-    
-    let totalMinutes = 0;
-    let minutesRemaining = 0;
-    let progressPercent = 0;
-    
-    if (order.status === 'pending-payment') {
-        // Not started yet - waiting for payment
-        etaTimer.textContent = 'Pending Payment';
-        etaProgress.style.width = '0%';
-        return;
-        
-    } else if (order.status === 'preparing') {
-        // Preparing stage (30 minutes)
-        totalMinutes = 30;
-        const minutesLeft = Math.max(0, totalMinutes - elapsedMinutes);
-        
+    if (order.status === 'preparing') {
+        // 30 minutes preparing
+        const minutesLeft = Math.max(0, 30 - elapsedMinutes);
         if (minutesLeft <= 0) {
-            // Should have moved to incubating, but show as transitioning
             etaTimer.textContent = 'Starting Incubation...';
             etaProgress.style.width = '100%';
         } else {
-            const hours = Math.floor(minutesLeft / 60);
-            const mins = minutesLeft % 60;
-            
-            if (hours > 0) {
-                etaTimer.textContent = `${hours}h ${mins}m`;
-            } else {
-                etaTimer.textContent = `${mins}m`;
-            }
-            
-            // Progress within preparing stage
-            progressPercent = Math.min(100, (elapsedMinutes / totalMinutes) * 100);
-            etaProgress.style.width = progressPercent + '%';
+            etaTimer.textContent = `${minutesLeft}m`;
+            etaProgress.style.width = `${(elapsedMinutes / 30) * 100}%`;
         }
-        
     } else if (order.status === 'incubating') {
-        // Incubating stage (23 hours = 1380 minutes)
-        totalMinutes = 23 * 60; // 1380 minutes
-        const minutesLeft = Math.max(0, totalMinutes - elapsedMinutes);
-        
+        // 23 hours incubating (1380 minutes)
+        const minutesLeft = Math.max(0, 1380 - elapsedMinutes);
         if (minutesLeft <= 0) {
-            // Incubation complete - should be ready
             etaTimer.textContent = 'Ready Soon';
             etaProgress.style.width = '100%';
         } else {
             const hours = Math.floor(minutesLeft / 60);
             const mins = minutesLeft % 60;
+            etaTimer.textContent = `${hours}h ${mins}m`;
             
-            if (hours > 0) {
-                etaTimer.textContent = `${hours}h ${mins}m`;
-            } else {
-                etaTimer.textContent = `${mins}m`;
-            }
-            
-            // Calculate overall progress (preparing 30min + incubating progress)
-            const preparingMinutes = 30; // Preparing time
-            const totalElapsed = elapsedMinutes + preparingMinutes;
-            const totalOverall = 24 * 60; // 1440 minutes total
-            
-            progressPercent = Math.min(100, (totalElapsed / totalOverall) * 100);
-            etaProgress.style.width = progressPercent + '%';
+            // Calculate overall progress (30min prep + incubating)
+            const totalElapsed = elapsedMinutes + 30;
+            const totalOverall = 1440; // 24 hours total
+            etaProgress.style.width = `${(totalElapsed / totalOverall) * 100}%`;
         }
     }
 }
 
-// ==================== GET TIME REMAINING STRING ====================
-function getTimeRemainingString(minutes) {
-    if (minutes <= 0) return 'Ready';
+// ==================== Update Kitchen View ====================
+function updateKitchenView() {
+    database.ref('orders').once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+        
+        const orders = Object.values(data);
+        
+        const prepCount = orders.filter(o => o.paymentStatus === 'verified' && o.status === 'preparing').length;
+        const incubatingCount = orders.filter(o => o.paymentStatus === 'verified' && o.status === 'incubating').length;
+        const readyCount = orders.filter(o => o.paymentStatus === 'verified' && o.status === 'ready').length;
+        
+        document.getElementById('prepCountLive').textContent = prepCount;
+        document.getElementById('incubatingCountLive').textContent = incubatingCount;
+        document.getElementById('readyCountLive').textContent = readyCount;
+    });
+}
+
+// ==================== Update Timeline ====================
+function updateTimeline(order) {
+    const statusOrder = ['pending-payment', 'preparing', 'incubating', 'ready', 'completed'];
+    const currentStep = statusOrder.indexOf(order.status) + 1;
     
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    
-    if (hours > 24) {
-        const days = Math.floor(hours / 24);
-        const remainingHours = hours % 24;
-        return `${days}d ${remainingHours}h ${mins}m`;
-    } else if (hours > 0) {
-        return `${hours}h ${mins}m`;
-    } else {
-        return `${mins}m`;
+    for (let i = 1; i <= 5; i++) {
+        const step = document.getElementById('step' + i);
+        if (step) {
+            step.classList.remove('active', 'completed');
+            if (i < currentStep) step.classList.add('completed');
+            if (i === currentStep) step.classList.add('active');
+        }
     }
 }
 
-        // ==================== FIXED UPDATE KITCHEN VIEW ====================
-    function updateKitchenView() {
-        try {
-            const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
-            
-            console.log('📊 All orders:', orders.map(o => ({
-                id: o.id,
-                status: o.status,
-                paymentStatus: o.paymentStatus
-            })));
-            
-            // Count PREPARING orders (payment verified AND status = 'preparing')
-            const prepCount = orders.filter(order => 
-                order.paymentStatus === 'verified' && order.status === 'preparing'
-            ).length;
-            
-            // Count INCUBATING orders (payment verified AND status = 'incubating')
-            const incubatingCount = orders.filter(order => 
-                order.paymentStatus === 'verified' && order.status === 'incubating'
-            ).length;
-            
-            // Count READY orders (payment verified AND status = 'ready')
-            const readyCount = orders.filter(order => 
-                order.paymentStatus === 'verified' && order.status === 'ready'
-            ).length;
-            
-            console.log('👨‍🍳 Kitchen counts:', {
-                preparing: prepCount,
-                incubating: incubatingCount,
-                ready: readyCount
-            });
-            
-            // Update the display
-            document.getElementById('prepCountLive').textContent = prepCount;
-            document.getElementById('incubatingCountLive').textContent = incubatingCount;
-            document.getElementById('readyCountLive').textContent = readyCount;
-            
-            // Add visual feedback
-            animateCount('prepCountLive');
-            animateCount('incubatingCountLive');
-            animateCount('readyCountLive');
-            
-            updateActivityFeed(orders);
-            
-        } catch (error) {
-            console.error('Kitchen view error:', error);
-        }
-    }
-
-    // Add animation function
-    function animateCount(elementId) {
-        const el = document.getElementById(elementId);
-        if (el) {
-            el.classList.add('pulse');
-            setTimeout(() => el.classList.remove('pulse'), 500);
-        }
-    }
-
-    // ==================== UPDATE ACTIVITY FEED ====================
-    function updateActivityFeed(orders) {
-        const activityFeed = document.getElementById('kitchenActivity');
-        if (!activityFeed) return;
-        
-        const activeOrders = orders.filter(order => 
-            order.paymentStatus === 'verified' && 
-            ['preparing', 'incubating', 'ready'].includes(order.status)
-        ).slice(0, 5);
-        
-        if (activeOrders.length === 0) {
-            activityFeed.innerHTML = '<div style="color: #aaa; text-align: center; padding: 20px;"><i class="fas fa-mug-hot"></i> Kitchen is preparing...</div>';
-            return;
-        }
-        
-        let activityHTML = '';
-        activeOrders.forEach(order => {
-            const timeAgo = getTimeAgo(order.updatedAt || order.createdAt);
-            const statusColor = getStatusColor(order.status);
-            const statusIcon = getStatusIcon(order.status);
-            const statusText = getStatusText(order.status);
-            
-            activityHTML += `
-                <div class="activity-item" style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid ${statusColor};">
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <div style="width: 40px; height: 40px; background: rgba(255,209,102,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: ${statusColor};">
-                            <i class="fas ${statusIcon}"></i>
-                        </div>
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; color: #fff;">${order.customerName || 'Customer'}</div>
-                            <div style="color: #aaa; font-size: 0.9rem;">${statusText} • ${timeAgo}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        activityFeed.innerHTML = activityHTML;
-    }
-
-    // ==================== UTILITY FUNCTIONS ====================
-    function getStatusColor(status) {
-        const colors = {
-            'preparing': '#9b59b6',
-            'incubating': '#e74c3c',
-            'ready': '#2ecc71',
-            'pending-payment': '#f59e0b'
-        };
-        return colors[status] || '#ffd166';
-    }
-
-    function getStatusIcon(status) {
-        const icons = {
-            'pending-payment': 'fa-clock',
-            'preparing': 'fa-utensils',
-            'incubating': 'fa-fire',
-            'ready': 'fa-check',
-            'completed': 'fa-flag-checkered'
-        };
-        return icons[status] || 'fa-clock';
-    }
-
-    function getStatusText(status) {
-        const texts = {
-            'pending-payment': 'Awaiting Payment',
-            'preparing': 'Preparing',
-            'incubating': 'Incubating',
-            'ready': 'Ready',
-            'completed': 'Completed'
-        };
-        return texts[status] || 'Processing';
-    }
-
-    function getTimeAgo(timestamp) {
-        if (!timestamp) return 'Recently';
-        try {
-            const now = new Date();
-            const date = new Date(timestamp);
-            const diffMins = Math.floor((now - date) / 60000);
-            if (diffMins < 1) return 'Just now';
-            if (diffMins < 60) return diffMins + 'm ago';
-            if (diffMins < 1440) return Math.floor(diffMins / 60) + 'h ago';
-            return Math.floor(diffMins / 1440) + 'd ago';
-        } catch (error) {
-            return 'Recently';
-        }
-    }
-
-    // ==================== EVENT LISTENERS ====================
-    function setupEventListeners() {
-        const trackBtn = document.getElementById('trackOrderBtn');
-        const orderInput = document.getElementById('orderIdInput');
-        
-        if (trackBtn) {
-            trackBtn.addEventListener('click', function() {
-                const orderId = orderInput.value.trim();
-                if (orderId) {
-                    trackOrder(orderId);
-                } else {
-                    alert('Please enter your Order ID');
-                }
-            });
-        }
-        
-        if (orderInput) {
-            orderInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    trackBtn.click();
-                }
-            });
-        }
-        
-        document.getElementById('copyOrderIdBtn')?.addEventListener('click', copyOrderId);
-        document.getElementById('supportButton')?.addEventListener('click', showSupportModal);
-        document.getElementById('closeSupportModal')?.addEventListener('click', hideSupportModal);
-    }
-
-    function copyOrderId() {
-        const orderId = document.getElementById('displayOrderId').textContent;
-        const copyBtn = document.getElementById('copyOrderIdBtn');
-        
-        navigator.clipboard.writeText(orderId).then(function() {
-            copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-            setTimeout(function() {
-                copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy ID';
-            }, 2000);
-        }).catch(function() {
-            alert('Failed to copy');
-        });
-    }
-
-    function showError(message) {
-        const errorEl = document.getElementById('errorMessage');
-        const display = document.getElementById('trackingDisplay');
-        
-        if (errorEl) {
-            errorEl.style.display = 'block';
-            const errorText = errorEl.querySelector('p');
-            if (errorText) {
-                errorText.textContent = message;
-            }
-        }
-        
-        if (display) {
-            display.style.display = 'none';
-        }
-    }
-
-    function hideError() {
-        const errorEl = document.getElementById('errorMessage');
-        if (errorEl) {
-            errorEl.style.display = 'none';
-        }
-    }
-
-    function showSupportModal() {
-        document.getElementById('supportModal').style.display = 'flex';
-    }
-
-    function hideSupportModal() {
-        document.getElementById('supportModal').style.display = 'none';
-    }
-
-    function showLoading() {
-        const overlay = document.getElementById('loadingOverlay');
-        if (overlay) overlay.style.display = 'flex';
-    }
-
-    function hideLoading() {
-        const overlay = document.getElementById('loadingOverlay');
-        if (overlay) overlay.style.display = 'none';
-    }
-
-    function startAutoRefresh() {
-        if (refreshInterval) clearInterval(refreshInterval);
-        refreshInterval = setInterval(function() {
-            if (currentOrderId) {
-                const order = findOrderById(currentOrderId);
-                if (order) displayOrderData(order);
-            }
+// ==================== Start Auto Refresh ====================
+function startAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    refreshInterval = setInterval(() => {
+        if (currentOrderId) {
+            // Just refresh kitchen view, order updates come from Firebase listener
             updateKitchenView();
-        }, 10000);
-    }
-
-    console.log('📍 TRACK.HTML script loaded - ALL CONFLICTS FIXED');
-
-    // ==================== FIXED: Find Order by ID (Mobile-Optimized) ====================
-function findOrderById(orderId) {
-    try {
-        console.log('🔍 Searching for order:', orderId);
-        
-        if (!orderId) return null;
-        
-        // Clean the order ID (remove any whitespace, handle mobile input)
-        const cleanOrderId = orderId.toString().trim().replace(/\s+/g, '');
-        console.log('🧹 Cleaned order ID:', cleanOrderId);
-        
-        // Try multiple storage methods (mobile needs this)
-        
-        // METHOD 1: Check individual order in localStorage
-        try {
-            const singleOrder = localStorage.getItem(`order_${cleanOrderId}`);
-            if (singleOrder) {
-                const order = JSON.parse(singleOrder);
-                console.log('✅ Order found in individual storage:', order.id);
-                return order;
-            }
-        } catch (e) {}
-
-        // METHOD 2: Check main orders array
-        try {
-            const ordersJson = localStorage.getItem('cleanbite_orders');
-            if (ordersJson) {
-                const orders = JSON.parse(ordersJson);
-                
-                // Try exact match first
-                let foundOrder = orders.find(order => order.id === cleanOrderId);
-                if (foundOrder) {
-                    console.log('✅ Order found in orders array (exact match):', foundOrder.id);
-                    return foundOrder;
-                }
-                
-                // Try case-insensitive match (mobile sometimes capitalizes differently)
-                foundOrder = orders.find(order => 
-                    order.id.toLowerCase() === cleanOrderId.toLowerCase()
-                );
-                if (foundOrder) {
-                    console.log('✅ Order found (case-insensitive):', foundOrder.id);
-                    return foundOrder;
-                }
-                
-                // Try last 8 characters match (mobile users might type partial)
-                const last8 = cleanOrderId.slice(-8);
-                foundOrder = orders.find(order => 
-                    order.id.includes(last8) || order.id.slice(-8) === last8
-                );
-                if (foundOrder) {
-                    console.log('✅ Order found (partial match):', foundOrder.id);
-                    return foundOrder;
-                }
-            }
-        } catch (e) {}
-
-        // METHOD 3: Try sessionStorage (mobile sometimes uses this)
-        try {
-            const sessionOrders = sessionStorage.getItem('cleanbite_orders');
-            if (sessionOrders) {
-                const orders = JSON.parse(sessionOrders);
-                const foundOrder = orders.find(o => o.id === cleanOrderId);
-                if (foundOrder) return foundOrder;
-            }
-        } catch (e) {}
-
-        console.log('❌ Order not found in any storage');
-        return null;
-        
-    } catch (error) {
-        console.error('❌ Error finding order:', error);
-        return null;
-    }
+        }
+    }, 30000); // Every 30 seconds
 }
+
+// ==================== Utility Functions ====================
+function showLoading() {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+function showError(message) {
+    const errorEl = document.getElementById('errorMessage');
+    const display = document.getElementById('trackingDisplay');
+    
+    if (errorEl) {
+        errorEl.style.display = 'block';
+        const errorText = errorEl.querySelector('p');
+        if (errorText) errorText.textContent = message;
+    }
+    if (display) display.style.display = 'none';
+}
+
+function hideError() {
+    document.getElementById('errorMessage').style.display = 'none';
+}
+
+function copyOrderId() {
+    const orderId = document.getElementById('displayOrderId').textContent;
+    const copyBtn = document.getElementById('copyOrderIdBtn');
+    
+    navigator.clipboard.writeText(orderId).then(() => {
+        copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(() => {
+            copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy ID';
+        }, 2000);
+    }).catch(() => {
+        alert('Failed to copy');
+    });
+}
+
+function showSupportModal() {
+    document.getElementById('supportModal').style.display = 'flex';
+}
+
+function hideSupportModal() {
+    document.getElementById('supportModal').style.display = 'none';
+}
+
+console.log('✅ Mobile-optimized track page loaded');
+</script>
     </script>
 </body>
 </html>
+
 
 
