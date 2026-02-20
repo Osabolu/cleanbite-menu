@@ -1790,27 +1790,27 @@
     console.log('🔥 Firebase connected');
 
     // ==================== MENU DATA ====================
-    const menuItems = [
+     const menuItems = [
         {
             id: 1,
             name: 'Plain Yoghurt',
-            description: 'The Foundation: Creamy, classic plain yoghurt. Made from fresh cow milk with 24hr incubation.',
+            description: 'The Foundation: Creamy, classic plain yoghurt. Made from fresh cow milk.',
             price: 4000,
-            image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=2574&auto=format&fit=crop',
+            image: 'images/sara-cervera-4caIPcmVDII-unsplash.jpg',
             badge: 'Best Seller'
         },
         {
             id: 2,
             name: 'Strawberry, Hibiscus & Dates',
-            description: 'The Sentinel - Sweet strawberry flavour with real fruit pieces and hibiscus notes.',
+            description: 'The Sentinel - Sweet strawberry flavour with real fruit pieces.',
             price: 6000,
-            image: 'https://images.unsplash.com/photo-1584306670957-df8e9f1c1b1a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            image: 'images/strawberry-photo.jpg',
             badge: 'Popular'
         },
         {
             id: 3,
             name: 'Vanilla, Cinnamon & Honey',
-            description: 'The Warden - Smooth vanilla bean infused yoghurt with warm cinnamon and honey.',
+            description: 'The Warden - Smooth vanilla bean infused yoghurt.',
             price: 5000,
             image: 'https://images.unsplash.com/photo-1571212515416-fef01fc43637?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
             badge: null
@@ -1818,32 +1818,32 @@
         {
             id: 4,
             name: 'Coconut Milk & Dates',
-            description: 'Blend of Coconut Milk extract mixed with Dates puree. Tropical and creamy.',
+            description: 'Blend of Coconut Milk extract mixed with Dates puree.',
             price: 5500,
-            image: 'https://images.unsplash.com/photo-1626200419659-dc5c39c8175d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            image: 'images/coconuts-dates.jpg',
             badge: 'New'
         },
         {
             id: 5,
             name: 'Cacao, Moringa & Dates',
-            description: 'Thick, strained yoghurt with high protein. Rich cacao and nutrient-packed moringa.',
+            description: 'Thick, strained yoghurt with high protein.',
             price: 6000,
-            image: 'https://images.unsplash.com/photo-1627483262769-04d0a1401487?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            image: 'images/coconut-dates (1).jpg',
             badge: 'Premium'
         },
         {
             id: 6,
-            name: 'The Diplomat',
-            description: 'Coconut Milk, Roasted Plantain & Cinnamon - Topped with honey and crunchy granola.',
+            name: 'The Diplomat - Coconut Milk, Roasted Plantain & Cinnamon',
+            description: 'Topped with honey and crunchy granola.',
             price: 5500,
-            image: 'https://images.unsplash.com/photo-1488477181946-6428a0291776?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            badge: 'Signature'
+            image: 'images/plantain-puree.png',
+            badge: null
         }
     ];
-
+   
     // ==================== GLOBAL VARIABLES ====================
     let cart = JSON.parse(localStorage.getItem('cleanbite_cart') || '[]');
-    let broadcastChannel = null;
+    let allOrders = []; // Store orders locally for quick access
 
     // ==================== RENDER MENU ====================
     function renderMenu() {
@@ -1997,13 +1997,16 @@
                 newOrderRef.set(order)
                     .then(() => {
                         clearTimeout(timeout);
+                        console.log('✅ Order saved to Firebase:', order.id);
                         resolve({ success: true, order });
                     })
                     .catch(err => {
                         clearTimeout(timeout);
+                        console.error('❌ Firebase save error:', err);
                         resolve({ success: false, error: err, order });
                     });
             } catch (err) {
+                console.error('❌ Exception:', err);
                 resolve({ success: false, error: err, order });
             }
         });
@@ -2064,7 +2067,6 @@
                 createdAt: new Date().toISOString()
             };
             
-            // Save with timeout protection
             const savePromise = saveOrderToFirebase(order);
             const timeoutPromise = new Promise(resolve => {
                 setTimeout(() => resolve({ success: false, timeout: true, order }), 5000);
@@ -2121,476 +2123,7 @@
         modal.classList.add('active');
     }
 
-        // ==================== FIXED LIVE ACTIVITY FEED - USING FIREBASE DATABASE ====================
-
-// ==================== INITIALIZE ACTIVITY FEED ====================
-function initActivityFeed() {
-    console.log('📡 Initializing live activity feed from Firebase...');
-    
-    const feed = document.getElementById('activityFeed');
-    if (feed) {
-        feed.innerHTML = '<div class="activity-item"><div class="activity-icon"><i class="fas fa-circle-notch fa-spin"></i></div><div class="activity-content"><div class="activity-text">Connecting to live kitchen...</div></div></div>';
-    }
-    
-    // Listen for ALL order changes in Firebase
-    listenForOrderChanges();
-    
-    // Load recent activities on startup
-    loadRecentActivities();
-}
-
-// ==================== LISTEN FOR ORDER CHANGES IN REAL-TIME ====================
-function listenForOrderChanges() {
-    if (!database) {
-        console.error('❌ Firebase database not available');
-        return;
-    }
-    
-    console.log('👂 Listening for order changes in Firebase...');
-    
-    // Listen for new orders (child_added)
-    database.ref('orders').on('child_added', (snapshot) => {
-        const order = snapshot.val();
-        order.firebaseKey = snapshot.key;
-        
-        console.log('🆕 New order detected:', order.id);
-        
-        // Only show if it's a new order (within last minute to avoid duplicates on page load)
-        const orderTime = new Date(order.createdAt || order.timestamp || 0);
-        const now = new Date();
-        const isRecent = (now - orderTime) < 60000; // Last minute
-        
-        if (isRecent && order.paymentStatus === 'pending') {
-            addActivityToFeed({
-                type: 'order_created',
-                message: `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
-                orderId: order.id,
-                customerName: order.customerName,
-                timestamp: order.createdAt || new Date().toISOString(),
-                icon: 'fa-cart-plus',
-                color: '#9b59b6'
-            });
-            
-            // Play sound for new order
-            playNotificationSound();
-        }
-    });
-    
-    // Listen for order updates (child_changed) - THIS IS THE KEY FOR STATUS UPDATES
-    database.ref('orders').on('child_changed', (snapshot) => {
-        const order = snapshot.val();
-        order.firebaseKey = snapshot.key;
-        
-        console.log('🔄 Order updated:', order.id, 'Status:', order.status, 'Payment:', order.paymentStatus);
-        
-        // Check for payment verification
-        if (order.verifiedAt) {
-            const message = `💰 Payment verified for order ${order.id.slice(-8)} - Now PREPARING`;
-            
-            addActivityToFeed({
-                type: 'payment_verified',
-                message: message,
-                orderId: order.id,
-                customerName: order.customerName,
-                timestamp: order.verifiedAt || new Date().toISOString(),
-                icon: 'fa-check-circle',
-                color: '#2ecc71'
-            });
-            
-            playNotificationSound();
-        }
-        
-        // Check for status changes
-        if (order.updatedAt && order.status) {
-            let message = '';
-            let icon = 'fa-sync-alt';
-            let color = '#3498db';
-            
-            if (order.status === 'preparing') {
-                message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
-            } else if (order.status === 'incubating') {
-                message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (24hr countdown started)`;
-                color = '#f39c12';
-            } else if (order.status === 'ready') {
-                message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
-                icon = 'fa-check-circle';
-                color = '#2ecc71';
-            } else if (order.status === 'completed') {
-                message = `📦 Order ${order.id.slice(-8)} completed and picked up`;
-                icon = 'fa-flag-checkered';
-                color = '#3498db';
-            } else if (order.status === 'cancelled') {
-                message = `❌ Order ${order.id.slice(-8)} was cancelled`;
-                icon = 'fa-times-circle';
-                color = '#e74c3c';
-            }
-            
-            if (message) {
-                addActivityToFeed({
-                    type: 'status_change',
-                    message: message,
-                    orderId: order.id,
-                    customerName: order.customerName,
-                    timestamp: order.updatedAt || new Date().toISOString(),
-                    icon: icon,
-                    color: color
-                });
-                
-                playNotificationSound();
-            }
-        }
-        
-        // Check for payment rejection
-        if (order.paymentStatus === 'rejected' && order.rejectedAt) {
-            addActivityToFeed({
-                type: 'payment_rejected',
-                message: `❌ Payment rejected for order ${order.id.slice(-8)}`,
-                orderId: order.id,
-                customerName: order.customerName,
-                timestamp: order.rejectedAt || new Date().toISOString(),
-                icon: 'fa-times-circle',
-                color: '#e74c3c'
-            });
-            
-            playNotificationSound();
-        }
-    });
-}
-
-// ==================== LOAD RECENT ACTIVITIES ON STARTUP ====================
-function loadRecentActivities() {
-    if (!database) return;
-    
-    console.log('📚 Loading recent activities from Firebase...');
-    
-    // Get the last 20 orders
-    database.ref('orders').orderByKey().limitToLast(20).once('value', (snapshot) => {
-        const data = snapshot.val();
-        if (!data) {
-            // Show empty state
-            const feed = document.getElementById('activityFeed');
-            if (feed) {
-                feed.innerHTML = '<div class="activity-item" style="border-left-color: #95a5a6;"><div class="activity-icon"><i class="fas fa-mug-hot"></i></div><div class="activity-content"><div class="activity-text">No recent activity</div></div></div>';
-            }
-            return;
-        }
-        
-        const orders = Object.values(data);
-        const activities = [];
-        
-        // Generate activities from each order
-        orders.forEach(order => {
-            // Payment verification
-            if (order.verifiedAt) {
-                activities.push({
-                    type: 'payment_verified',
-                    message: `💰 Payment verified for order ${order.id.slice(-8)}`,
-                    orderId: order.id,
-                    customerName: order.customerName,
-                    timestamp: order.verifiedAt,
-                    icon: 'fa-check-circle',
-                    color: '#2ecc71'
-                });
-            }
-            
-            // Status changes
-            if (order.updatedAt && order.status) {
-                let message = '';
-                if (order.status === 'preparing') 
-                    message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
-                if (order.status === 'incubating') 
-                    message = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
-                if (order.status === 'ready') 
-                    message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
-                if (order.status === 'completed') 
-                    message = `📦 Order ${order.id.slice(-8)} completed`;
-                if (order.status === 'cancelled') 
-                    message = `❌ Order ${order.id.slice(-8)} was cancelled`;
-                
-                if (message) {
-                    activities.push({
-                        type: 'status_change',
-                        message: message,
-                        orderId: order.id,
-                        customerName: order.customerName,
-                        timestamp: order.updatedAt,
-                        icon: order.status === 'ready' ? 'fa-check-circle' : 
-                               order.status === 'completed' ? 'fa-flag-checkered' :
-                               order.status === 'cancelled' ? 'fa-times-circle' : 'fa-sync-alt',
-                        color: order.status === 'ready' ? '#2ecc71' :
-                               order.status === 'cancelled' ? '#e74c3c' :
-                               order.status === 'incubating' ? '#f39c12' : '#3498db'
-                    });
-                }
-            }
-            
-            // New orders (created but not verified)
-            if (order.createdAt && !order.verifiedAt && order.status !== 'cancelled' && order.status !== 'completed') {
-                activities.push({
-                    type: 'order_created',
-                    message: `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
-                    orderId: order.id,
-                    customerName: order.customerName,
-                    timestamp: order.createdAt,
-                    icon: 'fa-cart-plus',
-                    color: '#9b59b6'
-                });
-            }
-        });
-        
-        // Sort by timestamp (most recent first)
-        activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        
-        // Take top 20
-        const recentActivities = activities.slice(0, 20);
-        
-        // Clear feed
-        const feed = document.getElementById('activityFeed');
-        if (!feed) return;
-        
-        if (recentActivities.length === 0) {
-            feed.innerHTML = '<div class="activity-item" style="border-left-color: #95a5a6;"><div class="activity-icon"><i class="fas fa-mug-hot"></i></div><div class="activity-content"><div class="activity-text">No recent activity</div></div></div>';
-            return;
-        }
-        
-        feed.innerHTML = '';
-        
-        // Add each activity to feed
-        recentActivities.forEach(activity => {
-            addActivityToFeed(activity, false); // false = no animation for initial load
-        });
-        
-        console.log(`✅ Loaded ${recentActivities.length} recent activities`);
-    });
-}
-
-// ==================== ADD ACTIVITY TO FEED ====================
-function addActivityToFeed(activity, animate = true) {
-    const feed = document.getElementById('activityFeed');
-    if (!feed) return;
-    
-    // Remove loading spinner if it exists
-    const loading = feed.querySelector('.fa-spin');
-    if (loading) {
-        feed.innerHTML = '';
-    }
-    
-    // Check for duplicates (prevent same message in last 2 seconds)
-    const lastItem = feed.firstChild;
-    if (lastItem) {
-        const lastText = lastItem.querySelector('.activity-text')?.textContent || '';
-        if (lastText.includes(activity.message?.slice(0, 25))) {
-            console.log('⚠️ Duplicate activity skipped');
-            return;
-        }
-    }
-    
-    const timeAgo = getTimeAgo(activity.timestamp);
-    
-    const activityElement = document.createElement('div');
-    activityElement.className = 'activity-item';
-    activityElement.style.borderLeftColor = activity.color || '#3498db';
-    activityElement.style.animation = animate ? 'slideIn 0.4s ease' : 'none';
-    
-    activityElement.innerHTML = `
-        <div class="activity-icon" style="color: ${activity.color || '#3498db'};">
-            <i class="fas ${activity.icon || 'fa-bell'}"></i>
-        </div>
-        <div class="activity-content">
-            <div class="activity-text">${activity.message || 'Kitchen update'}</div>
-            <div class="activity-meta">
-                <span class="activity-time"><i class="far fa-clock"></i> ${timeAgo}</span>
-                ${activity.customerName ? 
-                    `<span class="activity-customer"><i class="fas fa-user"></i> ${activity.customerName}</span>` : ''}
-                ${activity.orderId ? 
-                    `<span class="activity-order"><i class="fas fa-hashtag"></i> ${activity.orderId.slice(-8)}</span>` : ''}
-            </div>
-        </div>
-    `;
-    
-    // Add to top of feed
-    if (feed.firstChild) {
-        feed.insertBefore(activityElement, feed.firstChild);
-    } else {
-        feed.appendChild(activityElement);
-    }
-    
-    // Limit to 30 items
-    while (feed.children.length > 30) {
-        feed.removeChild(feed.lastChild);
-    }
-    
-    // Highlight new activity
-    setTimeout(() => {
-        activityElement.style.background = 'rgba(255,215,0,0.1)';
-        setTimeout(() => {
-            activityElement.style.background = '';
-        }, 1000);
-    }, 100);
-    
-    console.log('✅ Activity added to feed:', activity.message);
-}
-
-// ==================== PLAY NOTIFICATION SOUND ====================
-function playNotificationSound() {
-    try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
-        
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        
-        oscillator.type = 'sine';
-        oscillator.frequency.value = 600;
-        gainNode.gain.value = 0.2;
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.2);
-    } catch (e) {
-        console.log('Sound play failed:', e);
-    }
-}
-
-// ==================== TIME AGO HELPER ====================
-function getTimeAgo(timestamp) {
-    if (!timestamp) return 'Just now';
-    
-    const now = new Date();
-    const past = new Date(timestamp);
-    const diffSeconds = Math.floor((now - past) / 1000);
-    const diffMinutes = Math.floor(diffSeconds / 60);
-    const diffHours = Math.floor(diffMinutes / 60);
-    const diffDays = Math.floor(diffHours / 24);
-    
-    if (diffSeconds < 5) return 'Just now';
-    if (diffSeconds < 60) return `${diffSeconds} seconds ago`;
-    if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-}
-
-// ==================== REFRESH ACTIVITY FEED MANUALLY ====================
-function refreshActivityFeed() {
-    console.log('🔄 Manually refreshing activity feed...');
-    loadRecentActivities();
-    showNotification('Activity feed refreshed', 'info');
-}
-
-// ==================== UPDATE KITCHEN STATS FROM FIREBASE ====================
-function updateKitchenStatsFromFirebase() {
-    if (!database) return;
-    
-    database.ref('orders').once('value', (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
-        
-        const orders = Object.values(data);
-        
-        const preparing = orders.filter(o => o.paymentStatus === 'verified' && o.status === 'preparing').length;
-        const incubating = orders.filter(o => o.paymentStatus === 'verified' && o.status === 'incubating').length;
-        const ready = orders.filter(o => o.paymentStatus === 'verified' && o.status === 'ready').length;
-        const completed = orders.filter(o => o.paymentStatus === 'verified' && o.status === 'completed').length;
-        
-        document.getElementById('preparingCount').textContent = preparing;
-        document.getElementById('incubatingCount').textContent = incubating;
-        document.getElementById('readyCount').textContent = ready;
-        document.getElementById('completedCount').textContent = completed;
-        
-        console.log('📊 Kitchen stats updated:', { preparing, incubating, ready, completed });
-    });
-}
-
-// ==================== MODIFY THE LIVEKITCHEN CLASS TO USE FIREBASE ====================
-// Replace the existing LiveKitchenSystem class with this:
-
-class LiveKitchenSystem {
-    constructor() {
-        this.kitchenData = { preparing: 0, incubating: 0, ready: 0, completed: 0 };
-        this.init();
-    }
-
-    init() {
-        console.log('👨‍🍳 Live Kitchen System initializing...');
-        this.loadKitchenStats();
-        this.setupRealtimeListener();
-    }
-
-    loadKitchenStats() {
-        this.updateKitchenStats();
-    }
-
-    setupRealtimeListener() {
-        if (!database) return;
-        
-        // Listen for all order changes to update stats
-        database.ref('orders').on('value', (snapshot) => {
-            this.updateKitchenStats();
-        });
-    }
-
-    updateKitchenStats() {
-        database.ref('orders').once('value', (snapshot) => {
-            const data = snapshot.val();
-            if (!data) {
-                this.kitchenData = { preparing: 0, incubating: 0, ready: 0, completed: 0 };
-                this.updateDisplay();
-                return;
-            }
-            
-            const orders = Object.values(data);
-            
-            this.kitchenData = {
-                preparing: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'preparing').length,
-                incubating: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'incubating').length,
-                ready: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'ready').length,
-                completed: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'completed').length
-            };
-            
-            this.updateDisplay();
-        });
-    }
-
-    updateDisplay() {
-        document.getElementById('preparingCount').textContent = this.kitchenData.preparing;
-        document.getElementById('incubatingCount').textContent = this.kitchenData.incubating;
-        document.getElementById('readyCount').textContent = this.kitchenData.ready;
-        document.getElementById('completedCount').textContent = this.kitchenData.completed;
-    }
-}
-
-// ==================== UPDATE INITIALIZATION ====================
-// Add this to your DOMContentLoaded event:
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🍽️ Order Page Initializing...');
-    
-    renderMenu();
-    updateCartDisplay();
-    
-    // Initialize Live Kitchen System
-    window.liveKitchen = new LiveKitchenSystem();
-    
-    // Initialize Activity Feed (NEW)
-    initActivityFeed();
-    
-    // Set up manual refresh button
-    document.getElementById('refreshKitchen')?.addEventListener('click', () => {
-        refreshActivityFeed();
-        if (window.liveKitchen) window.liveKitchen.updateKitchenStats();
-        showNotification('Kitchen feed refreshed', 'info');
-    });
-    
-    setupEventListeners();
-    setupParallax();
-    setupSubmitButton();
-    
-    console.log('✅ Order Page Ready - Live feeds active');
-});
-
-    // ==================== LIVE KITCHEN SYSTEM ====================
+    // ==================== FIXED: LIVE KITCHEN STATS ====================
     class LiveKitchenSystem {
         constructor() {
             this.kitchenData = { preparing: 0, incubating: 0, ready: 0, completed: 0 };
@@ -2598,17 +2131,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         init() {
-            this.loadKitchenStats();
-            this.setupBroadcastReceiver();
+            console.log('👨‍🍳 Live Kitchen System initializing...');
+            this.setupFirebaseListener();
         }
 
-        loadKitchenStats() {
+        setupFirebaseListener() {
+            if (!database) {
+                console.error('❌ Firebase not available');
+                return;
+            }
+
+            // Listen for ALL order changes in real-time
             database.ref('orders').on('value', (snapshot) => {
                 const data = snapshot.val();
-                if (!data) return;
                 
+                if (!data) {
+                    this.kitchenData = { preparing: 0, incubating: 0, ready: 0, completed: 0 };
+                    this.updateDisplay();
+                    return;
+                }
+                
+                // Convert to array
                 const orders = Object.values(data);
                 
+                // Calculate stats
                 this.kitchenData = {
                     preparing: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'preparing').length,
                     incubating: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'incubating').length,
@@ -2616,7 +2162,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     completed: orders.filter(o => o.paymentStatus === 'verified' && o.status === 'completed').length
                 };
                 
+                console.log('📊 Kitchen stats updated:', this.kitchenData);
                 this.updateDisplay();
+            }, (error) => {
+                console.error('❌ Firebase listener error:', error);
             });
         }
 
@@ -2626,101 +2175,356 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('readyCount').textContent = this.kitchenData.ready;
             document.getElementById('completedCount').textContent = this.kitchenData.completed;
         }
+    }
 
-        setupBroadcastReceiver() {
-            if (typeof BroadcastChannel !== 'undefined') {
-                try {
-                    broadcastChannel = new BroadcastChannel('cleanbite_activities');
-                    
-                    broadcastChannel.onmessage = (event) => {
-                        if (event.data?.type === 'NEW_ACTIVITY') {
-                            this.addActivity(event.data.activity);
-                        }
-                    };
-                } catch (e) {}
+    // ==================== FIXED: LIVE ACTIVITY FEED ====================
+    function initActivityFeed() {
+        console.log('📡 Initializing live activity feed from Firebase...');
+        
+        const feed = document.getElementById('activityFeed');
+        if (feed) {
+            feed.innerHTML = '<div class="activity-item"><div class="activity-icon"><i class="fas fa-circle-notch fa-spin"></i></div><div class="activity-content"><div class="activity-text">Connecting to live kitchen...</div></div></div>';
+        }
+        
+        // Set up Firebase listeners for activities
+        setupActivityListeners();
+        
+        // Load recent activities
+        loadRecentActivities();
+    }
+
+    function setupActivityListeners() {
+        if (!database) return;
+
+        // Listen for NEW orders (child_added)
+        database.ref('orders').on('child_added', (snapshot) => {
+            const order = snapshot.val();
+            order.firebaseKey = snapshot.key;
+            
+            console.log('🆕 New order detected:', order.id);
+            
+            // Only show if it's a new order (pending payment)
+            if (order.paymentStatus === 'pending' && order.status === 'pending-payment') {
+                addActivityToFeed({
+                    type: 'order_created',
+                    message: `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
+                    orderId: order.id,
+                    customerName: order.customerName,
+                    timestamp: order.createdAt || new Date().toISOString(),
+                    icon: 'fa-cart-plus',
+                    color: '#9b59b6'
+                });
+                
+                playNotificationSound();
+            }
+        });
+
+        // Listen for UPDATES to orders (child_changed) - CRITICAL FOR STATUS CHANGES
+        database.ref('orders').on('child_changed', (snapshot) => {
+            const order = snapshot.val();
+            order.firebaseKey = snapshot.key;
+            
+            console.log('🔄 Order updated:', order.id, 'Status:', order.status, 'Payment:', order.paymentStatus);
+            
+            // Check for payment verification
+            if (order.verifiedAt && order.paymentStatus === 'verified') {
+                addActivityToFeed({
+                    type: 'payment_verified',
+                    message: `💰 Payment verified for order ${order.id.slice(-8)} - Now PREPARING`,
+                    orderId: order.id,
+                    customerName: order.customerName,
+                    timestamp: order.verifiedAt || new Date().toISOString(),
+                    icon: 'fa-check-circle',
+                    color: '#2ecc71'
+                });
+                
+                playNotificationSound();
             }
             
-            window.addEventListener('storage', (e) => {
-                if (e.key === 'admin_broadcast' && e.newValue) {
-                    try {
-                        const data = JSON.parse(e.newValue);
-                        if (data.type === 'ACTIVITY') {
-                            this.addActivity(data.activity);
-                        }
-                    } catch (err) {}
+            // Check for payment rejection
+            if (order.paymentStatus === 'rejected' && order.rejectedAt) {
+                addActivityToFeed({
+                    type: 'payment_rejected',
+                    message: `❌ Payment rejected for order ${order.id.slice(-8)}`,
+                    orderId: order.id,
+                    customerName: order.customerName,
+                    timestamp: order.rejectedAt || new Date().toISOString(),
+                    icon: 'fa-times-circle',
+                    color: '#e74c3c'
+                });
+                
+                playNotificationSound();
+            }
+            
+            // Check for status changes
+            if (order.updatedAt && order.status) {
+                let message = '';
+                let icon = 'fa-sync-alt';
+                let color = '#3498db';
+                
+                if (order.status === 'preparing') {
+                    message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
+                } else if (order.status === 'incubating') {
+                    message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (24hr countdown started)`;
+                    color = '#f39c12';
+                } else if (order.status === 'ready') {
+                    message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
+                    icon = 'fa-check-circle';
+                    color = '#2ecc71';
+                } else if (order.status === 'completed') {
+                    message = `📦 Order ${order.id.slice(-8)} completed and picked up`;
+                    icon = 'fa-flag-checkered';
+                    color = '#3498db';
+                } else if (order.status === 'cancelled') {
+                    message = `❌ Order ${order.id.slice(-8)} was cancelled`;
+                    icon = 'fa-times-circle';
+                    color = '#e74c3c';
+                }
+                
+                if (message) {
+                    addActivityToFeed({
+                        type: 'status_change',
+                        message: message,
+                        orderId: order.id,
+                        customerName: order.customerName,
+                        timestamp: order.updatedAt || new Date().toISOString(),
+                        icon: icon,
+                        color: color
+                    });
+                    
+                    playNotificationSound();
+                }
+            }
+        });
+    }
+
+    function loadRecentActivities() {
+        if (!database) return;
+        
+        console.log('📚 Loading recent activities...');
+        
+        // Get the last 30 orders
+        database.ref('orders').orderByKey().limitToLast(30).once('value', (snapshot) => {
+            const data = snapshot.val();
+            if (!data) {
+                const feed = document.getElementById('activityFeed');
+                if (feed) {
+                    feed.innerHTML = '<div class="activity-item" style="border-left-color: #95a5a6;"><div class="activity-icon"><i class="fas fa-mug-hot"></i></div><div class="activity-content"><div class="activity-text">No recent activity</div></div></div>';
+                }
+                return;
+            }
+            
+            const orders = Object.values(data);
+            const activities = [];
+            
+            // Generate activities from each order
+            orders.forEach(order => {
+                // Payment verification
+                if (order.verifiedAt) {
+                    activities.push({
+                        type: 'payment_verified',
+                        message: `💰 Payment verified for order ${order.id.slice(-8)}`,
+                        orderId: order.id,
+                        customerName: order.customerName,
+                        timestamp: order.verifiedAt,
+                        icon: 'fa-check-circle',
+                        color: '#2ecc71'
+                    });
+                }
+                
+                // Payment rejection
+                if (order.paymentStatus === 'rejected' && order.rejectedAt) {
+                    activities.push({
+                        type: 'payment_rejected',
+                        message: `❌ Payment rejected for order ${order.id.slice(-8)}`,
+                        orderId: order.id,
+                        customerName: order.customerName,
+                        timestamp: order.rejectedAt,
+                        icon: 'fa-times-circle',
+                        color: '#e74c3c'
+                    });
+                }
+                
+                // Status changes
+                if (order.updatedAt && order.status) {
+                    let message = '';
+                    if (order.status === 'preparing') 
+                        message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
+                    if (order.status === 'incubating') 
+                        message = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
+                    if (order.status === 'ready') 
+                        message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
+                    if (order.status === 'completed') 
+                        message = `📦 Order ${order.id.slice(-8)} completed`;
+                    if (order.status === 'cancelled') 
+                        message = `❌ Order ${order.id.slice(-8)} was cancelled`;
+                    
+                    if (message) {
+                        activities.push({
+                            type: 'status_change',
+                            message: message,
+                            orderId: order.id,
+                            customerName: order.customerName,
+                            timestamp: order.updatedAt,
+                            icon: order.status === 'ready' ? 'fa-check-circle' : 
+                                   order.status === 'completed' ? 'fa-flag-checkered' :
+                                   order.status === 'cancelled' ? 'fa-times-circle' : 'fa-sync-alt',
+                            color: order.status === 'ready' ? '#2ecc71' :
+                                   order.status === 'cancelled' ? '#e74c3c' :
+                                   order.status === 'incubating' ? '#f39c12' : '#3498db'
+                        });
+                    }
+                }
+                
+                // New orders (created but not verified)
+                if (order.createdAt && !order.verifiedAt && order.status !== 'cancelled' && order.status !== 'completed') {
+                    activities.push({
+                        type: 'order_created',
+                        message: `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
+                        orderId: order.id,
+                        customerName: order.customerName,
+                        timestamp: order.createdAt,
+                        icon: 'fa-cart-plus',
+                        color: '#9b59b6'
+                    });
                 }
             });
-        }
-
-        addActivity(activity) {
+            
+            // Sort by timestamp (most recent first)
+            activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            // Take top 20
+            const recentActivities = activities.slice(0, 20);
+            
+            // Clear feed
             const feed = document.getElementById('activityFeed');
             if (!feed) return;
             
-            const loading = feed.querySelector('.fa-spin');
-            if (loading) feed.innerHTML = '';
-            
-            const timeAgo = this.getTimeAgo(activity.timestamp);
-            
-            const el = document.createElement('div');
-            el.className = 'activity-item';
-            el.style.borderLeftColor = activity.color || '#3498db';
-            
-            el.innerHTML = `
-                <div class="activity-icon" style="color: ${activity.color || '#3498db'};">
-                    <i class="fas ${activity.icon || 'fa-bell'}"></i>
-                </div>
-                <div class="activity-content">
-                    <div class="activity-text">${activity.message}</div>
-                    <div class="activity-meta">
-                        <span class="activity-time"><i class="far fa-clock"></i> ${timeAgo}</span>
-                        ${activity.customerName ? 
-                            `<span class="activity-customer"><i class="fas fa-user"></i> ${activity.customerName}</span>` : ''}
-                        ${activity.orderId ? 
-                            `<span class="activity-order"><i class="fas fa-hashtag"></i> ${activity.orderId.slice(-8)}</span>` : ''}
-                    </div>
-                </div>
-            `;
-            
-            if (feed.firstChild) {
-                feed.insertBefore(el, feed.firstChild);
-            } else {
-                feed.appendChild(el);
+            if (recentActivities.length === 0) {
+                feed.innerHTML = '<div class="activity-item" style="border-left-color: #95a5a6;"><div class="activity-icon"><i class="fas fa-mug-hot"></i></div><div class="activity-content"><div class="activity-text">No recent activity</div></div></div>';
+                return;
             }
             
-            while (feed.children.length > 20) {
-                feed.removeChild(feed.lastChild);
-            }
+            feed.innerHTML = '';
             
-            // Play sound for new activity
-            this.playNotificationSound();
-        }
+            // Add each activity to feed
+            recentActivities.forEach(activity => {
+                addActivityToFeed(activity, false);
+            });
+            
+            console.log(`✅ Loaded ${recentActivities.length} recent activities`);
+        });
+    }
 
-        playNotificationSound() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                
-                oscillator.type = 'sine';
-                oscillator.frequency.value = 600;
-                gainNode.gain.value = 0.2;
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.2);
-            } catch (e) {}
+    function addActivityToFeed(activity, animate = true) {
+        const feed = document.getElementById('activityFeed');
+        if (!feed) return;
+        
+        // Remove loading spinner if it exists
+        const loading = feed.querySelector('.fa-spin');
+        if (loading) {
+            feed.innerHTML = '';
         }
+        
+        // Check for duplicates (prevent same message in last 5 seconds)
+        const lastItem = feed.firstChild;
+        if (lastItem) {
+            const lastText = lastItem.querySelector('.activity-text')?.textContent || '';
+            if (lastText.includes(activity.message?.slice(0, 25))) {
+                console.log('⚠️ Duplicate activity skipped');
+                return;
+            }
+        }
+        
+        const timeAgo = getTimeAgo(activity.timestamp);
+        
+        const activityElement = document.createElement('div');
+        activityElement.className = 'activity-item';
+        activityElement.style.borderLeftColor = activity.color || '#3498db';
+        activityElement.style.animation = animate ? 'slideIn 0.4s ease' : 'none';
+        
+        activityElement.innerHTML = `
+            <div class="activity-icon" style="color: ${activity.color || '#3498db'};">
+                <i class="fas ${activity.icon || 'fa-bell'}"></i>
+            </div>
+            <div class="activity-content">
+                <div class="activity-text">${activity.message || 'Kitchen update'}</div>
+                <div class="activity-meta">
+                    <span class="activity-time"><i class="far fa-clock"></i> ${timeAgo}</span>
+                    ${activity.customerName ? 
+                        `<span class="activity-customer"><i class="fas fa-user"></i> ${activity.customerName}</span>` : ''}
+                    ${activity.orderId ? 
+                        `<span class="activity-order"><i class="fas fa-hashtag"></i> ${activity.orderId.slice(-8)}</span>` : ''}
+                </div>
+            </div>
+        `;
+        
+        // Add to top of feed
+        if (feed.firstChild) {
+            feed.insertBefore(activityElement, feed.firstChild);
+        } else {
+            feed.appendChild(activityElement);
+        }
+        
+        // Limit to 30 items
+        while (feed.children.length > 30) {
+            feed.removeChild(feed.lastChild);
+        }
+        
+        // Highlight new activity
+        setTimeout(() => {
+            activityElement.style.background = 'rgba(255,215,0,0.1)';
+            setTimeout(() => {
+                activityElement.style.background = '';
+            }, 1000);
+        }, 100);
+        
+        console.log('✅ Activity added to feed:', activity.message);
+    }
 
-        getTimeAgo(timestamp) {
-            if (!timestamp) return 'Just now';
-            const diff = Math.floor((new Date() - new Date(timestamp)) / 60000);
-            if (diff < 1) return 'Just now';
-            if (diff < 60) return `${diff}m ago`;
-            if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
-            return `${Math.floor(diff / 1440)}d ago`;
+    function playNotificationSound() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioContext();
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.value = 600;
+            gainNode.gain.value = 0.2;
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.2);
+        } catch (e) {
+            console.log('Sound play failed:', e);
         }
+    }
+
+    function getTimeAgo(timestamp) {
+        if (!timestamp) return 'Just now';
+        
+        const now = new Date();
+        const past = new Date(timestamp);
+        const diffSeconds = Math.floor((now - past) / 1000);
+        const diffMinutes = Math.floor(diffSeconds / 60);
+        const diffHours = Math.floor(diffMinutes / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        
+        if (diffSeconds < 5) return 'Just now';
+        if (diffSeconds < 60) return `${diffSeconds} seconds ago`;
+        if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+        return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    }
+
+    function refreshActivityFeed() {
+        console.log('🔄 Manually refreshing activity feed...');
+        loadRecentActivities();
+        showNotification('Activity feed refreshed', 'info');
     }
 
     // ==================== NOTIFICATION ====================
@@ -2781,7 +2585,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         document.getElementById('refreshKitchen')?.addEventListener('click', () => {
-            if (window.liveKitchen) window.liveKitchen.loadKitchenStats();
+            refreshActivityFeed();
             showNotification('Kitchen feed refreshed', 'info');
         });
         
@@ -2814,16 +2618,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ==================== INITIALIZE ====================
     document.addEventListener('DOMContentLoaded', () => {
+        console.log('🍽️ Order Page Initializing...');
+        
         renderMenu();
         updateCartDisplay();
         
+        // Initialize Live Kitchen System
         window.liveKitchen = new LiveKitchenSystem();
+        
+        // Initialize Activity Feed
+        initActivityFeed();
         
         setupEventListeners();
         setupParallax();
         setupSubmitButton();
         
-        console.log('✅ Order Page Ready');
+        console.log('✅ Order Page Ready - Live feeds active');
     });
 
     // Make functions global
@@ -2834,5 +2644,6 @@ document.addEventListener('DOMContentLoaded', function() {
     </script>
 </body>
 </html>
+
 
 
