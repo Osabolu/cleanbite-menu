@@ -2159,122 +2159,6 @@
             badge: null
         }
     ];
-   
-    <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Order premium Nigerian yoghurt from CleanBite Empire. Fresh, creamy, and made with 100% real fruit.">
-    <title>CleanBite Empire | Order Page</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        /* ==================== YOUR EXISTING STYLES HERE ==================== */
-        /* Keep all your existing CSS - I'm only providing the fixed JavaScript */
-        :root {
-            --primary: #ffd700;
-            --primary-dark: #e6c200;
-            --primary-light: #fff9e6;
-            --secondary: #2c3e50;
-            --success: #2ecc71;
-            --success-light: #e8f5e9;
-            --warning: #f39c12;
-            --warning-light: #fff3e0;
-            --danger: #e74c3c;
-            --danger-light: #ffebee;
-            --info: #3498db;
-            --info-light: #e3f2fd;
-            --dark: #2c3e50;
-            --gray: #95a5a6;
-            --white: #ffffff;
-            --shadow: 0 10px 30px rgba(0,0,0,0.1);
-            --transition: all 0.3s ease;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Poppins', sans-serif; background: #f8fafc; color: var(--dark); }
-        /* ... rest of your CSS ... */
-    </style>
-</head>
-<body>
-    <!-- ==================== YOUR EXISTING HTML HERE ==================== -->
-    <!-- Keep all your existing HTML structure -->
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
-    <script>
-    // ==================== FIREBASE CONFIG ====================
-    const firebaseConfig = {
-        apiKey: "AIzaSyC1WaO1WE-LFayAqLeql0BP5vD8bddgUuE",
-        authDomain: "cleanbite-empire.firebaseapp.com",
-        databaseURL: "https://cleanbite-empire-default-rtdb.firebaseio.com",
-        projectId: "cleanbite-empire",
-        storageBucket: "cleanbite-empire.firebasestorage.app",
-        messagingSenderId: "733995841314",
-        appId: "1:733995841314:web:d82f5452f1fff0fdfad77b"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    window.database = firebase.database();
-    const database = window.database;
-    
-    console.log('🔥 Firebase connected');
-
-    // ==================== MENU DATA ====================
-    const menuItems = [
-        {
-            id: 1,
-            name: 'Plain Yoghurt',
-            description: 'The Foundation: Creamy, classic plain yoghurt. Made from fresh cow milk with 24hr incubation.',
-            price: 4000,
-            image: 'images/sara-cervera-4caIPcmVDII-unsplash.jpg',
-            badge: 'Best Seller'
-        },
-        {
-            id: 2,
-            name: 'Strawberry, Hibiscus & Dates',
-            description: 'The Sentinel - Sweet strawberry flavour with real fruit pieces and hibiscus notes.',
-            price: 6000,
-            image: 'images/strawberry-photo.jpg',
-            badge: 'Popular'
-        },
-        {
-            id: 3,
-            name: 'Vanilla, Cinnamon & Honey',
-            description: 'The Warden - Smooth vanilla bean infused yoghurt with warm cinnamon and honey.',
-            price: 5000,
-            image: 'https://images.unsplash.com/photo-1571212515416-fef01fc43637?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-            badge: null
-        },
-        {
-            id: 4,
-            name: 'Coconut Milk & Dates',
-            description: 'Blend of Coconut Milk extract mixed with Dates puree. Tropical and creamy.',
-            price: 5500,
-            image: 'images/coconuts-dates.jpg',
-            badge: 'New'
-        },
-        {
-            id: 5,
-            name: 'Cacao, Moringa & Dates',
-            description: 'Thick, strained yoghurt with high protein. Rich cacao and nutrient-packed moringa.',
-            price: 6000,
-            image: 'images/coconut-dates (1).jpg',
-            badge: 'Premium'
-        },
-        {
-            id: 6,
-            name: 'The Diplomat',
-            description: 'Coconut Milk, Roasted Plantain & Cinnamon - Topped with honey and crunchy granola.',
-            price: 5500,
-            image: 'images/plantain-puree.png',
-            badge: 'Signature'
-        }
-    ];
 
     // ==================== GLOBAL VARIABLES ====================
     let cart = JSON.parse(localStorage.getItem('cleanbite_cart') || '[]');
@@ -3064,6 +2948,7 @@ if (typeof showNotification !== 'function') {
     </script>
 </body>
 </html>
+
 
 
 
