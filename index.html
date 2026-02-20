@@ -1446,6 +1446,11 @@
         
         <div class="kitchen-stats">
             <div class="stat-item">
+                <i class="fas fa-fire"></i>
+                <div class="stat-value" id="incubatingCount">0</div>
+                <div class="stat-label">Incubating (24hrs)</div>
+            </div>
+            <div class="stat-item">
                 <i class="fas fa-utensils"></i>
                 <div class="stat-value" id="preparingCount">0</div>
                 <div class="stat-label">Preparing</div>
@@ -1657,16 +1662,16 @@
                             </div>
                         </div>
                         
-                        <div class="bank-details" id="bankDetails">
+                       <div class="bank-details" id="bankDetails">
                             <h4><i class="fas fa-university"></i> Bank Transfer Details</h4>
                             <div class="bank-info">
                                 <p><strong>Bank:</strong> CARBON MICRO FINANCE BANK</p>
                                 <p><strong>Account Name:</strong> Emmanuel Osabolu Okpere</p>
                                 <p><strong>Account Number:</strong> 3034457406</p>
-                                <p class="note">⚠️ Please use your <strong>Order ID</strong> as payment reference and send proof to our WhatsApp</p>
+                                <p class="note">⚠️ Please use your <strong>Order ID</strong> as payment reference. <strong>⏰ 24hr incubation</strong> starts after verification.</p>
                                 <div class="flex">
-                                    <i class="fas fa-truck" style="color: var(--primary); font-size: 48px;"></i>
-                                    <span>Delivery on request</span>
+                                    <i class="fas fa-clock" style="color: var(--primary); font-size: 48px;"></i>
+                                    <span>Ready in 24 hours after verification</span>
                                 </div>
                             </div>
                         </div>
@@ -2313,34 +2318,41 @@
     }
 
     // ==================== CONFIRMATION MODAL ====================
-    function showOrderConfirmation(order) {
-        console.log('🎉 Showing confirmation for order:', order.id);
-        
-        const modal = document.getElementById('confirmationModal');
-        if (!modal) {
-            alert(`✅ ORDER PLACED!\nOrder ID: ${order.id}\nTotal: ₦${(order.total || 0).toLocaleString()}`);
-            return;
-        }
-        
-        // Update content
-        document.getElementById('confirmCustomerName').textContent = order.customerName || 'Customer';
-        document.getElementById('confirmOrderId').textContent = order.id;
-        document.getElementById('confirmTotal').textContent = `₦${(order.total || 0).toLocaleString()}`;
-        
-        const estimatedTime = new Date(Date.now() + 60 * 60 * 1000);
-        document.getElementById('confirmEstimatedTime').textContent = 
-            estimatedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (60 mins)';
-        
-        const trackBtn = document.getElementById('trackOrderBtn');
-        trackBtn.onclick = function() {
-            window.open(`track.html?order=${order.id}`, '_blank');
-        };
-        
-        // Show modal
-        modal.classList.add('active');
-        console.log('✅ Confirmation modal shown');
+    // ==================== CONFIRMATION MODAL - FIXED WITH 24 HOURS ====================
+function showOrderConfirmation(order) {
+    console.log('🎉 Showing confirmation for order:', order.id);
+    
+    const modal = document.getElementById('confirmationModal');
+    if (!modal) {
+        alert(`✅ ORDER PLACED!\nOrder ID: ${order.id}\nTotal: ₦${(order.total || 0).toLocaleString()}\n\n⏰ Ready in: 24 hours`);
+        return;
     }
-
+    
+    // Update content
+    document.getElementById('confirmCustomerName').textContent = order.customerName || 'Customer';
+    document.getElementById('confirmOrderId').textContent = order.id;
+    document.getElementById('confirmTotal').textContent = `₦${(order.total || 0).toLocaleString()}`;
+    
+    // 🔥 FIXED: Changed from 45mins to 24 hours
+    const estimatedTime = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+    document.getElementById('confirmEstimatedTime').textContent = 
+        estimatedTime.toLocaleString([], { 
+            weekday: 'short',
+            month: 'short', 
+            day: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        }) + ' (24hr incubation)';
+    
+    const trackBtn = document.getElementById('trackOrderBtn');
+    trackBtn.onclick = function() {
+        window.open(`track.html?order=${order.id}`, '_blank');
+    };
+    
+    // Show modal
+    modal.classList.add('active');
+    console.log('✅ Confirmation modal shown with 24hr estimate');
+}
     // ==================== MODAL FUNCTIONS ====================
     window.closeModal = function(modalId) {
         const modal = document.getElementById(modalId);
@@ -2453,7 +2465,35 @@
     window.openCartModal = openCartModal;
     window.updateCartQuantity = updateCartQuantity;
     window.showNotification = showNotification;
+
+        function getRemainingIncubationTime(startTime) {
+    if (!startTime) return 'Unknown';
+    
+    const start = new Date(startTime);
+    const now = new Date();
+    const elapsed = now - start;
+    const total = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    const remaining = total - elapsed;
+    
+    if (remaining <= 0) return 'Ready now';
+    
+    const hours = Math.floor(remaining / (60 * 60 * 1000));
+    const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+    
+    return `${hours}h ${minutes}m remaining`;
+}
+
+        // When showing incubating status
+if (order.status === 'incubating' && order.incubatingStarted) {
+    addActivityToFeed({
+        message: `⏳ Order ${order.id.slice(-8)} incubating - ${getRemainingIncubationTime(order.incubatingStarted)}`,
+        timestamp: order.updatedAt,
+        icon: 'fa-clock',
+        color: '#f39c12',
+        customerName: order.customerName,
+        orderId: order.id
+    });
+}
     </script>
 </body>
 </html>
-
