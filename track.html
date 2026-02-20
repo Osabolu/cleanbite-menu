@@ -1288,24 +1288,46 @@
     }
 
     // ==================== TRACK ORDER ====================
-    function trackOrder(orderId) {
-        showLoading();
-        hideError();
+   // ==================== FIXED: Track Order Function ====================
+function trackOrder(orderId) {
+    showLoading();
+    hideError();
+    
+    if (!orderId) {
+        hideLoading();
+        showError('Please enter an Order ID');
+        return;
+    }
+    
+    // Clean the input (mobile users might add spaces)
+    const cleanOrderId = orderId.toString().trim().replace(/\s+/g, '');
+    
+    // Try to find order
+    const order = findOrderById(cleanOrderId);
+    
+    if (order) {
+        currentOrderId = cleanOrderId;
+        displayOrderData(order);
+        document.getElementById('trackingDisplay').style.display = 'block';
+        startAutoRefresh();
+        hideLoading();
         
-        const order = findOrderById(orderId);
+        // Save the successful order ID for future use
+        localStorage.setItem('last_tracked_order', cleanOrderId);
+    } else {
+        hideLoading();
         
-        if (order) {
-            currentOrderId = orderId;
-            displayOrderData(order);
-            document.getElementById('trackingDisplay').style.display = 'block';
-            startAutoRefresh();
-        } else {
-            showError('Order "' + orderId + '" not found. Please check your Order ID.');
+        // Mobile-friendly error message
+        const errorMessage = `Order "${cleanOrderId}" not found.\n\nPossible reasons:\n• Order was just placed (wait 10 seconds)\n• Check you typed it correctly\n• Try copying and pasting the exact ID`;
+        
+        if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            // Mobile alert
+            alert(errorMessage);
         }
         
-        hideLoading();
+        showError(errorMessage);
     }
-
+}
     // ==================== DISPLAY ORDER DATA ====================
     function displayOrderData(order) {
         document.getElementById('displayOrderId').textContent = order.id;
@@ -1819,4 +1841,5 @@ function findOrderById(orderId) {
     </script>
 </body>
 </html>
+
 
