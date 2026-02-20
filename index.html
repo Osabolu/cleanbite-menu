@@ -2463,35 +2463,9 @@ function showOrderConfirmation(order) {
     window.updateCartQuantity = updateCartQuantity;
     window.showNotification = showNotification;
 
-        function getRemainingIncubationTime(startTime) {
-    if (!startTime) return 'Unknown';
-    
-    const start = new Date(startTime);
-    const now = new Date();
-    const elapsed = now - start;
-    const total = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-    const remaining = total - elapsed;
-    
-    if (remaining <= 0) return 'Ready now';
-    
-    const hours = Math.floor(remaining / (60 * 60 * 1000));
-    const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
-    
-    return `${hours}h ${minutes}m remaining`;
-}
-
-        // When showing incubating status
-if (order.status === 'incubating' && order.incubatingStarted) {
-    addActivityToFeed({
-        message: `⏳ Order ${order.id.slice(-8)} incubating - ${getRemainingIncubationTime(order.incubatingStarted)}`,
-        timestamp: order.updatedAt,
-        icon: 'fa-clock',
-        color: '#f39c12',
-        customerName: order.customerName,
-        orderId: order.id
-    });
-}
+   
     </script>
 </body>
 </html>
+
 
