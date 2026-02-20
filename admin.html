@@ -280,6 +280,10 @@
             gap: 8px;
         }
 
+        .payment-notice-content h4 i {
+            color: var(--warning);
+        }
+
         .payment-notice-content p {
             color: #5a6a7a;
             margin: 0;
@@ -377,9 +381,9 @@
             color: var(--info);
         }
 
-        .stat-card.cancelled .stat-icon {
-            background: linear-gradient(135deg, var(--danger-light), #ffcdd2);
-            color: var(--danger);
+        .stat-card.customers .stat-icon {
+            background: linear-gradient(135deg, var(--purple-light), #e1bee7);
+            color: var(--purple);
         }
 
         .stat-value {
@@ -526,7 +530,7 @@
             color: var(--dark);
         }
 
-        /* ==================== VERIFICATION SECTION ==================== */
+        /* ==================== PAYMENT VERIFICATION QUEUE ==================== */
         .verification-section {
             background: white;
             border-radius: 28px;
@@ -541,10 +545,12 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .section-header h3 {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 700;
             color: var(--dark);
             display: flex;
@@ -554,7 +560,6 @@
 
         .section-header h3 i {
             color: var(--warning);
-            font-size: 1.6rem;
         }
 
         .section-count {
@@ -574,85 +579,163 @@
             color: var(--warning);
         }
 
-        .verification-list {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
+        .verification-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 25px;
         }
 
-        .verification-item {
-            background: white;
-            border: 1px solid #edf2f7;
+        .verification-card {
+            background: #f8f9fa;
             border-radius: 24px;
             padding: 25px;
-            display: grid;
-            grid-template-columns: 150px 1.2fr 2fr 130px auto;
-            gap: 20px;
-            align-items: center;
+            border: 1px solid #edf2f7;
             transition: var(--transition);
             position: relative;
+            overflow: hidden;
         }
 
-        .verification-item:hover {
-            background: #fafbfc;
+        .verification-card:hover {
+            transform: translateY(-5px);
             border-color: var(--primary);
-            transform: translateX(5px);
             box-shadow: 0 15px 35px rgba(255,215,0,0.1);
         }
 
-        .order-id {
-            font-weight: 700;
-            color: white;
-            background: linear-gradient(135deg, var(--dark), #34495e);
-            padding: 10px 18px;
-            border-radius: 40px;
-            font-size: 13px;
-            text-align: center;
-            display: inline-block;
+        .verification-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--warning), var(--primary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        .customer-info h4 {
+        .verification-card:hover::before {
+            opacity: 1;
+        }
+
+        .verification-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .verification-order-id {
+            background: linear-gradient(135deg, var(--dark), #34495e);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .verification-time {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--gray);
+            font-size: 12px;
+        }
+
+        .verification-time i {
+            color: var(--warning);
+        }
+
+        .verification-customer {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed #edf2f7;
+        }
+
+        .customer-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-light), #fff3cd);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .customer-details h4 {
             font-weight: 700;
             color: var(--dark);
             margin-bottom: 8px;
             font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
-        .customer-info h4 i {
-            color: var(--primary);
-        }
-
-        .customer-info p {
+        .customer-details p {
             color: var(--gray);
             font-size: 13px;
-            margin: 0;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 5px;
         }
 
-        .order-items {
-            color: #5a6a7a;
-            font-size: 13px;
-            line-height: 1.7;
-            background: #f8f9fa;
-            padding: 15px 20px;
+        .verification-items {
+            background: white;
             border-radius: 18px;
-            border: 1px solid #edf2f7;
+            padding: 15px;
+            margin-bottom: 20px;
         }
 
-        .order-amount {
+        .verification-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed #edf2f7;
+        }
+
+        .verification-item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 14px;
+        }
+
+        .item-quantity {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 3px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .item-price {
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .verification-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .verification-amount {
             font-weight: 800;
             color: var(--success);
-            font-size: 1.6rem;
+            font-size: 1.8rem;
         }
 
         .verification-actions {
             display: flex;
-            gap: 12px;
+            gap: 10px;
         }
 
         .btn-verify {
@@ -668,6 +751,17 @@
             gap: 8px;
             cursor: pointer;
             transition: var(--transition);
+        }
+
+        .btn-verify:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(46,204,113,0.3);
+        }
+
+        .btn-verify:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .btn-reject {
@@ -688,6 +782,33 @@
         .btn-reject:hover {
             background: var(--danger-light);
             border-color: var(--danger);
+            transform: translateY(-3px);
+        }
+
+        .btn-reject:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .empty-queue {
+            text-align: center;
+            padding: 60px 20px;
+            background: #f8f9fa;
+            border-radius: 24px;
+            color: var(--gray);
+        }
+
+        .empty-queue i {
+            font-size: 60px;
+            color: var(--primary);
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-queue p {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
         }
 
         /* ==================== ORDERS TABS ==================== */
@@ -723,7 +844,6 @@
         .tab-btn.verified.active {
             background: var(--info);
             color: white;
-            border-color: var(--info);
         }
 
         .tab-btn.cancelled {
@@ -734,7 +854,6 @@
         .tab-btn.cancelled.active {
             background: var(--danger);
             color: white;
-            border-color: var(--danger);
         }
 
         .tab-btn.all {
@@ -747,138 +866,482 @@
             color: white;
         }
 
-        /* ==================== ORDERS CONTAINER ==================== */
-        .orders-container {
-            background: white;
-            border-radius: 28px;
-            padding: 30px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.03);
-            border: 1px solid #edf2f7;
+        .tab-btn.pending {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .tab-btn.pending.active {
+            background: var(--warning);
+            color: white;
+        }
+
+        /* ==================== ORDERS GRID ==================== */
+        .orders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 25px;
             margin-bottom: 35px;
         }
 
-        .orders-header {
-            display: grid;
-            grid-template-columns: 150px 1.2fr 2fr 130px 150px 120px;
-            gap: 20px;
-            padding: 18px 25px;
-            background: linear-gradient(135deg, #f8f9fa, #ecf0f1);
-            border-radius: 18px;
-            color: var(--dark);
-            font-weight: 700;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 10px;
-        }
-
-        .order-row {
-            display: grid;
-            grid-template-columns: 150px 1.2fr 2fr 130px 150px 120px;
-            gap: 20px;
-            padding: 20px 25px;
-            border-bottom: 1px solid #edf2f7;
-            align-items: center;
+        .order-card {
+            background: white;
+            border-radius: 28px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.03);
+            border: 1px solid #edf2f7;
             transition: var(--transition);
-            border-radius: 18px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .order-row:hover {
-            background: #f8f9fa;
-            transform: scale(1.01);
+        .order-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        .order-row.verified-row {
+        .order-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--primary);
+        }
+
+        .order-card:hover::before {
+            opacity: 1;
+        }
+
+        .order-card.verified-card {
             border-left: 4px solid var(--success);
         }
 
-        .order-row.cancelled-row {
+        .order-card.cancelled-card {
             border-left: 4px solid var(--danger);
-            opacity: 0.8;
+            opacity: 0.9;
         }
 
-        .status-badge {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 50px;
-            font-size: 12px;
-            font-weight: 700;
+        .order-card.pending-card {
+            border-left: 4px solid var(--warning);
         }
 
-        .status-pending-payment { background: var(--warning-light); color: var(--warning); }
-        .status-preparing { background: var(--info-light); color: var(--info); }
-        .status-incubating { background: var(--purple-light); color: var(--purple); }
-        .status-ready { background: var(--success-light); color: var(--success); }
-        .status-completed { background: var(--gray-light); color: var(--gray); }
-        .status-cancelled { background: var(--danger-light); color: var(--danger); }
-
-        .payment-badge {
-            display: inline-block;
-            padding: 6px 14px;
-            border-radius: 50px;
-            font-size: 11px;
-            font-weight: 700;
-            margin-top: 8px;
-        }
-
-        .payment-verified { background: var(--success-light); color: #2e7d32; }
-        .payment-pending { background: var(--warning-light); color: #ff8f00; }
-        .payment-rejected { background: var(--danger-light); color: var(--danger); }
-
-        /* ==================== CUSTOMER DETAILS PANEL ==================== */
-        .customer-panel {
-            background: white;
-            border-radius: 28px;
-            padding: 30px;
-            margin-bottom: 35px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.03);
-            border: 1px solid #edf2f7;
-        }
-
-        .customer-panel-header {
+        .order-card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
-        .customer-panel-header h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--dark);
+        .order-badge {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
-        .customer-panel-header h3 i {
+        .order-id-badge {
+            background: linear-gradient(135deg, var(--dark), #34495e);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .status-badge {
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-badge.preparing {
+            background: var(--info-light);
+            color: var(--info);
+        }
+
+        .status-badge.incubating {
+            background: var(--purple-light);
+            color: var(--purple);
+        }
+
+        .status-badge.ready {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .status-badge.completed {
+            background: var(--gray-light);
+            color: var(--gray);
+        }
+
+        .status-badge.cancelled {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .status-badge.pending {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .payment-badge {
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .payment-badge.verified {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .payment-badge.pending {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .payment-badge.rejected {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .order-time {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--gray);
+            font-size: 12px;
+        }
+
+        .order-time i {
             color: var(--primary);
         }
 
-        .customer-stats {
+        .order-customer-row {
             display: flex;
-            gap: 20px;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed #edf2f7;
         }
 
-        .customer-stat {
-            background: #f8f9fa;
-            padding: 8px 20px;
-            border-radius: 50px;
-            font-size: 13px;
-            font-weight: 600;
+        .customer-avatar-large {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-light), #fff3cd);
+            border-radius: 20px;
             display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .customer-info-detailed {
+            flex: 1;
+        }
+
+        .customer-info-detailed h4 {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .customer-contact {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            color: var(--gray);
+            font-size: 12px;
+        }
+
+        .customer-contact span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .order-items-list {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .order-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .order-item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .item-quantity-badge {
+            background: var(--primary);
+            color: var(--dark);
+            width: 32px;
+            height: 32px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 14px;
+        }
+
+        .item-price {
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        /* Timeline Progress */
+        .order-timeline {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 20px;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .timeline-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .timeline-steps::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #edf2f7;
+            z-index: 1;
+        }
+
+        .timeline-step {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             gap: 8px;
         }
 
-        .customer-stat i {
+        .step-icon {
+            width: 32px;
+            height: 32px;
+            background: white;
+            border: 2px solid #edf2f7;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .step-icon.completed {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .step-icon.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: var(--dark);
+            box-shadow: 0 0 0 4px rgba(255,215,0,0.2);
+        }
+
+        .step-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gray);
+        }
+
+        .step-label.active {
             color: var(--primary);
+        }
+
+        .step-label.completed {
+            color: var(--success);
+        }
+
+        /* Incubation Timer */
+        .incubation-timer {
+            background: var(--info-light);
+            border-radius: 16px;
+            padding: 15px;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .timer-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timer-info i {
+            color: var(--info);
+            font-size: 1.2rem;
+        }
+
+        .timer-text {
+            font-size: 12px;
+            color: var(--dark);
+        }
+
+        .timer-text strong {
+            color: var(--info);
+            font-size: 1rem;
+        }
+
+        .progress-bar {
+            width: 100px;
+            height: 8px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--info);
+            border-radius: 10px;
+        }
+
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #edf2f7;
+        }
+
+        .order-total {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .total-label {
+            font-size: 12px;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+
+        .total-amount {
+            font-weight: 800;
+            color: var(--success);
+            font-size: 1.8rem;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action {
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+        }
+
+        .btn-action.update {
+            background: linear-gradient(135deg, var(--info), #2980b9);
+            color: white;
+        }
+
+        .btn-action.complete {
+            background: linear-gradient(135deg, var(--success), #27ae60);
+            color: white;
+        }
+
+        .btn-action.verify {
+            background: linear-gradient(135deg, var(--success), #27ae60);
+            color: white;
+        }
+
+        .btn-action.reject {
+            background: white;
+            color: var(--danger);
+            border: 2px solid #fde2e2;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .btn-action:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ==================== CUSTOMER SECTION ==================== */
+        .customer-section {
+            background: white;
+            border-radius: 28px;
+            padding: 30px;
+            margin-bottom: 35px;
         }
 
         .customers-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
+            gap: 25px;
             max-height: 600px;
             overflow-y: auto;
             padding-right: 10px;
@@ -904,13 +1367,12 @@
             padding: 25px;
             border: 1px solid #edf2f7;
             transition: var(--transition);
-            position: relative;
         }
 
         .customer-card:hover {
             transform: translateY(-5px);
             border-color: var(--primary);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.05);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
         }
 
         .customer-card-header {
@@ -920,26 +1382,26 @@
             margin-bottom: 20px;
         }
 
-        .customer-avatar {
-            width: 60px;
-            height: 60px;
+        .customer-avatar-lg {
+            width: 70px;
+            height: 70px;
             background: linear-gradient(135deg, var(--primary-light), #fff3cd);
-            border-radius: 20px;
+            border-radius: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 28px;
             color: var(--primary);
         }
 
-        .customer-card-title h4 {
+        .customer-title h4 {
             font-weight: 700;
             color: var(--dark);
             margin-bottom: 5px;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
         }
 
-        .customer-card-title p {
+        .customer-title p {
             color: var(--gray);
             font-size: 12px;
             display: flex;
@@ -947,40 +1409,66 @@
             gap: 5px;
         }
 
-        .customer-details {
+        .customer-stats-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
             margin-bottom: 20px;
         }
 
-        .customer-detail-item {
+        .customer-stat-item {
             background: white;
-            padding: 12px;
+            padding: 15px;
             border-radius: 16px;
+            text-align: center;
             border: 1px solid #edf2f7;
         }
 
-        .customer-detail-label {
-            font-size: 11px;
-            color: var(--gray);
+        .customer-stat-value {
+            font-weight: 800;
+            color: var(--dark);
+            font-size: 1.3rem;
             margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
         }
 
-        .customer-detail-value {
-            font-weight: 700;
-            color: var(--dark);
-            font-size: 1rem;
+        .customer-stat-label {
+            font-size: 11px;
+            color: var(--gray);
+        }
+
+        .customer-contact-info {
+            background: white;
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .contact-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px dashed #edf2f7;
+        }
+
+        .contact-row:last-child {
+            border-bottom: none;
+        }
+
+        .contact-row i {
+            color: var(--primary);
+            width: 20px;
+        }
+
+        .contact-row span {
+            color: var(--gray);
+            font-size: 13px;
         }
 
         .customer-orders-preview {
             background: white;
             border-radius: 16px;
             padding: 15px;
-            border: 1px solid #edf2f7;
         }
 
         .preview-header {
@@ -992,7 +1480,7 @@
             color: var(--gray);
         }
 
-        .preview-order {
+        .preview-order-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -1001,7 +1489,7 @@
             font-size: 12px;
         }
 
-        .preview-order:last-child {
+        .preview-order-item:last-child {
             border-bottom: none;
         }
 
@@ -1015,6 +1503,29 @@
             border-radius: 30px;
             font-size: 10px;
             font-weight: 600;
+        }
+
+        .view-customer-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px;
+            background: var(--primary);
+            color: var(--dark);
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .view-customer-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
         }
 
         /* ==================== ACTIVITY FEED ==================== */
@@ -1057,6 +1568,12 @@
             border-radius: 20px;
             border-left: 5px solid;
             transition: var(--transition);
+            animation: slideInLeft 0.4s ease;
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .activity-item:hover {
@@ -1106,8 +1623,15 @@
             gap: 6px;
         }
 
-        .activity-order { background: #e9ecef; color: var(--dark); }
-        .activity-customer { background: var(--warning-light); color: var(--warning); }
+        .activity-order {
+            background: #e9ecef;
+            color: var(--dark);
+        }
+
+        .activity-customer {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
 
         /* ==================== MODALS ==================== */
         .modal {
@@ -1117,14 +1641,16 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
         }
 
-        .modal.active { display: flex; }
+        .modal.active {
+            display: flex;
+        }
 
         .modal-content {
             background: white;
@@ -1133,10 +1659,10 @@
             max-width: 550px;
             max-height: 90vh;
             overflow-y: auto;
-            animation: modalZoomIn 0.4s ease;
+            animation: modalZoom 0.4s ease;
         }
 
-        @keyframes modalZoomIn {
+        @keyframes modalZoom {
             from { transform: scale(0.8); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
@@ -1158,12 +1684,14 @@
             gap: 12px;
         }
 
-        .modal-header h3 i { color: var(--primary); }
+        .modal-header h3 i {
+            color: var(--primary);
+        }
 
         .modal-close {
             background: none;
             border: none;
-            font-size: 30px;
+            font-size: 32px;
             color: var(--gray);
             cursor: pointer;
             transition: var(--transition);
@@ -1181,20 +1709,211 @@
             transform: rotate(90deg);
         }
 
-        .modal-body { padding: 30px; }
+        .modal-body {
+            padding: 30px;
+        }
+
+        .order-info {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px dashed #edf2f7;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: var(--gray);
+        }
+
+        .info-value {
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .info-value.highlight {
+            color: var(--success);
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-group textarea,
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #edf2f7;
+            border-radius: 20px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .form-group textarea:focus,
+        .form-group select:focus,
+        .form-group input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(255,215,0,0.1);
+        }
+
+        .status-options {
+            margin: 20px 0;
+        }
+
+        .status-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 12px 16px;
+            border: 1px solid #e9ecef;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .status-option:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+        }
+
+        .status-option input[type="radio"] {
+            margin-right: 15px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+
+        .status-option .status-badge {
+            margin-right: auto;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn-modal {
+            flex: 1;
+            padding: 16px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+        }
+
+        .btn-modal.primary {
+            background: var(--primary);
+            color: var(--dark);
+        }
+
+        .btn-modal.primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255,215,0,0.3);
+        }
+
+        .btn-modal.primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-modal.secondary {
+            background: #f1f5f9;
+            color: var(--dark);
+        }
+
+        .btn-modal.secondary:hover {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+
+        .btn-modal.danger {
+            background: linear-gradient(135deg, var(--danger), #c0392b);
+            color: white;
+        }
+
+        .btn-modal.danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(231,76,60,0.3);
+        }
+
+        .btn-modal.danger:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ==================== NOTIFICATION TOAST ==================== */
+        .notification-toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: white;
+            border-left: 6px solid;
+            border-radius: 20px;
+            padding: 20px 25px;
+            min-width: 380px;
+            max-width: 450px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            z-index: 9999;
+            animation: slideInRight 0.4s ease;
+        }
+
+        .notification-toast.success { border-left-color: var(--success); }
+        .notification-toast.warning { border-left-color: var(--warning); }
+        .notification-toast.error { border-left-color: var(--danger); }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
 
         /* ==================== RESPONSIVE ==================== */
         @media (max-width: 1400px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .orders-header, .order-row { grid-template-columns: 1fr; }
-            .verification-item { grid-template-columns: 1fr; }
+            .verification-grid { grid-template-columns: 1fr; }
+            .orders-grid { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 768px) {
-            .stats-grid { grid-template-columns: 1fr; }
+            .main-content { padding: 20px; }
             .filter-bar { flex-direction: column; }
             .filter-group { width: 100%; }
             .customers-grid { grid-template-columns: 1fr; }
+            .modal-content { width: 95%; }
         }
     </style>
 </head>
@@ -1208,7 +1927,7 @@
         <div class="nav-user">
             <div class="user-info">
                 <div class="user-name">
-                    <i class="fas fa-user-circle"></i>
+                    <i class="fas fa-user-shield"></i>
                     Administrator
                 </div>
                 <div class="user-role">Super Admin</div>
@@ -1226,11 +1945,11 @@
             <div class="sidebar-menu">
                 <a href="#" class="menu-item active" id="dashboardTab">
                     <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard Overview</span>
+                    <span>Dashboard</span>
                 </a>
                 <a href="#" class="menu-item" id="verificationTab">
                     <i class="fas fa-check-circle"></i>
-                    <span>Payment Verification</span>
+                    <span>Verification Queue</span>
                     <span class="badge" id="verificationBadge">0</span>
                 </a>
                 <a href="#" class="menu-item" id="verifiedOrdersTab">
@@ -1245,31 +1964,1337 @@
                 </a>
                 <a href="#" class="menu-item" id="customersTab">
                     <i class="fas fa-users"></i>
-                    <span>Customer Database</span>
+                    <span>Customers</span>
                 </a>
                 <a href="#" class="menu-item" id="activityTab">
                     <i class="fas fa-stream"></i>
-                    <span>Live Activity Feed</span>
+                    <span>Activity Feed</span>
                 </a>
             </div>
             <div class="sidebar-footer">
-                <i class="fas fa-database"></i>
-                Firebase Real-time Sync
+                <i class="fas fa-database"></i> Firebase Live Sync
             </div>
         </div>
 
         <!-- Main Content -->
-        <div class="main-content">
+        <div class="main-content" id="mainContent">
+            <!-- Content will be dynamically loaded here -->
+        </div>
+    </div>
+
+    <!-- ==================== VERIFY MODAL ==================== -->
+    <div class="modal" id="verifyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-check-circle"></i> Verify Payment</h3>
+                <button class="modal-close" id="closeVerifyModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="order-info" id="verifyOrderInfo">
+                    <div class="info-row">
+                        <span class="info-label">Order ID:</span>
+                        <span class="info-value" id="verifyOrderId">CB-000000</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Customer:</span>
+                        <span class="info-value" id="verifyCustomerName">John Doe</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Amount:</span>
+                        <span class="info-value highlight" id="verifyAmount">₦0</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Payment Method:</span>
+                        <span class="info-value" id="verifyMethod">Bank Transfer</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="verificationNotes">Verification Notes (Optional)</label>
+                    <textarea id="verificationNotes" rows="4" placeholder="Add any notes about this verification..."></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-modal secondary" id="cancelVerification">Cancel</button>
+                    <button class="btn-modal primary" id="confirmVerification">
+                        <i class="fas fa-check"></i> Verify Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== REJECT MODAL ==================== -->
+    <div class="modal" id="rejectModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-times-circle"></i> Reject Payment</h3>
+                <button class="modal-close" id="closeRejectModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="order-info" id="rejectOrderInfo">
+                    <div class="info-row">
+                        <span class="info-label">Order ID:</span>
+                        <span class="info-value" id="rejectOrderId">CB-000000</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Customer:</span>
+                        <span class="info-value" id="rejectCustomerName">John Doe</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Amount:</span>
+                        <span class="info-value" id="rejectAmount">₦0</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="rejectionReason">Rejection Reason *</label>
+                    <textarea id="rejectionReason" rows="4" placeholder="Please provide the reason for rejection..." required></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-modal secondary" id="cancelRejection">Back</button>
+                    <button class="btn-modal danger" id="confirmRejection">
+                        <i class="fas fa-times"></i> Reject Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== STATUS MODAL ==================== -->
+    <div class="modal" id="statusModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-sync-alt"></i> Update Order Status</h3>
+                <button class="modal-close" id="closeStatusModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="order-info" id="statusOrderInfo">
+                    <div class="info-row">
+                        <span class="info-label">Order ID:</span>
+                        <span class="info-value" id="statusOrderId">CB-000000</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Customer:</span>
+                        <span class="info-value" id="statusCustomerName">John Doe</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Current Status:</span>
+                        <span class="info-value" id="currentStatus">preparing</span>
+                    </div>
+                </div>
+                
+                <div class="status-options" id="statusOptions">
+                    <!-- Status options will be populated dynamically -->
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-modal secondary" id="cancelUpdate">Cancel</button>
+                    <button class="btn-modal primary" id="confirmUpdate">
+                        <i class="fas fa-check"></i> Update Status
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== CUSTOMER DETAILS MODAL ==================== -->
+    <div class="modal" id="customerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-circle"></i> Customer Details</h3>
+                <button class="modal-close" id="closeCustomerModal">&times;</button>
+            </div>
+            <div class="modal-body" id="customerModalBody">
+                <!-- Customer details will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+    // ==================== FIREBASE CONFIG ====================
+    const firebaseConfig = {
+        apiKey: "AIzaSyC1WaO1WE-LFayAqLeql0BP5vD8bddgUuE",
+        authDomain: "cleanbite-empire.firebaseapp.com",
+        databaseURL: "https://cleanbite-empire-default-rtdb.firebaseio.com",
+        projectId: "cleanbite-empire",
+        storageBucket: "cleanbite-empire.firebasestorage.app",
+        messagingSenderId: "733995841314",
+        appId: "1:733995841314:web:d82f5452f1fff0fdfad77b"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    window.database = firebase.database();
+    const database = window.database;
+
+    // ==================== GLOBAL VARIABLES ====================
+    let allOrders = [];
+    let allCustomers = new Map();
+    let currentVerificationOrder = null;
+    let currentStatusOrder = null;
+    let currentCustomerView = null;
+    let broadcastChannel = null;
+    let activityChannel = null;
+    let audioCtx = null;
+
+    // ==================== INITIALIZE AUDIO ====================
+    function initAudio() {
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.log('Audio not supported');
+        }
+    }
+
+    function playNotificationSound() {
+        if (!audioCtx) return;
+        try {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.value = 600;
+            gainNode.gain.value = 0.2;
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.2);
+        } catch (e) {}
+    }
+
+    function playApprovalSound() {
+        if (!audioCtx) return;
+        try {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.value = 800;
+            gainNode.gain.value = 0.3;
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+            setTimeout(() => {
+                oscillator.frequency.value = 1000;
+            }, 150);
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        } catch (e) {}
+    }
+
+    // ==================== LOAD ORDERS FROM FIREBASE ====================
+    function loadOrdersFromFirebase() {
+        console.log('📡 Loading orders from Firebase...');
+        
+        database.ref('orders').on('value', (snapshot) => {
+            const data = snapshot.val();
+            
+            if (!data) {
+                allOrders = [];
+                updateAllDisplays();
+                return;
+            }
+            
+            allOrders = Object.keys(data).map(key => ({
+                ...data[key],
+                firebaseKey: key
+            }));
+            
+            console.log(`✅ Loaded ${allOrders.length} orders`);
+            processCustomers();
+            updateAllDisplays();
+            checkForNewOrders();
+        });
+    }
+
+    // ==================== PROCESS CUSTOMERS ====================
+    function processCustomers() {
+        allCustomers.clear();
+        
+        allOrders.forEach(order => {
+            if (!order.customerPhone) return;
+            
+            const key = `${order.customerPhone}`;
+            
+            if (!allCustomers.has(key)) {
+                allCustomers.set(key, {
+                    name: order.customerName || 'Unknown',
+                    phone: order.customerPhone,
+                    email: order.customerEmail || 'N/A',
+                    totalOrders: 0,
+                    totalSpent: 0,
+                    orders: [],
+                    lastOrder: null
+                });
+            }
+            
+            const customer = allCustomers.get(key);
+            customer.totalOrders++;
+            customer.totalSpent += order.total || order.totalAmount || 0;
+            customer.orders.push({
+                id: order.id,
+                date: order.createdAt || order.timestamp,
+                amount: order.total || order.totalAmount,
+                status: order.status,
+                paymentStatus: order.paymentStatus
+            });
+            
+            const orderDate = new Date(order.createdAt || order.timestamp || 0);
+            if (!customer.lastOrder || orderDate > new Date(customer.lastOrder)) {
+                customer.lastOrder = order.createdAt || order.timestamp;
+            }
+        });
+        
+        console.log(`✅ Processed ${allCustomers.size} customers`);
+    }
+
+    // ==================== CHECK FOR NEW ORDERS ====================
+    let lastOrderCount = 0;
+    
+    function checkForNewOrders() {
+        if (allOrders.length > lastOrderCount) {
+            const newOrders = allOrders.slice(lastOrderCount);
+            newOrders.forEach(order => {
+                if (order.paymentStatus === 'pending' && order.status === 'pending-payment') {
+                    playNotificationSound();
+                    showNotification(`💰 New order from ${order.customerName || 'Customer'}`, 'warning');
+                    
+                    addActivity({
+                        type: 'order_created',
+                        message: `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
+                        orderId: order.id,
+                        customerName: order.customerName,
+                        icon: 'fa-cart-plus',
+                        color: '#9b59b6'
+                    });
+                }
+            });
+        }
+        lastOrderCount = allOrders.length;
+    }
+
+    // ==================== UPDATE ALL DISPLAYS ====================
+    function updateAllDisplays() {
+        updateStats();
+        updateVerificationQueue();
+        updateVerifiedOrders();
+        updateCancelledOrders();
+        updateCustomersDisplay();
+        updateActivityFeed();
+        updateSidebarBadges();
+    }
+
+    // ==================== UPDATE STATS ====================
+    function updateStats() {
+        const verifiedRevenue = allOrders
+            .filter(o => o.paymentStatus === 'verified')
+            .reduce((sum, o) => sum + (o.total || o.totalAmount || 0), 0);
+        
+        const pendingCount = allOrders.filter(o => 
+            o.paymentStatus === 'pending' && o.status !== 'cancelled'
+        ).length;
+        
+        const verifiedCount = allOrders.filter(o => 
+            o.paymentStatus === 'verified' && o.status !== 'cancelled'
+        ).length;
+        
+        const customersCount = allCustomers.size;
+        
+        document.getElementById('totalRevenue').textContent = `₦${verifiedRevenue.toLocaleString()}`;
+        document.getElementById('awaitingVerification').textContent = pendingCount;
+        document.getElementById('verifiedOrdersCount').textContent = verifiedCount;
+        document.getElementById('totalCustomers').textContent = customersCount;
+    }
+
+    // ==================== UPDATE SIDEBAR BADGES ====================
+    function updateSidebarBadges() {
+        const pendingCount = allOrders.filter(o => 
+            o.paymentStatus === 'pending' && o.status !== 'cancelled'
+        ).length;
+        
+        const verifiedCount = allOrders.filter(o => 
+            o.paymentStatus === 'verified' && o.status !== 'cancelled'
+        ).length;
+        
+        const cancelledCount = allOrders.filter(o => 
+            o.status === 'cancelled'
+        ).length;
+        
+        document.getElementById('verificationBadge').textContent = pendingCount;
+        document.getElementById('verifiedBadge').textContent = verifiedCount;
+        document.getElementById('cancelledBadge').textContent = cancelledCount;
+        
+        const paymentNotice = document.getElementById('paymentNotice');
+        if (paymentNotice) {
+            if (pendingCount > 0) {
+                paymentNotice.style.display = 'flex';
+                document.getElementById('paymentNoticeMessage').textContent = 
+                    `${pendingCount} order${pendingCount > 1 ? 's' : ''} pending verification`;
+                document.getElementById('paymentNoticeCount').innerHTML = 
+                    `<i class="fas fa-clock"></i> ${pendingCount} pending`;
+            } else {
+                paymentNotice.style.display = 'none';
+            }
+        }
+    }
+
+    // ==================== UPDATE VERIFICATION QUEUE ====================
+    function updateVerificationQueue() {
+        const container = document.getElementById('verificationList');
+        if (!container) return;
+        
+        const pendingOrders = allOrders.filter(o => 
+            o.paymentStatus === 'pending' && 
+            o.status !== 'cancelled'
+        ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        if (pendingOrders.length === 0) {
+            container.innerHTML = `
+                <div class="empty-queue">
+                    <i class="fas fa-check-circle"></i>
+                    <p>No payments pending verification</p>
+                    <span style="color: var(--gray);">All caught up!</span>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = pendingOrders.map(order => `
+            <div class="verification-card" data-order-id="${order.id}">
+                <div class="verification-card-header">
+                    <span class="verification-order-id">${order.id}</span>
+                    <span class="verification-time">
+                        <i class="far fa-clock"></i> ${timeAgo(order.createdAt)}
+                    </span>
+                </div>
+                
+                <div class="verification-customer">
+                    <div class="customer-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="customer-details">
+                        <h4>${order.customerName || 'Customer'}</h4>
+                        <p><i class="fas fa-phone-alt"></i> ${order.customerPhone || 'N/A'}</p>
+                    </div>
+                </div>
+                
+                <div class="verification-items">
+                    ${order.items?.map(item => `
+                        <div class="verification-item-row">
+                            <span class="item-name">${item.name}</span>
+                            <span class="item-quantity">x${item.quantity}</span>
+                            <span class="item-price">₦${(item.price * item.quantity).toLocaleString()}</span>
+                        </div>
+                    `).join('') || '<div>No items</div>'}
+                </div>
+                
+                <div class="verification-footer">
+                    <span class="verification-amount">₦${(order.total || order.totalAmount || 0).toLocaleString()}</span>
+                    <div class="verification-actions">
+                        <button class="btn-verify" onclick="openVerifyModal('${order.id}')">
+                            <i class="fas fa-check"></i> Verify
+                        </button>
+                        <button class="btn-reject" onclick="openRejectModal('${order.id}')">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ==================== UPDATE VERIFIED ORDERS ====================
+    function updateVerifiedOrders() {
+        const container = document.getElementById('verifiedOrdersList');
+        if (!container) return;
+        
+        const verifiedOrders = allOrders.filter(o => 
+            o.paymentStatus === 'verified' && 
+            o.status !== 'cancelled'
+        ).sort((a, b) => new Date(b.verifiedAt || b.createdAt) - new Date(a.verifiedAt || a.createdAt));
+        
+        if (verifiedOrders.length === 0) {
+            container.innerHTML = `
+                <div class="empty-queue">
+                    <i class="fas fa-shopping-cart"></i>
+                    <p>No verified orders yet</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = verifiedOrders.map(order => renderOrderCard(order, 'verified')).join('');
+    }
+
+    // ==================== UPDATE CANCELLED ORDERS ====================
+    function updateCancelledOrders() {
+        const container = document.getElementById('cancelledOrdersList');
+        if (!container) return;
+        
+        const cancelledOrders = allOrders.filter(o => 
+            o.status === 'cancelled'
+        ).sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+        
+        if (cancelledOrders.length === 0) {
+            container.innerHTML = `
+                <div class="empty-queue">
+                    <i class="fas fa-times-circle"></i>
+                    <p>No cancelled orders</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = cancelledOrders.map(order => renderOrderCard(order, 'cancelled')).join('');
+    }
+
+    // ==================== RENDER ORDER CARD ====================
+    function renderOrderCard(order, type) {
+        const cardClass = type === 'verified' ? 'verified-card' : 'cancelled-card';
+        const statusText = order.status?.replace('-', ' ') || 'pending';
+        
+        let progressHtml = '';
+        if (type === 'verified' && order.status !== 'cancelled' && order.status !== 'completed') {
+            progressHtml = renderTimeline(order);
+        }
+        
+        return `
+            <div class="order-card ${cardClass}" data-order-id="${order.id}">
+                <div class="order-card-header">
+                    <div class="order-badge">
+                        <span class="order-id-badge">${order.id}</span>
+                        <span class="status-badge ${order.status || 'pending'}">
+                            <i class="fas ${getStatusIcon(order.status)}"></i> ${statusText}
+                        </span>
+                    </div>
+                    <span class="order-time">
+                        <i class="far fa-clock"></i> ${timeAgo(order.createdAt)}
+                    </span>
+                </div>
+
+                <div class="order-customer-row">
+                    <div class="customer-avatar-large">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="customer-info-detailed">
+                        <h4>${order.customerName || 'Customer'}</h4>
+                        <div class="customer-contact">
+                            <span><i class="fas fa-phone-alt"></i> ${order.customerPhone || 'N/A'}</span>
+                            <span><i class="fas fa-envelope"></i> ${order.customerEmail || 'N/A'}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="order-items-list">
+                    ${order.items?.map(item => `
+                        <div class="order-item-row">
+                            <div class="item-info">
+                                <span class="item-quantity-badge">${item.quantity}x</span>
+                                <span class="item-name">${item.name}</span>
+                            </div>
+                            <span class="item-price">₦${(item.price * item.quantity).toLocaleString()}</span>
+                        </div>
+                    `).join('') || '<div>No items</div>'}
+                </div>
+
+                ${progressHtml}
+
+                <div class="order-footer">
+                    <div class="order-total">
+                        <span class="total-label">Total Amount</span>
+                        <span class="total-amount">₦${(order.total || order.totalAmount || 0).toLocaleString()}</span>
+                    </div>
+                    <div class="order-actions">
+                        ${type === 'verified' ? `
+                            ${order.status === 'ready' ? `
+                                <button class="btn-action complete" onclick="completeOrderManually('${order.id}')">
+                                    <i class="fas fa-flag-checkered"></i> Complete
+                                </button>
+                            ` : ''}
+                            <button class="btn-action update" onclick="openStatusModal('${order.id}')">
+                                <i class="fas fa-edit"></i> Update
+                            </button>
+                        ` : `
+                            <span style="color: var(--gray); font-size: 12px;">No actions</span>
+                        `}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // ==================== RENDER TIMELINE ====================
+    function renderTimeline(order) {
+        const steps = ['verified', 'preparing', 'incubating', 'ready'];
+        const currentIndex = steps.indexOf(order.status);
+        
+        let incubationHtml = '';
+        if (order.status === 'incubating' && order.incubatingStarted) {
+            const start = new Date(order.incubatingStarted);
+            const now = new Date();
+            const elapsed = now - start;
+            const total = 24 * 60 * 60 * 1000;
+            const percent = Math.min(100, Math.round((elapsed / total) * 100));
+            const remaining = Math.max(0, Math.round((total - elapsed) / (60 * 60 * 1000)));
+            
+            incubationHtml = `
+                <div class="incubation-timer">
+                    <div class="timer-info">
+                        <i class="fas fa-hourglass-half"></i>
+                        <div class="timer-text">
+                            <span>Time remaining</span>
+                            <strong>${remaining}h</strong>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percent}%;"></div>
+                    </div>
+                </div>
+            `;
+        } else if (order.status === 'ready') {
+            incubationHtml = `
+                <div class="incubation-timer" style="background: var(--success-light);">
+                    <div class="timer-info">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <div class="timer-text">
+                            <span>Ready for pickup</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        return `
+            <div class="order-timeline">
+                <div class="timeline-header">
+                    <span><i class="fas fa-clock"></i> Order Progress</span>
+                </div>
+                <div class="timeline-steps">
+                    ${steps.map((step, index) => `
+                        <div class="timeline-step">
+                            <div class="step-icon ${index < currentIndex ? 'completed' : index === currentIndex ? 'active' : ''}">
+                                <i class="fas ${getStepIcon(step)}"></i>
+                            </div>
+                            <span class="step-label ${index < currentIndex ? 'completed' : index === currentIndex ? 'active' : ''}">
+                                ${step.charAt(0).toUpperCase() + step.slice(1)}
+                            </span>
+                        </div>
+                    `).join('')}
+                </div>
+                ${incubationHtml}
+            </div>
+        `;
+    }
+
+    function getStepIcon(step) {
+        const icons = {
+            'verified': 'fa-check',
+            'preparing': 'fa-utensils',
+            'incubating': 'fa-fire',
+            'ready': 'fa-check-circle'
+        };
+        return icons[step] || 'fa-circle';
+    }
+
+    // ==================== UPDATE CUSTOMERS DISPLAY ====================
+    function updateCustomersDisplay() {
+        const container = document.getElementById('customersList');
+        if (!container) return;
+        
+        if (allCustomers.size === 0) {
+            container.innerHTML = `
+                <div class="empty-queue">
+                    <i class="fas fa-users"></i>
+                    <p>No customers yet</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const customersArray = Array.from(allCustomers.values())
+            .sort((a, b) => b.totalOrders - a.totalOrders);
+        
+        container.innerHTML = customersArray.map(customer => `
+            <div class="customer-card" data-phone="${customer.phone}">
+                <div class="customer-card-header">
+                    <div class="customer-avatar-lg">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="customer-title">
+                        <h4>${customer.name}</h4>
+                        <p><i class="fas fa-phone-alt"></i> ${customer.phone}</p>
+                    </div>
+                </div>
+                
+                <div class="customer-stats-grid">
+                    <div class="customer-stat-item">
+                        <div class="customer-stat-value">${customer.totalOrders}</div>
+                        <div class="customer-stat-label">Orders</div>
+                    </div>
+                    <div class="customer-stat-item">
+                        <div class="customer-stat-value">₦${(customer.totalSpent / 1000).toFixed(1)}k</div>
+                        <div class="customer-stat-label">Spent</div>
+                    </div>
+                    <div class="customer-stat-item">
+                        <div class="customer-stat-value">${customer.orders.length}</div>
+                        <div class="customer-stat-label">Items</div>
+                    </div>
+                </div>
+                
+                <div class="customer-contact-info">
+                    <div class="contact-row">
+                        <i class="fas fa-envelope"></i>
+                        <span>${customer.email}</span>
+                    </div>
+                    <div class="contact-row">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Last order: ${customer.lastOrder ? new Date(customer.lastOrder).toLocaleDateString() : 'N/A'}</span>
+                    </div>
+                </div>
+                
+                <div class="customer-orders-preview">
+                    <div class="preview-header">
+                        <span>Recent Orders</span>
+                        <span>${customer.orders.length} total</span>
+                    </div>
+                    ${customer.orders.slice(0, 3).map(order => `
+                        <div class="preview-order-item">
+                            <span class="preview-order-id">${order.id.slice(-8)}</span>
+                            <span class="preview-order-status ${order.status}" 
+                                  style="background: ${getStatusColor(order.status)}20; color: ${getStatusColor(order.status)};">
+                                ${order.status || 'pending'}
+                            </span>
+                            <span>₦${(order.amount || 0).toLocaleString()}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <button class="view-customer-btn" onclick="viewCustomerDetails('${customer.phone}')">
+                    <i class="fas fa-eye"></i> View Full History
+                </button>
+            </div>
+        `).join('');
+    }
+
+    // ==================== UPDATE ACTIVITY FEED ====================
+    function updateActivityFeed() {
+        const feed = document.getElementById('activityFeed');
+        if (!feed) return;
+        
+        const activities = allOrders
+            .flatMap(order => {
+                const acts = [];
+                if (order.verifiedAt) {
+                    acts.push({
+                        type: 'payment_verified',
+                        message: `💰 Payment verified for order ${order.id.slice(-8)}`,
+                        orderId: order.id,
+                        customerName: order.customerName,
+                        timestamp: order.verifiedAt,
+                        icon: 'fa-check-circle',
+                        color: '#2ecc71'
+                    });
+                }
+                if (order.updatedAt && order.status) {
+                    let message = '';
+                    if (order.status === 'preparing') 
+                        message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
+                    if (order.status === 'incubating') 
+                        message = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
+                    if (order.status === 'ready') 
+                        message = `✅ Order ${order.id.slice(-8)} is READY`;
+                    if (order.status === 'completed') 
+                        message = `📦 Order ${order.id.slice(-8)} completed`;
+                    
+                    if (message) {
+                        acts.push({
+                            type: 'status_change',
+                            message: message,
+                            orderId: order.id,
+                            customerName: order.customerName,
+                            timestamp: order.updatedAt,
+                            icon: 'fa-sync-alt',
+                            color: '#3498db'
+                        });
+                    }
+                }
+                if (order.createdAt && !order.verifiedAt && order.status !== 'cancelled') {
+                    acts.push({
+                        type: 'order_created',
+                        message: `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
+                        orderId: order.id,
+                        customerName: order.customerName,
+                        timestamp: order.createdAt,
+                        icon: 'fa-cart-plus',
+                        color: '#9b59b6'
+                    });
+                }
+                return acts;
+            })
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+            .slice(0, 30);
+        
+        if (activities.length === 0) {
+            feed.innerHTML = `
+                <div class="empty-queue">
+                    <i class="fas fa-stream"></i>
+                    <p>No recent activity</p>
+                </div>
+            `;
+            return;
+        }
+        
+        feed.innerHTML = activities.map(act => `
+            <div class="activity-item" style="border-left-color: ${act.color};">
+                <div class="activity-icon" style="color: ${act.color};">
+                    <i class="fas ${act.icon}"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-message">${act.message}</div>
+                    <div class="activity-time">
+                        <i class="far fa-clock"></i> ${timeAgo(act.timestamp)}
+                        ${act.customerName ? `
+                            <span class="activity-customer">
+                                <i class="fas fa-user"></i> ${act.customerName}
+                            </span>
+                        ` : ''}
+                        ${act.orderId ? `
+                            <span class="activity-order">
+                                <i class="fas fa-hashtag"></i> ${act.orderId.slice(-8)}
+                            </span>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ==================== TIME AGO HELPER ====================
+    function timeAgo(timestamp) {
+        if (!timestamp) return 'Just now';
+        const diff = Math.floor((new Date() - new Date(timestamp)) / 60000);
+        if (diff < 1) return 'Just now';
+        if (diff < 60) return `${diff}m ago`;
+        if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
+        return `${Math.floor(diff / 1440)}d ago`;
+    }
+
+    // ==================== GET STATUS COLOR ====================
+    function getStatusColor(status) {
+        const colors = {
+            'pending-payment': '#f39c12',
+            'preparing': '#3498db',
+            'incubating': '#9b59b6',
+            'ready': '#2ecc71',
+            'completed': '#95a5a6',
+            'cancelled': '#e74c3c'
+        };
+        return colors[status] || '#95a5a6';
+    }
+
+    function getStatusIcon(status) {
+        const icons = {
+            'pending-payment': 'fa-clock',
+            'preparing': 'fa-utensils',
+            'incubating': 'fa-clock',
+            'ready': 'fa-check-circle',
+            'completed': 'fa-flag-checkered',
+            'cancelled': 'fa-ban'
+        };
+        return icons[status] || 'fa-circle';
+    }
+
+    // ==================== BROADCAST SYSTEM ====================
+    function initBroadcastSystem() {
+        try {
+            if (typeof BroadcastChannel !== 'undefined') {
+                broadcastChannel = new BroadcastChannel('cleanbite_activities');
+                activityChannel = new BroadcastChannel('cleanbite_admin');
+            }
+        } catch (e) {}
+    }
+
+    function broadcastToOrderPage(type, message, orderId, customerName) {
+        const activity = {
+            type: type,
+            message: message,
+            orderId: orderId,
+            customerName: customerName,
+            timestamp: new Date().toISOString(),
+            icon: getBroadcastIcon(type),
+            color: getBroadcastColor(type)
+        };
+        
+        if (broadcastChannel) {
+            broadcastChannel.postMessage({ type: 'NEW_ACTIVITY', activity });
+        }
+        
+        localStorage.setItem('admin_broadcast', JSON.stringify({
+            type: 'ACTIVITY',
+            activity,
+            timestamp: Date.now()
+        }));
+        setTimeout(() => localStorage.removeItem('admin_broadcast'), 100);
+    }
+
+    function getBroadcastIcon(type) {
+        const icons = {
+            'payment_verified': 'fa-check-circle',
+            'payment_rejected': 'fa-times-circle',
+            'order_created': 'fa-cart-plus',
+            'status_change': 'fa-sync-alt',
+            'order_completed': 'fa-flag-checkered'
+        };
+        return icons[type] || 'fa-bell';
+    }
+
+    function getBroadcastColor(type) {
+        const colors = {
+            'payment_verified': '#2ecc71',
+            'payment_rejected': '#e74c3c',
+            'order_created': '#9b59b6',
+            'status_change': '#3498db',
+            'order_completed': '#3498db'
+        };
+        return colors[type] || '#95a5a6';
+    }
+
+    function addActivity(activity) {
+        const feed = document.getElementById('activityFeed');
+        if (!feed) return;
+        
+        const el = document.createElement('div');
+        el.className = 'activity-item';
+        el.style.borderLeftColor = activity.color || '#3498db';
+        el.innerHTML = `
+            <div class="activity-icon" style="color: ${activity.color || '#3498db'};">
+                <i class="fas ${activity.icon || 'fa-bell'}"></i>
+            </div>
+            <div class="activity-content">
+                <div class="activity-message">${activity.message}</div>
+                <div class="activity-time">
+                    <i class="far fa-clock"></i> Just now
+                    ${activity.customerName ? `
+                        <span class="activity-customer">
+                            <i class="fas fa-user"></i> ${activity.customerName}
+                        </span>
+                    ` : ''}
+                    ${activity.orderId ? `
+                        <span class="activity-order">
+                            <i class="fas fa-hashtag"></i> ${activity.orderId.slice(-8)}
+                        </span>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+        
+        if (feed.firstChild) {
+            feed.insertBefore(el, feed.firstChild);
+        } else {
+            feed.appendChild(el);
+        }
+        
+        while (feed.children.length > 30) {
+            feed.removeChild(feed.lastChild);
+        }
+    }
+
+    // ==================== VERIFY PAYMENT ====================
+    window.openVerifyModal = function(orderId) {
+        const order = allOrders.find(o => o.id === orderId);
+        if (!order) return;
+        
+        currentVerificationOrder = orderId;
+        document.getElementById('verifyOrderId').textContent = order.id;
+        document.getElementById('verifyCustomerName').textContent = order.customerName || 'Customer';
+        document.getElementById('verifyAmount').textContent = `₦${(order.total || order.totalAmount || 0).toLocaleString()}`;
+        document.getElementById('verifyMethod').textContent = order.paymentMethod || 'Bank Transfer';
+        document.getElementById('verificationNotes').value = '';
+        document.getElementById('verifyModal').classList.add('active');
+    };
+
+    document.getElementById('confirmVerification').addEventListener('click', function() {
+        const btn = this;
+        if (!currentVerificationOrder) return;
+        
+        const order = allOrders.find(o => o.id === currentVerificationOrder);
+        if (!order || !order.firebaseKey) {
+            showNotification('Order not found', 'error');
+            closeModal('verifyModal');
+            return;
+        }
+        
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+        
+        const timeout = setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            showNotification('Verification timed out', 'warning');
+        }, 5000);
+        
+        database.ref(`orders/${order.firebaseKey}`).update({
+            paymentStatus: 'verified',
+            status: 'preparing',
+            verifiedAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            preparingStarted: new Date().toISOString()
+        })
+        .then(() => {
+            clearTimeout(timeout);
+            playApprovalSound();
+            
+            const message = `💰 Payment verified for order ${order.id.slice(-8)}`;
+            addActivity({
+                type: 'payment_verified',
+                message,
+                orderId: order.id,
+                customerName: order.customerName,
+                icon: 'fa-check-circle',
+                color: '#2ecc71'
+            });
+            
+            broadcastToOrderPage('payment_verified', message, order.id, order.customerName);
+            showNotification('Payment verified successfully', 'success');
+            closeModal('verifyModal');
+        })
+        .catch(error => {
+            clearTimeout(timeout);
+            console.error(error);
+            showNotification('Error verifying payment', 'error');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+    });
+
+    // ==================== REJECT PAYMENT ====================
+    window.openRejectModal = function(orderId) {
+        const order = allOrders.find(o => o.id === orderId);
+        if (!order) return;
+        
+        currentVerificationOrder = orderId;
+        document.getElementById('rejectOrderId').textContent = order.id;
+        document.getElementById('rejectCustomerName').textContent = order.customerName || 'Customer';
+        document.getElementById('rejectAmount').textContent = `₦${(order.total || order.totalAmount || 0).toLocaleString()}`;
+        document.getElementById('rejectionReason').value = '';
+        document.getElementById('rejectModal').classList.add('active');
+    };
+
+    document.getElementById('confirmRejection').addEventListener('click', function() {
+        const btn = this;
+        if (!currentVerificationOrder) return;
+        
+        const reason = document.getElementById('rejectionReason').value.trim();
+        if (!reason) {
+            showNotification('Please provide a rejection reason', 'warning');
+            return;
+        }
+        
+        const order = allOrders.find(o => o.id === currentVerificationOrder);
+        if (!order || !order.firebaseKey) {
+            showNotification('Order not found', 'error');
+            closeModal('rejectModal');
+            return;
+        }
+        
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejecting...';
+        
+        const timeout = setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            showNotification('Rejection timed out', 'warning');
+        }, 5000);
+        
+        database.ref(`orders/${order.firebaseKey}`).update({
+            paymentStatus: 'rejected',
+            status: 'cancelled',
+            rejectionReason: reason,
+            rejectedAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        })
+        .then(() => {
+            clearTimeout(timeout);
+            
+            const message = `❌ Payment rejected for order ${order.id.slice(-8)}`;
+            addActivity({
+                type: 'payment_rejected',
+                message,
+                orderId: order.id,
+                customerName: order.customerName,
+                icon: 'fa-times-circle',
+                color: '#e74c3c'
+            });
+            
+            broadcastToOrderPage('payment_rejected', message, order.id, order.customerName);
+            showNotification('Payment rejected', 'warning');
+            closeModal('rejectModal');
+        })
+        .catch(error => {
+            clearTimeout(timeout);
+            console.error(error);
+            showNotification('Error rejecting payment', 'error');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+    });
+
+    // ==================== UPDATE STATUS ====================
+    window.openStatusModal = function(orderId) {
+        const order = allOrders.find(o => o.id === orderId);
+        if (!order) return;
+        
+        currentStatusOrder = orderId;
+        document.getElementById('statusOrderId').textContent = order.id;
+        document.getElementById('statusCustomerName').textContent = order.customerName || 'Customer';
+        document.getElementById('currentStatus').innerHTML = 
+            `<span class="status-badge ${order.status}" style="background: ${getStatusColor(order.status)}20; color: ${getStatusColor(order.status)};">
+                ${order.status?.replace('-', ' ') || 'pending'}
+            </span>`;
+        
+        const statuses = ['preparing', 'incubating', 'ready', 'completed'];
+        const options = document.getElementById('statusOptions');
+        options.innerHTML = statuses.map(status => `
+            <label class="status-option" style="background: ${order.status === status ? 'var(--primary-light)' : 'white'};">
+                <input type="radio" name="status" value="${status}" ${order.status === status ? 'checked' : ''}>
+                <span class="status-badge ${status}" style="background: ${getStatusColor(status)}20; color: ${getStatusColor(status)};">
+                    <i class="fas ${getStatusIcon(status)}"></i> ${status}
+                </span>
+                ${order.status === status ? '<span style="margin-left: auto; color: var(--primary);"><i class="fas fa-check-circle"></i> Current</span>' : ''}
+            </label>
+        `).join('');
+        
+        document.getElementById('statusModal').classList.add('active');
+    };
+
+    document.getElementById('confirmUpdate').addEventListener('click', function() {
+        const btn = this;
+        if (!currentStatusOrder) return;
+        
+        const selected = document.querySelector('input[name="status"]:checked');
+        if (!selected) {
+            showNotification('Please select a status', 'warning');
+            return;
+        }
+        
+        const newStatus = selected.value;
+        const order = allOrders.find(o => o.id === currentStatusOrder);
+        
+        if (!order || !order.firebaseKey) {
+            showNotification('Order not found', 'error');
+            closeModal('statusModal');
+            return;
+        }
+        
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+        
+        const updates = {
+            status: newStatus,
+            updatedAt: new Date().toISOString()
+        };
+        
+        if (newStatus === 'preparing' && !order.preparingStarted) {
+            updates.preparingStarted = new Date().toISOString();
+        }
+        if (newStatus === 'incubating' && !order.incubatingStarted) {
+            updates.incubatingStarted = new Date().toISOString();
+        }
+        if (newStatus === 'ready' && !order.readyAt) {
+            updates.readyAt = new Date().toISOString();
+        }
+        if (newStatus === 'completed') {
+            updates.completedAt = new Date().toISOString();
+        }
+        
+        const timeout = setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            showNotification('Update timed out', 'warning');
+        }, 5000);
+        
+        database.ref(`orders/${order.firebaseKey}`).update(updates)
+        .then(() => {
+            clearTimeout(timeout);
+            playApprovalSound();
+            
+            let message = '';
+            if (newStatus === 'preparing') message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
+            if (newStatus === 'incubating') message = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
+            if (newStatus === 'ready') message = `✅ Order ${order.id.slice(-8)} is READY`;
+            if (newStatus === 'completed') message = `📦 Order ${order.id.slice(-8)} completed`;
+            
+            if (message) {
+                addActivity({
+                    type: 'status_change',
+                    message,
+                    orderId: order.id,
+                    customerName: order.customerName,
+                    icon: 'fa-sync-alt',
+                    color: '#3498db'
+                });
+                broadcastToOrderPage('status_change', message, order.id, order.customerName);
+            }
+            
+            showNotification(`Order updated to ${newStatus}`, 'success');
+            closeModal('statusModal');
+        })
+        .catch(error => {
+            clearTimeout(timeout);
+            console.error(error);
+            showNotification('Error updating status', 'error');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+    });
+
+    // ==================== COMPLETE ORDER ====================
+    window.completeOrderManually = function(orderId) {
+        const order = allOrders.find(o => o.id === orderId);
+        if (!order || !order.firebaseKey) {
+            showNotification('Order not found', 'error');
+            return;
+        }
+        
+        const timeout = setTimeout(() => {
+            showNotification('Completion timed out', 'warning');
+        }, 5000);
+        
+        database.ref(`orders/${order.firebaseKey}`).update({
+            status: 'completed',
+            completedAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        })
+        .then(() => {
+            clearTimeout(timeout);
+            playApprovalSound();
+            
+            const message = `🏁 Order ${orderId.slice(-8)} completed`;
+            addActivity({
+                type: 'order_completed',
+                message,
+                orderId: order.id,
+                customerName: order.customerName,
+                icon: 'fa-flag-checkered',
+                color: '#3498db'
+            });
+            broadcastToOrderPage('order_completed', message, order.id, order.customerName);
+            showNotification('Order completed', 'success');
+        })
+        .catch(error => {
+            clearTimeout(timeout);
+            console.error(error);
+            showNotification('Error completing order', 'error');
+        });
+    };
+
+    // ==================== VIEW CUSTOMER DETAILS ====================
+    window.viewCustomerDetails = function(phone) {
+        const customer = allCustomers.get(phone);
+        if (!customer) return;
+        
+        const modalBody = document.getElementById('customerModalBody');
+        modalBody.innerHTML = `
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="width: 80px; height: 80px; background: var(--primary-light); border-radius: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                    <i class="fas fa-user-circle" style="font-size: 40px; color: var(--primary);"></i>
+                </div>
+                <h3 style="font-size: 1.5rem; margin-bottom: 5px;">${customer.name}</h3>
+                <p style="color: var(--gray);">${customer.phone}</p>
+            </div>
+            
+            <div class="customer-stats-grid" style="margin-bottom: 25px;">
+                <div class="customer-stat-item">
+                    <div class="customer-stat-value">${customer.totalOrders}</div>
+                    <div class="customer-stat-label">Total Orders</div>
+                </div>
+                <div class="customer-stat-item">
+                    <div class="customer-stat-value">₦${(customer.totalSpent / 1000).toFixed(1)}k</div>
+                    <div class="customer-stat-label">Total Spent</div>
+                </div>
+                <div class="customer-stat-item">
+                    <div class="customer-stat-value">${customer.orders.length}</div>
+                    <div class="customer-stat-label">Items</div>
+                </div>
+            </div>
+            
+            <div class="customer-contact-info" style="margin-bottom: 25px;">
+                <div class="contact-row">
+                    <i class="fas fa-envelope"></i>
+                    <span>${customer.email}</span>
+                </div>
+                <div class="contact-row">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Customer since: ${customer.orders.length > 0 ? new Date(customer.orders[customer.orders.length-1].date).toLocaleDateString() : 'N/A'}</span>
+                </div>
+                <div class="contact-row">
+                    <i class="fas fa-clock"></i>
+                    <span>Last order: ${customer.lastOrder ? new Date(customer.lastOrder).toLocaleString() : 'N/A'}</span>
+                </div>
+            </div>
+            
+            <h4 style="margin-bottom: 15px;">Order History</h4>
+            <div style="max-height: 300px; overflow-y: auto;">
+                ${customer.orders.sort((a, b) => new Date(b.date) - new Date(a.date)).map(order => `
+                    <div style="background: #f8f9fa; border-radius: 16px; padding: 15px; margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="font-weight: 700;">${order.id}</span>
+                            <span class="status-badge ${order.status}" style="background: ${getStatusColor(order.status)}20; color: ${getStatusColor(order.status)};">
+                                ${order.status || 'pending'}
+                            </span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; color: var(--gray); font-size: 13px;">
+                            <span>${new Date(order.date).toLocaleDateString()}</span>
+                            <span style="font-weight: 700; color: var(--success);">₦${(order.amount || 0).toLocaleString()}</span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        
+        document.getElementById('customerModal').classList.add('active');
+    };
+
+    // ==================== NOTIFICATION ====================
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `notification-toast ${type}`;
+        notification.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}" 
+               style="font-size: 24px; color: ${type === 'success' ? '#2ecc71' : type === 'warning' ? '#f39c12' : '#3498db'};"></i>
+            <div style="flex: 1;">
+                <div style="font-weight: 700; margin-bottom: 5px;">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+                <div style="color: var(--gray);">${message}</div>
+            </div>
+            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--gray); cursor: pointer; font-size: 20px;">&times;</button>
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 5000);
+    }
+
+    // ==================== MODAL FUNCTIONS ====================
+    function closeModal(modalId) {
+        document.getElementById(modalId)?.classList.remove('active');
+    }
+
+    // ==================== LOAD DASHBOARD CONTENT ====================
+    function loadDashboardContent() {
+        const mainContent = document.getElementById('mainContent');
+        mainContent.innerHTML = `
             <!-- Payment Notice -->
             <div class="payment-notice" id="paymentNotice">
                 <i class="fas fa-exclamation-triangle"></i>
                 <div class="payment-notice-content">
                     <h4><i class="fas fa-bell"></i> Payment Verification Required</h4>
-                    <p id="paymentNoticeMessage">New orders require payment verification before production</p>
+                    <p id="paymentNoticeMessage">New orders require payment verification</p>
                 </div>
-                <span class="badge" id="paymentNoticeCount">
-                    <i class="fas fa-clock"></i> 0 pending
-                </span>
+                <span class="badge" id="paymentNoticeCount"><i class="fas fa-clock"></i> 0 pending</span>
             </div>
 
             <!-- Stats Cards -->
@@ -1277,7 +3302,7 @@
                 <div class="stat-card revenue">
                     <div class="stat-header">
                         <div class="stat-icon"><i class="fas fa-naira-sign"></i></div>
-                        <div class="stat-trend positive"><i class="fas fa-arrow-up"></i> +12%</div>
+                        <div class="stat-trend positive"><i class="fas fa-arrow-up"></i> Live</div>
                     </div>
                     <div class="stat-value" id="totalRevenue">₦0</div>
                     <div class="stat-label"><i class="fas fa-circle-check"></i> Verified Revenue</div>
@@ -1301,33 +3326,29 @@
                     <div class="stat-label"><i class="fas fa-check-circle"></i> Verified Orders</div>
                 </div>
                 
-                <div class="stat-card cancelled">
+                <div class="stat-card customers">
                     <div class="stat-header">
-                        <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
-                        <div class="stat-trend negative"><i class="fas fa-exclamation"></i> 0</div>
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-trend positive"><i class="fas fa-arrow-up"></i> Total</div>
                     </div>
-                    <div class="stat-value" id="cancelledOrdersCount">0</div>
-                    <div class="stat-label"><i class="fas fa-ban"></i> Cancelled Orders</div>
+                    <div class="stat-value" id="totalCustomers">0</div>
+                    <div class="stat-label"><i class="fas fa-user-plus"></i> Active Customers</div>
                 </div>
             </div>
 
-            <!-- Advanced Filter Bar -->
+            <!-- Filter Bar -->
             <div class="filter-bar">
                 <div class="filter-group">
-                    <span class="filter-label"><i class="fas fa-filter"></i> Filter by:</span>
-                    <select class="filter-select" id="orderTypeFilter">
+                    <span class="filter-label"><i class="fas fa-filter"></i> Filter:</span>
+                    <select class="filter-select" id="mainFilter">
                         <option value="all">All Orders</option>
-                        <option value="verified">Verified Only</option>
-                        <option value="cancelled">Cancelled Only</option>
                         <option value="pending">Pending Payment</option>
-                    </select>
-                    
-                    <select class="filter-select" id="statusFilter">
-                        <option value="all">All Statuses</option>
+                        <option value="verified">Verified Only</option>
                         <option value="preparing">Preparing</option>
                         <option value="incubating">Incubating</option>
                         <option value="ready">Ready</option>
                         <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
                     </select>
                     
                     <select class="filter-select" id="dateFilter">
@@ -1340,26 +3361,13 @@
                 
                 <div class="filter-search">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search by Order ID, Customer, Phone...">
+                    <input type="text" id="searchInput" placeholder="Search orders, customers...">
                 </div>
                 
                 <div class="filter-actions">
-                    <button class="filter-btn active"><i class="fas fa-sliders-h"></i> Apply</button>
-                    <button class="filter-btn"><i class="fas fa-redo-alt"></i> Reset</button>
+                    <button class="filter-btn" id="applyFilter"><i class="fas fa-check"></i> Apply</button>
+                    <button class="filter-btn" id="resetFilter"><i class="fas fa-redo-alt"></i> Reset</button>
                 </div>
-            </div>
-
-            <!-- Orders Tabs -->
-            <div class="orders-tabs">
-                <button class="tab-btn all active" id="showAllOrders">
-                    <i class="fas fa-list"></i> All Orders (24)
-                </button>
-                <button class="tab-btn verified" id="showVerifiedOrders">
-                    <i class="fas fa-check-circle"></i> Verified (18)
-                </button>
-                <button class="tab-btn cancelled" id="showCancelledOrders">
-                    <i class="fas fa-times-circle"></i> Cancelled (6)
-                </button>
             </div>
 
             <!-- Payment Verification Queue -->
@@ -1371,1384 +3379,173 @@
                         <span id="verificationCount">0</span> Pending
                     </div>
                 </div>
-                <div class="verification-list" id="verificationList">
-                    <!-- Verification items will be populated here -->
-                </div>
+                <div class="verification-grid" id="verificationList"></div>
             </div>
 
-            <!-- Customer Details Panel -->
-            <div class="customer-panel" id="customerPanel">
-                <div class="customer-panel-header">
-                    <h3><i class="fas fa-users"></i> Customer Database</h3>
-                    <div class="customer-stats">
-                        <span class="customer-stat"><i class="fas fa-user"></i> 156 Total</span>
-                        <span class="customer-stat"><i class="fas fa-shopping-cart"></i> 342 Orders</span>
+            <!-- Verified Orders -->
+            <div class="verification-section" id="verifiedSection">
+                <div class="section-header">
+                    <h3><i class="fas fa-check-circle" style="color: var(--success);"></i> Verified Orders</h3>
+                    <div class="section-count" style="color: var(--success);">
+                        <i class="fas fa-check"></i>
+                        <span id="verifiedCount">0</span> Active
                     </div>
                 </div>
-                
-                <div class="customers-grid" id="customersGrid">
-                    <!-- Customer cards will be populated here -->
-                </div>
+                <div class="orders-grid" id="verifiedOrdersList"></div>
             </div>
 
-            <!-- Orders Container -->
-            <div class="orders-container">
-                <div class="orders-header">
-                    <div>Order ID</div>
-                    <div>Customer Details</div>
-                    <div>Items</div>
-                    <div>Amount</div>
-                    <div>Status</div>
-                    <div>Actions</div>
-                </div>
-                <div class="orders-list" id="ordersList">
-                    <!-- Verified Orders Section -->
-                    <div style="margin-bottom: 30px;">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-left: 10px;">
-                            <i class="fas fa-check-circle" style="color: var(--success); font-size: 1.2rem;"></i>
-                            <h4 style="color: var(--success); font-weight: 700;">VERIFIED ORDERS</h4>
-                            <span style="background: var(--success-light); padding: 5px 15px; border-radius: 30px; font-size: 12px; color: var(--success);">8 active</span>
-                        </div>
-                        <!-- Verified order rows will go here -->
-                        <div class="order-row verified-row">
-                            <div class="order-id">CB-123456</div>
-                            <div class="customer-info">
-                                <h4><i class="fas fa-user-circle"></i> John Doe</h4>
-                                <p><i class="fas fa-phone"></i> 08012345678</p>
-                            </div>
-                            <div class="order-items">2x Plain Yoghurt<br>1x Strawberry</div>
-                            <div class="order-amount">₦14,000</div>
-                            <div>
-                                <span class="status-badge status-preparing">Preparing</span>
-                                <span class="payment-badge payment-verified">Verified</span>
-                            </div>
-                            <div class="action-buttons">
-                                <button class="btn-action update"><i class="fas fa-edit"></i> Update</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Cancelled Orders Section -->
-                    <div>
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-left: 10px;">
-                            <i class="fas fa-times-circle" style="color: var(--danger); font-size: 1.2rem;"></i>
-                            <h4 style="color: var(--danger); font-weight: 700;">CANCELLED ORDERS</h4>
-                            <span style="background: var(--danger-light); padding: 5px 15px; border-radius: 30px; font-size: 12px; color: var(--danger);">3 total</span>
-                        </div>
-                        <!-- Cancelled order rows will go here -->
-                        <div class="order-row cancelled-row">
-                            <div class="order-id">CB-123457</div>
-                            <div class="customer-info">
-                                <h4><i class="fas fa-user-circle"></i> Jane Smith</h4>
-                                <p><i class="fas fa-phone"></i> 08098765432</p>
-                            </div>
-                            <div class="order-items">1x Vanilla<br>1x Coconut</div>
-                            <div class="order-amount">₦10,500</div>
-                            <div>
-                                <span class="status-badge status-cancelled">Cancelled</span>
-                                <span class="payment-badge payment-rejected">Rejected</span>
-                            </div>
-                            <div class="action-buttons">
-                                <span style="color: var(--gray); font-size: 12px;">No actions</span>
-                            </div>
-                        </div>
+            <!-- Cancelled Orders -->
+            <div class="verification-section" id="cancelledSection">
+                <div class="section-header">
+                    <h3><i class="fas fa-times-circle" style="color: var(--danger);"></i> Cancelled Orders</h3>
+                    <div class="section-count" style="color: var(--danger);">
+                        <i class="fas fa-ban"></i>
+                        <span id="cancelledCount">0</span> Total
                     </div>
                 </div>
+                <div class="orders-grid" id="cancelledOrdersList"></div>
             </div>
 
-            <!-- Live Activity Feed -->
-            <div class="activity-section">
+            <!-- Customer Database -->
+            <div class="customer-section" id="customerSection">
+                <div class="section-header">
+                    <h3><i class="fas fa-users" style="color: var(--purple);"></i> Customer Database</h3>
+                    <div class="section-count">
+                        <i class="fas fa-user"></i>
+                        <span id="customerCount">0</span> Customers
+                    </div>
+                </div>
+                <div class="customers-grid" id="customersList"></div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="activity-section" id="activitySection">
                 <div class="section-header">
                     <h3><i class="fas fa-stream"></i> Live Activity Feed</h3>
-                    <button class="filter-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    <button class="filter-btn" id="refreshActivity"><i class="fas fa-sync-alt"></i> Refresh</button>
                 </div>
-                <div class="activity-feed" id="activityFeed">
-                    <!-- Activity items will be populated here -->
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Modals -->
-    <div class="modal" id="verifyModal">
-        <div class="modal-content">
-            <div class="modal-header"><h3><i class="fas fa-check-circle"></i> Verify Payment</h3><button class="modal-close" id="closeVerifyModal">&times;</button></div>
-            <div class="modal-body">
-                <div class="order-info" id="verifyOrderInfo">
-                    <p><strong>Order ID:</strong> <span id="verifyOrderId">CB-0000</span></p>
-                    <p><strong>Customer:</strong> <span id="verifyCustomerName">John Doe</span></p>
-                    <p><strong>Amount:</strong> <span id="verifyAmount">₦0</span></p>
-                    <p><strong>Payment Method:</strong> <span id="verifyMethod">Bank Transfer</span></p>
-                </div>
-                <div class="form-group"><label for="verificationNotes">Verification Notes (Optional)</label><textarea id="verificationNotes" rows="4" placeholder="Add any notes..."></textarea></div>
-                <div class="modal-actions"><button class="btn-modal btn-secondary" id="cancelVerification">Cancel</button><button class="btn-modal btn-primary" id="confirmVerification"><i class="fas fa-check"></i> Verify Payment</button></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="rejectModal">
-        <div class="modal-content">
-            <div class="modal-header"><h3><i class="fas fa-times-circle"></i> Reject Payment</h3><button class="modal-close" id="closeRejectModal">&times;</button></div>
-            <div class="modal-body">
-                <div class="order-info" id="rejectOrderInfo">
-                    <p><strong>Order ID:</strong> <span id="rejectOrderId">CB-0000</span></p>
-                    <p><strong>Customer:</strong> <span id="rejectCustomerName">John Doe</span></p>
-                    <p><strong>Amount:</strong> <span id="rejectAmount">₦0</span></p>
-                </div>
-                <div class="form-group"><label for="rejectionReason">Rejection Reason *</label><textarea id="rejectionReason" rows="4" placeholder="Please provide the reason..." required></textarea></div>
-                <div class="modal-actions"><button class="btn-modal btn-secondary" id="cancelRejection">Go Back</button><button class="btn-modal btn-danger" id="confirmRejection"><i class="fas fa-times"></i> Reject Payment</button></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="statusModal">
-        <div class="modal-content">
-            <div class="modal-header"><h3><i class="fas fa-sync-alt"></i> Update Order Status</h3><button class="modal-close" id="closeStatusModal">&times;</button></div>
-            <div class="modal-body">
-                <p class="order-info" id="modalOrderInfo">Order: <strong>CB-0000</strong> for <strong>Customer Name</strong></p>
-                <div class="status-options" id="statusOptions"></div>
-                <div class="modal-actions"><button class="btn-modal btn-secondary" id="cancelUpdate">Cancel</button><button class="btn-modal btn-primary" id="confirmUpdate"><i class="fas fa-check"></i> Update Status</button></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="filterModal">
-        <div class="modal-content">
-            <div class="modal-header"><h3><i class="fas fa-filter"></i> Filter Orders</h3><button class="modal-close" id="closeFilterModal">&times;</button></div>
-            <div class="modal-body">
-                <div class="form-group"><label>Status</label><select id="filterStatus"><option value="all">All Orders</option><option value="pending-payment">Pending Payment</option><option value="preparing">Preparing</option><option value="incubating">Incubating</option><option value="ready">Ready</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></div>
-                <div class="form-group"><label>Date Range</label><select id="filterDate"><option value="all">All Time</option><option value="today">Today</option><option value="week">This Week</option><option value="month">This Month</option><option value="custom">Custom Range</option></select></div>
-                <div class="modal-actions"><button class="btn-modal btn-secondary" id="clearFilters">Clear</button><button class="btn-modal btn-primary" id="applyFilters">Apply Filters</button></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
-    <script>
-    // ==================== FIREBASE CONFIGURATION ====================
-    const firebaseConfig = {
-        apiKey: "AIzaSyC1WaO1WE-LFayAqLeql0BP5vD8bddgUuE",
-        authDomain: "cleanbite-empire.firebaseapp.com",
-        databaseURL: "https://cleanbite-empire-default-rtdb.firebaseio.com",
-        projectId: "cleanbite-empire",
-        storageBucket: "cleanbite-empire.firebasestorage.app",
-        messagingSenderId: "733995841314",
-        appId: "1:733995841314:web:d82f5452f1fff0fdfad77b"
-    };
-    
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    
-    // Global variables
-    let allOrders = [];
-    let notificationSound = null;
-    let approvalSound = null;
-    let currentVerificationOrder = null;
-    let currentStatusOrder = null;
-    let activityChannel = null;
-
-    // ==================== FIXED BROADCAST SYSTEM ====================
-let adminBroadcastChannel = null;
-
-function initBroadcastSystem() {
-    console.log('📡 Initializing admin broadcast system...');
-    
-    try {
-        // Create broadcast channel
-        if (typeof BroadcastChannel !== 'undefined') {
-            adminBroadcastChannel = new BroadcastChannel('cleanbite_activities');
-            console.log('✅ BroadcastChannel created');
-        } else {
-            console.warn('⚠️ BroadcastChannel not supported, using localStorage fallback');
-        }
-    } catch (e) {
-        console.error('❌ Failed to create BroadcastChannel:', e);
-    }
-}
-
-// ==================== FIXED BROADCAST FUNCTION ====================
-function broadcastToOrderPage(type, message, orderId, customerName, additionalData = {}) {
-    const activity = {
-        id: Date.now() + Math.random(),
-        type: type,
-        message: message,
-        orderId: orderId,
-        customerName: customerName,
-        timestamp: new Date().toISOString(),
-        icon: getBroadcastIcon(type),
-        color: getBroadcastColor(type),
-        ...additionalData
-    };
-    
-    console.log('📢 BROADCASTING to Order Page:', { type, message, orderId });
-    
-    // Method 1: BroadcastChannel (primary)
-    if (adminBroadcastChannel) {
-        try {
-            adminBroadcastChannel.postMessage({
-                type: 'NEW_ACTIVITY',
-                activity: activity
-            });
-            console.log('✅ BroadcastChannel message sent');
-        } catch (e) {
-            console.error('❌ BroadcastChannel error:', e);
-        }
-    }
-    
-    // Method 2: localStorage event (fallback for cross-tab)
-    try {
-        localStorage.setItem('cleanbite_broadcast', JSON.stringify({
-            type: 'ACTIVITY',
-            activity: activity,
-            timestamp: Date.now()
-        }));
-        // Remove immediately to allow next broadcast
-        setTimeout(() => localStorage.removeItem('cleanbite_broadcast'), 100);
-        console.log('✅ localStorage broadcast sent');
-    } catch (e) {
-        console.error('❌ localStorage error:', e);
-    }
-    
-    // Method 3: Direct Firebase listener will also pick up changes
-    // This is handled by the order page's Firebase listener
-}
-
-// ==================== FIXED ACTIVITY FEED FUNCTION ====================
-function addActivityToFeed(activity) {
-    const feed = document.getElementById('activityFeed');
-    if (!feed) return;
-    
-    // Remove any empty state
-    const emptyState = feed.querySelector('.empty-activity, .loading-activity');
-    if (emptyState) emptyState.remove();
-    
-    const timeAgo = formatTimeAgo(activity.timestamp);
-    const date = new Date(activity.timestamp).toLocaleString();
-    
-    const activityElement = document.createElement('div');
-    activityElement.className = 'activity-item';
-    activityElement.style.borderLeftColor = activity.color || '#3498db';
-    activityElement.dataset.activityId = activity.id || Date.now();
-    
-    activityElement.innerHTML = `
-        <div class="activity-icon" style="color: ${activity.color || '#3498db'};">
-            <i class="fas ${activity.icon || 'fa-bell'}"></i>
-        </div>
-        <div class="activity-content">
-            <div class="activity-message">${activity.message}</div>
-            <div class="activity-time">
-                <i class="far fa-clock"></i> ${timeAgo}
-                ${activity.customerName ? 
-                    `<span class="activity-customer"><i class="fas fa-user"></i> ${activity.customerName}</span>` : ''}
-                ${activity.orderId ? 
-                    `<span class="activity-order"><i class="fas fa-hashtag"></i> ${activity.orderId.slice(-8)}</span>` : ''}
-            </div>
-        </div>
-    `;
-    
-    // Add to top of feed
-    if (feed.firstChild) {
-        feed.insertBefore(activityElement, feed.firstChild);
-    } else {
-        feed.appendChild(activityElement);
-    }
-    
-    // Limit to 50 items
-    while (feed.children.length > 50) {
-        feed.removeChild(feed.lastChild);
-    }
-    
-    // Highlight new activity
-    setTimeout(() => {
-        activityElement.style.background = 'rgba(255,215,0,0.1)';
-        setTimeout(() => {
-            activityElement.style.background = '';
-        }, 1000);
-    }, 100);
-}
-
-// ==================== UPDATE ALL VERIFICATION FUNCTIONS TO BROADCAST ====================
-
-// Update your verifyPayment function:
-window.verifyPayment = function() {
-    console.log('🔍 Verify payment started');
-    
-    if (!currentVerificationOrder) {
-        showNotification('No order selected', 'error');
-        return;
-    }
-    
-    const order = allOrders.find(o => o.id === currentVerificationOrder);
-    if (!order || !order.firebaseKey) {
-        showNotification('Order not found', 'error');
-        closeModal('verifyModal');
-        return;
-    }
-    
-    const verifyBtn = document.getElementById('confirmVerification');
-    const originalText = verifyBtn.innerHTML;
-    verifyBtn.disabled = true;
-    verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
-    
-    const timeoutId = setTimeout(() => {
-        verifyBtn.disabled = false;
-        verifyBtn.innerHTML = originalText;
-        showNotification('Verification timed out', 'warning');
-    }, 5000);
-    
-    database.ref(`orders/${order.firebaseKey}`).update({
-        paymentStatus: 'verified',
-        status: 'preparing',
-        verifiedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        preparingStarted: new Date().toISOString()
-    })
-    .then(() => {
-        clearTimeout(timeoutId);
-        
-        // Play sound
-        if (window.playApprovalSound) window.playApprovalSound();
-        
-        // Create message
-        const message = `💰 Payment VERIFIED for order ${order.id.slice(-8)} - Now PREPARING`;
-        
-        // Add to admin feed
-        addActivityToFeed({
-            type: 'payment_verified',
-            message: message,
-            orderId: order.id,
-            customerName: order.customerName,
-            timestamp: new Date().toISOString(),
-            icon: 'fa-check-circle',
-            color: '#2ecc71'
-        });
-        
-        // 🔥 CRITICAL: Broadcast to order page
-        broadcastToOrderPage('payment_verified', message, order.id, order.customerName, {
-            amount: order.total,
-            status: 'preparing'
-        });
-        
-        showNotification(`✅ Payment verified`, 'success');
-        closeModal('verifyModal');
-        currentVerificationOrder = null;
-        
-        verifyBtn.disabled = false;
-        verifyBtn.innerHTML = originalText;
-    })
-    .catch(error => {
-        clearTimeout(timeoutId);
-        console.error('❌ Error:', error);
-        showNotification('Error verifying payment', 'error');
-        verifyBtn.disabled = false;
-        verifyBtn.innerHTML = originalText;
-    });
-};
-
-// Update your updateOrderStatus function:
-window.updateOrderStatus = function() {
-    console.log('🔍 Update status started');
-    
-    if (!currentStatusOrder) {
-        showNotification('No order selected', 'error');
-        return;
-    }
-    
-    const selectedStatus = document.querySelector('input[name="status"]:checked');
-    if (!selectedStatus) {
-        showNotification('Please select a status', 'warning');
-        return;
-    }
-    
-    const newStatus = selectedStatus.value;
-    const order = allOrders.find(o => o.id === currentStatusOrder);
-    
-    if (!order || !order.firebaseKey) {
-        showNotification('Order not found', 'error');
-        closeModal('statusModal');
-        return;
-    }
-    
-    const updateBtn = document.getElementById('confirmUpdate');
-    const originalText = updateBtn.innerHTML;
-    updateBtn.disabled = true;
-    updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
-    
-    const timeoutId = setTimeout(() => {
-        updateBtn.disabled = false;
-        updateBtn.innerHTML = originalText;
-        showNotification('Update timed out', 'warning');
-    }, 5000);
-    
-    const updates = {
-        status: newStatus,
-        updatedAt: new Date().toISOString()
-    };
-    
-    if (newStatus === 'preparing' && !order.preparingStarted) {
-        updates.preparingStarted = new Date().toISOString();
-    }
-    if (newStatus === 'incubating' && !order.incubatingStarted) {
-        updates.incubatingStarted = new Date().toISOString();
-    }
-    if (newStatus === 'ready' && !order.readyAt) {
-        updates.readyAt = new Date().toISOString();
-    }
-    if (newStatus === 'completed') {
-        updates.completedAt = new Date().toISOString();
-    }
-    
-    database.ref(`orders/${order.firebaseKey}`).update(updates)
-    .then(() => {
-        clearTimeout(timeoutId);
-        
-        if (window.playApprovalSound) window.playApprovalSound();
-        
-        let message = '';
-        if (newStatus === 'preparing') message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
-        if (newStatus === 'incubating') message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (24hr countdown)`;
-        if (newStatus === 'ready') message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
-        if (newStatus === 'completed') message = `📦 Order ${order.id.slice(-8)} completed and picked up`;
-        
-        if (message) {
-            // Add to admin feed
-            addActivityToFeed({
-                type: 'status_change',
-                message: message,
-                orderId: order.id,
-                customerName: order.customerName,
-                timestamp: new Date().toISOString(),
-                icon: 'fa-sync-alt',
-                color: '#3498db'
-            });
-            
-            // 🔥 CRITICAL: Broadcast to order page
-            broadcastToOrderPage('status_change', message, order.id, order.customerName, {
-                newStatus: newStatus,
-                oldStatus: order.status
-            });
-        }
-        
-        showNotification(`Order updated to ${newStatus}`, 'success');
-        closeModal('statusModal');
-        currentStatusOrder = null;
-        
-        updateBtn.disabled = false;
-        updateBtn.innerHTML = originalText;
-    })
-    .catch(error => {
-        clearTimeout(timeoutId);
-        console.error('❌ Error:', error);
-        showNotification('Error updating status', 'error');
-        updateBtn.disabled = false;
-        updateBtn.innerHTML = originalText;
-    });
-};
-
-// Update your completeOrderManually function:
-window.completeOrderManually = function(orderId) {
-    console.log('🏁 Completing order:', orderId);
-    
-    const order = allOrders.find(o => o.id === orderId);
-    if (!order || !order.firebaseKey) {
-        showNotification('Order not found', 'error');
-        return;
-    }
-    
-    const timeoutId = setTimeout(() => {
-        showNotification('Completion timed out', 'warning');
-    }, 5000);
-    
-    database.ref(`orders/${order.firebaseKey}`).update({
-        status: 'completed',
-        completedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    })
-    .then(() => {
-        clearTimeout(timeoutId);
-        
-        if (window.playApprovalSound) window.playApprovalSound();
-        
-        const message = `🏁 Order ${orderId.slice(-8)} marked COMPLETED`;
-        
-        // Add to admin feed
-        addActivityToFeed({
-            type: 'order_completed',
-            message: message,
-            orderId: order.id,
-            customerName: order.customerName,
-            timestamp: new Date().toISOString(),
-            icon: 'fa-flag-checkered',
-            color: '#3498db'
-        });
-        
-        // 🔥 CRITICAL: Broadcast to order page
-        broadcastToOrderPage('order_completed', message, order.id, order.customerName);
-        
-        showNotification(`✅ Order completed`, 'success');
-    })
-    .catch(error => {
-        clearTimeout(timeoutId);
-        console.error('❌ Error:', error);
-        showNotification('Error completing order', 'error');
-    });
-};
-
-// Call init in DOMContentLoaded
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Admin dashboard initializing...');
-    initNotificationSounds();
-    initBroadcastSystem(); // 🔥 ADD THIS
-    loadOrdersFromFirebase();
-    setupEventListeners();
-});
-
-    // ==================== NOTIFICATION SOUNDS ====================
-    function initNotificationSounds() {
-        try {
-            // Create actual sound using Web Audio API
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            const audioCtx = new AudioContext();
-            
-            // Function to play a beep sound
-            window.playNotificationSound = function() {
-                try {
-                    const oscillator = audioCtx.createOscillator();
-                    const gainNode = audioCtx.createGain();
-                    
-                    oscillator.type = 'sine';
-                    oscillator.frequency.value = 800;
-                    gainNode.gain.value = 0.3;
-                    
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    
-                    oscillator.start();
-                    oscillator.stop(audioCtx.currentTime + 0.3);
-                } catch (e) {
-                    console.log('Audio play failed:', e);
-                }
-            };
-            
-            window.playApprovalSound = function() {
-                try {
-                    const oscillator = audioCtx.createOscillator();
-                    const gainNode = audioCtx.createGain();
-                    
-                    oscillator.type = 'sine';
-                    oscillator.frequency.value = 600;
-                    gainNode.gain.value = 0.4;
-                    
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    
-                    oscillator.start();
-                    
-                    // Two beeps for approval
-                    setTimeout(() => {
-                        oscillator.frequency.value = 800;
-                    }, 150);
-                    
-                    oscillator.stop(audioCtx.currentTime + 0.4);
-                } catch (e) {
-                    console.log('Audio play failed:', e);
-                }
-            };
-            
-            console.log('✅ Notification sounds initialized');
-        } catch (e) {
-            console.warn('Could not initialize sounds:', e);
-            // Fallback silent functions
-            window.playNotificationSound = function() {};
-            window.playApprovalSound = function() {};
-        }
-    }
-
-    // ==================== LOAD ORDERS WITH REAL-TIME LISTENER ====================
-    function loadOrdersFromFirebase() {
-        console.log('📡 Setting up Firebase listener...');
-        
-        const ordersRef = database.ref('orders');
-        
-        // THIS IS THE KEY - 'child_added' fires for EACH new order
-        ordersRef.on('child_added', (snapshot) => {
-            const order = snapshot.val();
-            order.firebaseKey = snapshot.key;
-            
-            console.log('🆕 NEW ORDER DETECTED:', order.id);
-            
-            // Check if it's a new order (pending payment)
-            if (order.paymentStatus === 'pending' && order.status === 'pending-payment') {
-                console.log('🔔 PLAYING NOTIFICATION SOUND FOR NEW ORDER!');
-                
-                // Play sound
-                if (window.playNotificationSound) {
-                    window.playNotificationSound();
-                }
-                
-                // Show notification
-                showNotification(
-                    `💰 New payment pending: Order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
-                    'warning'
-                );
-                
-                // Add to activity feed
-                addActivityToFeed({
-                    type: 'order_created',
-                    message: `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'} (pending payment)`,
-                    orderId: order.id,
-                    customerName: order.customerName,
-                    timestamp: order.createdAt || new Date().toISOString(),
-                    icon: 'fa-cart-plus',
-                    color: '#9b59b6'
-                });
-            }
-            
-            // Add to allOrders array
-            allOrders.push(order);
-            
-            // Update dashboard
-            updateDashboardWithFirebaseOrders(allOrders);
-        });
-        
-        // Listen for updates to orders
-        ordersRef.on('child_changed', (snapshot) => {
-            const updatedOrder = snapshot.val();
-            updatedOrder.firebaseKey = snapshot.key;
-            
-            console.log('🔄 Order updated:', updatedOrder.id);
-            
-            // Find and update in allOrders
-            const index = allOrders.findIndex(o => o.firebaseKey === snapshot.key);
-            if (index !== -1) {
-                allOrders[index] = updatedOrder;
-            } else {
-                allOrders.push(updatedOrder);
-            }
-            
-            // Update dashboard
-            updateDashboardWithFirebaseOrders(allOrders);
-        });
-        
-        // Initial load
-        ordersRef.once('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                allOrders = Object.keys(data).map(key => ({
-                    ...data[key],
-                    firebaseKey: key
-                }));
-                console.log(`✅ Loaded ${allOrders.length} existing orders`);
-                updateDashboardWithFirebaseOrders(allOrders);
-                generateActivitiesFromOrders(allOrders);
-            }
-        });
-    }
-
-    // ==================== UPDATE DASHBOARD ====================
-    function updateDashboardWithFirebaseOrders(orders) {
-        const pendingPayments = orders.filter(o => 
-            o.paymentStatus === 'pending' && 
-            o.status !== 'cancelled'
-        );
-        
-        const verifiedOrders = orders.filter(o => 
-            o.paymentStatus === 'verified' && 
-            o.status !== 'completed' && 
-            o.status !== 'cancelled'
-        );
-        
-        updateStats(orders);
-        renderVerificationQueue(pendingPayments);
-        renderOrders(verifiedOrders);
-        localStorage.setItem('admin_verification_queue', JSON.stringify(pendingPayments));
-    }
-
-    // ==================== GENERATE ACTIVITIES ====================
-    function generateActivitiesFromOrders(orders) {
-        const feed = document.getElementById('activityFeed');
-        if (!feed) return;
-        
-        const sortedOrders = [...orders].sort((a, b) => 
-            new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)
-        );
-        
-        // Clear feed
-        feed.innerHTML = '';
-        
-        sortedOrders.slice(0, 20).forEach(order => {
-            if (order.verifiedAt) {
-                addActivityToFeed({
-                    message: `💰 Payment verified for order ${order.id.slice(-8)}`,
-                    orderId: order.id,
-                    customerName: order.customerName,
-                    timestamp: order.verifiedAt,
-                    icon: 'fa-check-circle',
-                    color: '#2ecc71'
-                }, false);
-            }
-            
-            if (order.status === 'ready' && order.readyAt) {
-                addActivityToFeed({
-                    message: `✅ Order ${order.id.slice(-8)} is READY`,
-                    orderId: order.id,
-                    customerName: order.customerName,
-                    timestamp: order.readyAt,
-                    icon: 'fa-check-circle',
-                    color: '#2ecc71'
-                }, false);
-            }
-            
-            if (order.createdAt && !order.verifiedAt && order.status !== 'cancelled') {
-                addActivityToFeed({
-                    message: `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
-                    orderId: order.id,
-                    customerName: order.customerName,
-                    timestamp: order.createdAt,
-                    icon: 'fa-cart-plus',
-                    color: '#9b59b6'
-                }, false);
-            }
-        });
-    }
-
-    // ==================== ADD ACTIVITY TO FEED ====================
-    function addActivityToFeed(activity, animate = true) {
-        const feed = document.getElementById('activityFeed');
-        if (!feed) return;
-        
-        const timeAgo = formatTimeAgo(activity.timestamp);
-        
-        const activityElement = document.createElement('div');
-        activityElement.className = 'activity-item';
-        activityElement.style.borderLeftColor = activity.color || '#3498db';
-        
-        activityElement.innerHTML = `
-            <div class="activity-icon" style="color: ${activity.color || '#3498db'};">
-                <i class="fas ${activity.icon || 'fa-bell'}"></i>
-            </div>
-            <div class="activity-content">
-                <div class="activity-message">${activity.message}</div>
-                <div class="activity-time">
-                    <i class="far fa-clock"></i> ${timeAgo}
-                    ${activity.customerName ? `<span class="activity-customer"><i class="fas fa-user"></i> ${activity.customerName}</span>` : ''}
-                    ${activity.orderId ? `<span class="activity-order"><i class="fas fa-hashtag"></i> ${activity.orderId.slice(-8)}</span>` : ''}
-                </div>
+                <div class="activity-feed" id="activityFeed"></div>
             </div>
         `;
         
-        feed.insertBefore(activityElement, feed.firstChild);
-        while (feed.children.length > 30) feed.removeChild(feed.lastChild);
+        // Add event listeners for filters
+        document.getElementById('applyFilter').addEventListener('click', applyFilters);
+        document.getElementById('resetFilter').addEventListener('click', resetFilters);
+        document.getElementById('refreshActivity').addEventListener('click', () => updateActivityFeed());
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
     }
 
-    // ==================== UPDATE STATS ====================
-    function updateStats(orders) {
-        const totalRevenue = orders.filter(o => o.paymentStatus === 'verified')
-            .reduce((sum, o) => sum + (o.total || o.totalAmount || 0), 0);
+    // ==================== FILTER FUNCTIONS ====================
+    function applyFilters() {
+        const filter = document.getElementById('mainFilter').value;
+        const search = document.getElementById('searchInput').value.toLowerCase();
         
-        const pendingPayments = orders.filter(o => 
-            o.paymentStatus === 'pending' && o.status !== 'cancelled'
-        ).length;
-        
-        const totalProducts = orders.reduce((sum, order) => {
-            if (order.items && Array.isArray(order.items)) {
-                return sum + order.items.reduce((itemSum, item) => itemSum + (item.quantity || 0), 0);
+        // Filter orders based on criteria
+        const filteredOrders = allOrders.filter(order => {
+            if (filter !== 'all' && order.status !== filter && 
+                !(filter === 'pending' && order.paymentStatus === 'pending') &&
+                !(filter === 'verified' && order.paymentStatus === 'verified')) {
+                return false;
             }
-            return sum;
-        }, 0);
+            
+            if (search) {
+                return order.id?.toLowerCase().includes(search) ||
+                       order.customerName?.toLowerCase().includes(search) ||
+                       order.customerPhone?.includes(search);
+            }
+            return true;
+        });
         
-        const uniqueCustomers = new Set(orders.map(o => o.customerPhone).filter(Boolean));
-        
-        document.getElementById('totalRevenue').textContent = `₦${totalRevenue.toLocaleString()}`;
-        document.getElementById('awaitingVerification').textContent = pendingPayments;
-        document.getElementById('totalProducts').textContent = totalProducts.toLocaleString();
-        document.getElementById('totalCustomers').textContent = uniqueCustomers.size;
-        
-        document.getElementById('verificationBadge').textContent = pendingPayments;
-        document.getElementById('pendingBadge').textContent = pendingPayments;
-        document.getElementById('pendingTrend').innerHTML = `<i class="fas fa-clock"></i> ${pendingPayments}`;
-        document.getElementById('verificationCount').innerHTML = `<i class="fas fa-clock"></i> <span id="verificationCountNum">${pendingPayments}</span> pending`;
-        
-        const paymentNotice = document.getElementById('paymentNotice');
-        if (pendingPayments > 0) {
-            paymentNotice.style.display = 'flex';
-            document.getElementById('paymentNoticeMessage').textContent = 
-                `${pendingPayments} order${pendingPayments > 1 ? 's' : ''} require payment verification.`;
-            document.getElementById('paymentNoticeCount').innerHTML = `<i class="fas fa-clock"></i> ${pendingPayments} pending`;
-        } else {
-            paymentNotice.style.display = 'none';
-        }
+        // Update displays with filtered data
+        updateFilteredDisplays(filteredOrders);
     }
 
-    // ==================== RENDER VERIFICATION QUEUE ====================
-    function renderVerificationQueue(pendingPayments) {
-        const container = document.getElementById('verificationList');
-        if (!container) return;
-        
-        if (!pendingPayments || pendingPayments.length === 0) {
-            container.innerHTML = `
-                <div class="verification-item empty" style="grid-template-columns: 1fr; text-align: center; padding: 40px;">
-                    <div><i class="fas fa-check-circle" style="font-size: 48px; color: #2ecc71; margin-bottom: 16px;"></i>
-                    <p style="color: #7f8c8d;">No payments pending verification</p></div>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = pendingPayments.map(order => `
-            <div class="verification-item" data-order-id="${order.id}">
-                <div class="order-id">${order.id}</div>
-                <div class="customer-info">
-                    <h4><i class="fas fa-user-circle"></i> ${order.customerName || 'Customer'}</h4>
-                    <p><i class="fas fa-phone-alt"></i> ${order.customerPhone || 'N/A'}</p>
-                </div>
-                <div class="order-items">
-                    ${order.items?.slice(0, 3).map(item => `${item.quantity}x ${item.name}`).join('<br>')}
-                    ${order.items?.length > 3 ? `<br><span style="color: #95a5a6;">+${order.items.length - 3} more</span>` : ''}
-                </div>
-                <div class="order-amount">₦${(order.total || order.totalAmount || 0).toLocaleString()}</div>
-                <div class="verification-actions">
-                    <button class="btn-verify" onclick="openVerifyModal('${order.id}')"><i class="fas fa-check-circle"></i> Verify</button>
-                    <button class="btn-reject" onclick="openRejectModal('${order.id}')"><i class="fas fa-times-circle"></i> Reject</button>
-                </div>
-            </div>
-        `).join('');
+    function resetFilters() {
+        document.getElementById('mainFilter').value = 'all';
+        document.getElementById('dateFilter').value = 'all';
+        document.getElementById('searchInput').value = '';
+        updateAllDisplays();
     }
 
-    // ==================== RENDER ORDERS ====================
-    function renderOrders(orders) {
-        const container = document.getElementById('ordersList');
-        if (!container) return;
+    function updateFilteredDisplays(filteredOrders) {
+        // This would update displays with filtered data
+        // For now, just refresh all
+        updateAllDisplays();
+    }
+
+    // ==================== TAB SWITCHING ====================
+    function setupTabSwitching() {
+        const tabs = {
+            dashboardTab: ['verificationSection', 'verifiedSection', 'cancelledSection', 'customerSection', 'activitySection'],
+            verificationTab: ['verificationSection'],
+            verifiedOrdersTab: ['verifiedSection'],
+            cancelledOrdersTab: ['cancelledSection'],
+            customersTab: ['customerSection'],
+            activityTab: ['activitySection']
+        };
         
-        if (!orders || orders.length === 0) {
-            container.innerHTML = `
-                <div class="order-row empty" style="grid-template-columns: 1fr; text-align: center; padding: 40px;">
-                    <div><i class="fas fa-shopping-cart" style="font-size: 48px; color: #95a5a6;"></i>
-                    <p style="color: #7f8c8d;">No verified orders</p></div>
-                </div>
-            `;
-            return;
-        }
-        
-        const sortedOrders = [...orders].sort((a, b) => 
-            new Date(b.verifiedAt || b.createdAt || 0) - new Date(a.verifiedAt || a.createdAt || 0)
-        );
-        
-        container.innerHTML = sortedOrders.map(order => {
-            let progressHtml = '';
-            if (order.status === 'incubating' && order.incubatingStarted) {
-                const start = new Date(order.incubatingStarted);
-                const now = new Date();
-                const elapsed = now - start;
-                const total = 24 * 60 * 60 * 1000;
-                const percent = Math.min(100, Math.round((elapsed / total) * 100));
-                const remaining = Math.max(0, Math.round((total - elapsed) / (60 * 60 * 1000)));
+        Object.keys(tabs).forEach(tabId => {
+            document.getElementById(tabId)?.addEventListener('click', (e) => {
+                e.preventDefault();
                 
-                progressHtml = `
-                    <div style="margin-top: 8px; font-size: 11px;">
-                        <div style="background: #edf2f7; border-radius: 10px; height: 6px; width: 100%;">
-                            <div style="background: #3498db; width: ${percent}%; height: 6px; border-radius: 10px;"></div>
-                        </div>
-                        <span style="color: #7f8c8d;">${remaining}h remaining</span>
-                    </div>
-                `;
-            }
-            
-            return `
-                <div class="order-row" data-order-id="${order.id}">
-                    <div class="order-id">${order.id}</div>
-                    <div class="customer-info">
-                        <h4><i class="fas fa-user-circle"></i> ${order.customerName || 'Customer'}</h4>
-                        <p><i class="fas fa-phone-alt"></i> ${order.customerPhone || 'N/A'}</p>
-                    </div>
-                    <div class="order-items">
-                        ${order.items?.slice(0, 2).map(item => `${item.quantity}x ${item.name}`).join('<br>')}
-                        ${order.items?.length > 2 ? `<br><span style="color: #95a5a6;">+${order.items.length - 2} more</span>` : ''}
-                    </div>
-                    <div class="order-amount">₦${(order.total || order.totalAmount || 0).toLocaleString()}</div>
-                    <div>
-                        <span class="status-badge status-${order.status || 'pending'}">
-                            <i class="fas ${getStatusIcon(order.status)}"></i> ${(order.status || 'pending').replace('-', ' ')}
-                        </span>
-                        <span class="payment-status payment-verified"><i class="fas fa-check-circle"></i> Verified</span>
-                        ${progressHtml}
-                    </div>
-                    <div class="action-buttons">
-                        ${order.status === 'ready' ? `
-                            <button class="btn-action complete" onclick="completeOrderManually('${order.id}')">
-                                <i class="fas fa-flag-checkered"></i> Complete
-                            </button>
-                        ` : ''}
-                        <button class="btn-action update" onclick="openStatusModal('${order.id}')">
-                            <i class="fas fa-sync-alt"></i> Update
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-// ==================== FIXED VERIFY PAYMENT - NO INFINITE SPINNING ====================
-window.verifyPayment = function() {
-    console.log('🔍 Verify payment started for order:', currentVerificationOrder);
-    
-    // Guard clause - check if we have an order
-    if (!currentVerificationOrder) {
-        showNotification('No order selected', 'error');
-        return;
-    }
-    
-    // Find the order
-    const order = allOrders.find(o => o.id === currentVerificationOrder);
-    if (!order) {
-        showNotification('Order not found in database', 'error');
-        closeModal('verifyModal');
-        currentVerificationOrder = null;
-        return;
-    }
-    
-    if (!order.firebaseKey) {
-        showNotification('Order missing Firebase reference', 'error');
-        closeModal('verifyModal');
-        currentVerificationOrder = null;
-        return;
-    }
-    
-    // Get button and store original text
-    const verifyBtn = document.getElementById('confirmVerification');
-    const originalText = verifyBtn.innerHTML;
-    
-    // Disable button and show spinner
-    verifyBtn.disabled = true;
-    verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
-    
-    // 🔥 CRITICAL: Set a timeout to prevent infinite spinning (5 seconds max)
-    const timeoutId = setTimeout(() => {
-        console.warn('⚠️ Verification timeout - resetting button');
-        
-        // Re-enable button
-        verifyBtn.disabled = false;
-        verifyBtn.innerHTML = originalText;
-        
-        // Show timeout notification
-        showNotification('Verification timed out. Please try again.', 'warning');
-        
-        // Don't close modal - let user try again
-    }, 5000);
-    
-    // Update in Firebase
-    database.ref(`orders/${order.firebaseKey}`).update({
-        paymentStatus: 'verified',
-        status: 'preparing',
-        verifiedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        preparingStarted: new Date().toISOString()
-    })
-    .then(() => {
-        // Clear the timeout since operation completed
-        clearTimeout(timeoutId);
-        
-        console.log('✅ Payment verified successfully');
-        
-        // Play success sound
-        if (window.playApprovalSound) window.playApprovalSound();
-        
-        // Add to activity feed
-        const message = `💰 Payment VERIFIED for order ${currentVerificationOrder.slice(-8)} - Now PREPARING`;
-        addActivityToFeed({
-            type: 'payment_verified',
-            message: message,
-            orderId: order.id,
-            customerName: order.customerName,
-            timestamp: new Date().toISOString(),
-            icon: 'fa-check-circle',
-            color: '#2ecc71'
-        });
-        
-        // Show success notification
-        showNotification(`✅ Payment verified - Order now preparing`, 'success');
-        
-        // Close modal and reset
-        closeModal('verifyModal');
-        currentVerificationOrder = null;
-        
-        // Button will be reset when modal closes, but just in case:
-        verifyBtn.disabled = false;
-        verifyBtn.innerHTML = originalText;
-    })
-    .catch(error => {
-        // Clear the timeout
-        clearTimeout(timeoutId);
-        
-        console.error('❌ Verification error:', error);
-        
-        // Show error notification
-        showNotification('Error verifying payment: ' + (error.message || 'Unknown error'), 'error');
-        
-        // 🔥 CRITICAL: Re-enable button so user can try again
-        verifyBtn.disabled = false;
-        verifyBtn.innerHTML = originalText;
-        
-        // Don't close modal - let user try again or cancel
-    });
-};
-
-    // ==================== REJECT PAYMENT ====================
-    window.rejectPayment = function() {
-        if (!currentVerificationOrder) {
-            showNotification('No order selected', 'error');
-            return;
-        }
-        
-        const reason = document.getElementById('rejectionReason')?.value;
-        if (!reason?.trim()) {
-            showNotification('Please provide a rejection reason', 'warning');
-            return;
-        }
-        
-        const order = allOrders.find(o => o.id === currentVerificationOrder);
-        if (!order || !order.firebaseKey) {
-            showNotification('Order not found', 'error');
-            closeModal('rejectModal');
-            return;
-        }
-        
-        const rejectBtn = document.getElementById('confirmRejection');
-        rejectBtn.disabled = true;
-        rejectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejecting...';
-        
-        database.ref(`orders/${order.firebaseKey}`).update({
-            paymentStatus: 'rejected',
-            status: 'cancelled',
-            rejectionReason: reason,
-            rejectedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        })
-        .then(() => {
-            const message = `❌ Payment REJECTED for order ${currentVerificationOrder.slice(-8)}`;
-            addActivityToFeed({
-                type: 'payment_rejected', message: message, orderId: order.id,
-                customerName: order.customerName, timestamp: new Date().toISOString(),
-                icon: 'fa-times-circle', color: '#e74c3c'
-            });
-            
-            showNotification(`❌ Payment rejected`, 'warning');
-            closeModal('rejectModal');
-            document.getElementById('rejectionReason').value = '';
-            currentVerificationOrder = null;
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('Error rejecting payment', 'error');
-            rejectBtn.disabled = false;
-            rejectBtn.innerHTML = '<i class="fas fa-times"></i> Reject Payment';
-        });
-    };
-
-    // ==================== COMPLETE ORDER ====================
-    window.completeOrderManually = function(orderId) {
-        const order = allOrders.find(o => o.id === orderId);
-        if (!order || !order.firebaseKey) {
-            showNotification('Order not found', 'error');
-            return;
-        }
-        
-        database.ref(`orders/${order.firebaseKey}`).update({
-            status: 'completed',
-            completedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        })
-        .then(() => {
-            if (window.playApprovalSound) window.playApprovalSound();
-            const message = `🏁 Order ${orderId.slice(-8)} completed`;
-            addActivityToFeed({
-                type: 'order_completed', message: message, orderId: order.id,
-                customerName: order.customerName, timestamp: new Date().toISOString(),
-                icon: 'fa-flag-checkered', color: '#3498db'
-            });
-            showNotification(`✅ Order completed`, 'success');
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('Error completing order', 'error');
-        });
-    };
-
-    // ==================== UPDATE STATUS ====================
-    window.updateOrderStatus = function() {
-        if (!currentStatusOrder) return;
-        
-        const selectedStatus = document.querySelector('input[name="status"]:checked');
-        if (!selectedStatus) {
-            showNotification('Please select a status', 'warning');
-            return;
-        }
-        
-        const newStatus = selectedStatus.value;
-        const order = allOrders.find(o => o.id === currentStatusOrder);
-        
-        if (!order || !order.firebaseKey) {
-            showNotification('Order not found', 'error');
-            closeModal('statusModal');
-            return;
-        }
-        
-        const updates = {
-            status: newStatus,
-            updatedAt: new Date().toISOString()
-        };
-        
-        if (newStatus === 'preparing' && !order.preparingStarted) {
-            updates.preparingStarted = new Date().toISOString();
-        }
-        if (newStatus === 'incubating' && !order.incubatingStarted) {
-            updates.incubatingStarted = new Date().toISOString();
-        }
-        if (newStatus === 'ready' && !order.readyAt) {
-            updates.readyAt = new Date().toISOString();
-        }
-        if (newStatus === 'completed') {
-            updates.completedAt = new Date().toISOString();
-        }
-        
-        database.ref(`orders/${order.firebaseKey}`).update(updates)
-        .then(() => {
-            if (window.playApprovalSound) window.playApprovalSound();
-            
-            let message = '';
-            if (newStatus === 'preparing') message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
-            if (newStatus === 'incubating') message = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
-            if (newStatus === 'ready') message = `✅ Order ${order.id.slice(-8)} is READY`;
-            if (newStatus === 'completed') message = `📦 Order ${order.id.slice(-8)} completed`;
-            
-            if (message) {
-                addActivityToFeed({
-                    type: 'status_change', message: message, orderId: order.id,
-                    customerName: order.customerName, timestamp: new Date().toISOString(),
-                    icon: 'fa-sync-alt', color: '#3498db'
+                // Update active tab
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.classList.remove('active');
                 });
-            }
-            
-            showNotification(`Order updated to ${newStatus}`, 'success');
-            closeModal('statusModal');
-            currentStatusOrder = null;
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('Error updating status', 'error');
+                e.currentTarget.classList.add('active');
+                
+                // Show relevant sections
+                const allSections = ['verificationSection', 'verifiedSection', 'cancelledSection', 'customerSection', 'activitySection'];
+                allSections.forEach(section => {
+                    const el = document.getElementById(section);
+                    if (el) el.style.display = 'none';
+                });
+                
+                tabs[tabId].forEach(section => {
+                    const el = document.getElementById(section);
+                    if (el) el.style.display = 'block';
+                });
+            });
         });
-    };
-
-    // ==================== MODAL FUNCTIONS ====================
-    window.openVerifyModal = function(orderId) {
-        currentVerificationOrder = orderId;
-        const order = allOrders.find(o => o.id === orderId);
-        if (order) {
-            document.getElementById('verifyOrderId').textContent = order.id;
-            document.getElementById('verifyCustomerName').textContent = order.customerName || 'Customer';
-            document.getElementById('verifyAmount').textContent = `₦${(order.total || order.totalAmount || 0).toLocaleString()}`;
-            document.getElementById('verifyMethod').textContent = order.paymentMethod || 'Bank Transfer';
-            document.getElementById('verifyModal').classList.add('active');
-        }
-    };
-
-    window.openRejectModal = function(orderId) {
-        currentVerificationOrder = orderId;
-        const order = allOrders.find(o => o.id === orderId);
-        if (order) {
-            document.getElementById('rejectOrderId').textContent = order.id;
-            document.getElementById('rejectCustomerName').textContent = order.customerName || 'Customer';
-            document.getElementById('rejectAmount').textContent = `₦${(order.total || order.totalAmount || 0).toLocaleString()}`;
-            document.getElementById('rejectModal').classList.add('active');
-            document.getElementById('rejectionReason').value = '';
-        }
-    };
-
-    window.openStatusModal = function(orderId) {
-        currentStatusOrder = orderId;
-        const order = allOrders.find(o => o.id === orderId);
-        if (order) {
-            document.getElementById('modalOrderInfo').innerHTML = 
-                `Order: <strong>${order.id}</strong> for <strong>${order.customerName || 'Customer'}</strong>`;
-            
-            const statusOptions = document.getElementById('statusOptions');
-            const statuses = ['pending-payment', 'preparing', 'incubating', 'ready', 'completed', 'cancelled'];
-            
-            statusOptions.innerHTML = statuses.map(status => `
-                <label style="display: flex; align-items: center; margin-bottom: 12px; padding: 10px 16px; border: 1px solid #e9ecef; border-radius: 12px; cursor: pointer; background: ${order.status === status ? '#fff9e6' : 'white'};">
-                    <input type="radio" name="status" value="${status}" ${order.status === status ? 'checked' : ''} style="margin-right: 12px;">
-                    <span style="display: inline-block; padding: 6px 16px; border-radius: 30px; background: ${getStatusColor(status)}; color: white; font-size: 12px;">
-                        <i class="fas ${getStatusIcon(status)}"></i> ${status.replace('-', ' ')}
-                    </span>
-                    ${order.status === status ? '<span style="margin-left: auto; color: var(--primary);"><i class="fas fa-check-circle"></i> Current</span>' : ''}
-                </label>
-            `).join('');
-            
-            document.getElementById('statusModal').classList.add('active');
-        }
-    };
-
-    function closeModal(modalId) {
-        document.getElementById(modalId)?.classList.remove('active');
-        if (modalId === 'rejectModal') document.getElementById('rejectionReason').value = '';
-        currentVerificationOrder = null;
-        currentStatusOrder = null;
     }
 
-    // ==================== UTILITY FUNCTIONS ====================
-    function getStatusColor(status) {
-        const colors = {
-            'pending-payment': '#f39c12', 'preparing': '#3498db', 'incubating': '#9b59b6',
-            'ready': '#2ecc71', 'completed': '#95a5a6', 'cancelled': '#e74c3c'
-        };
-        return colors[status] || '#3498db';
-    }
-
-    function getStatusIcon(status) {
-        const icons = {
-            'pending-payment': 'fa-clock', 'preparing': 'fa-utensils', 'incubating': 'fa-clock',
-            'ready': 'fa-check-circle', 'completed': 'fa-flag-checkered', 'cancelled': 'fa-ban'
-        };
-        return icons[status] || 'fa-circle';
-    }
-
-    function formatTimeAgo(timestamp) {
-        if (!timestamp) return 'Just now';
-        const diff = Math.floor((new Date() - new Date(timestamp)) / 60000);
-        if (diff < 1) return 'Just now';
-        if (diff < 60) return `${diff}m ago`;
-        if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
-        return `${Math.floor(diff / 1440)}d ago`;
-    }
-
-    function showNotification(message, type = 'success') {
-        const notification = document.createElement('div');
-        notification.className = `notification-toast ${type}`;
-        notification.innerHTML = `
-            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}" 
-               style="font-size: 24px; color: ${type === 'success' ? '#2ecc71' : type === 'warning' ? '#f39c12' : '#3498db'};"></i>
-            <div style="flex: 1;"><div style="font-weight: 700; margin-bottom: 6px;">${type === 'success' ? 'Success' : type === 'warning' ? 'Payment Required' : 'Information'}</div>
-            <div style="color: #7f8c8d; font-size: 13px;">${message}</div></div>
-            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: #95a5a6; cursor: pointer;">✕</button>
-        `;
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), 5000);
-    }
-
-    // ==================== SETUP EVENT LISTENERS ====================
-    function setupEventListeners() {
-        document.getElementById('logoutBtn')?.addEventListener('click', () => {
-            window.location.href = '/admin-login.html';
-        });
-
-        document.getElementById('refreshOrders')?.addEventListener('click', () => {
-            loadOrdersFromFirebase();
-            showNotification('Dashboard refreshed', 'info');
-        });
-
-        document.getElementById('refreshActivity')?.addEventListener('click', () => {
-            generateActivitiesFromOrders(allOrders);
-            showNotification('Activity feed refreshed', 'info');
-        });
-
-        document.getElementById('filterOrders')?.addEventListener('click', () => {
-            document.getElementById('filterModal').classList.add('active');
-        });
-
-        document.getElementById('exportOrders')?.addEventListener('click', () => {
-            if (allOrders.length === 0) {
-                showNotification('No orders to export', 'warning');
-                return;
-            }
-            // Simple CSV export
-            const csv = allOrders.map(o => `${o.id},${o.customerName},${o.total},${o.status}`).join('\n');
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
-            a.click();
-            showNotification(`Exported ${allOrders.length} orders`, 'success');
-        });
-
-        document.getElementById('closeFilterModal')?.addEventListener('click', () => closeModal('filterModal'));
-        document.getElementById('applyFilters')?.addEventListener('click', () => closeModal('filterModal'));
-        document.getElementById('clearFilters')?.addEventListener('click', () => closeModal('filterModal'));
-
-        document.getElementById('closeVerifyModal')?.addEventListener('click', () => closeModal('verifyModal'));
-        document.getElementById('closeRejectModal')?.addEventListener('click', () => closeModal('rejectModal'));
-        document.getElementById('closeStatusModal')?.addEventListener('click', () => closeModal('statusModal'));
+    // ==================== INITIALIZE ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('🚀 Admin Dashboard initializing...');
         
-        document.getElementById('cancelVerification')?.addEventListener('click', () => closeModal('verifyModal'));
-        document.getElementById('cancelRejection')?.addEventListener('click', () => closeModal('rejectModal'));
-        document.getElementById('cancelUpdate')?.addEventListener('click', () => closeModal('statusModal'));
-
-        document.getElementById('confirmVerification')?.addEventListener('click', verifyPayment);
-        document.getElementById('confirmRejection')?.addEventListener('click', rejectPayment);
-        document.getElementById('confirmUpdate')?.addEventListener('click', updateOrderStatus);
-
-        // Tab switching
-        document.getElementById('dashboardTab')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-            e.target.closest('.menu-item').classList.add('active');
-            document.querySelector('.stats-grid').style.display = 'grid';
-            document.getElementById('verificationSection').style.display = 'block';
-            document.querySelector('.orders-container').style.display = 'block';
-            document.querySelector('.activity-section').style.display = 'block';
-        });
-
-        document.getElementById('verificationTab')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-            e.target.closest('.menu-item').classList.add('active');
-            document.querySelector('.stats-grid').style.display = 'none';
-            document.getElementById('verificationSection').style.display = 'block';
-            document.querySelector('.orders-container').style.display = 'none';
-            document.querySelector('.activity-section').style.display = 'none';
-        });
-
-        document.getElementById('ordersTab')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-            e.target.closest('.menu-item').classList.add('active');
-            document.querySelector('.stats-grid').style.display = 'none';
-            document.getElementById('verificationSection').style.display = 'none';
-            document.querySelector('.orders-container').style.display = 'block';
-            document.querySelector('.activity-section').style.display = 'none';
-        });
-
-        document.getElementById('activityTab')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-            e.target.closest('.menu-item').classList.add('active');
-            document.querySelector('.stats-grid').style.display = 'none';
-            document.getElementById('verificationSection').style.display = 'none';
-            document.querySelector('.orders-container').style.display = 'none';
-            document.querySelector('.activity-section').style.display = 'block';
-        });
-
+        initAudio();
+        initBroadcastSystem();
+        loadDashboardContent();
+        loadOrdersFromFirebase();
+        setupTabSwitching();
+        
+        // Modal close buttons
+        document.getElementById('closeVerifyModal').addEventListener('click', () => closeModal('verifyModal'));
+        document.getElementById('closeRejectModal').addEventListener('click', () => closeModal('rejectModal'));
+        document.getElementById('closeStatusModal').addEventListener('click', () => closeModal('statusModal'));
+        document.getElementById('closeCustomerModal').addEventListener('click', () => closeModal('customerModal'));
+        
+        document.getElementById('cancelVerification').addEventListener('click', () => closeModal('verifyModal'));
+        document.getElementById('cancelRejection').addEventListener('click', () => closeModal('rejectModal'));
+        document.getElementById('cancelUpdate').addEventListener('click', () => closeModal('statusModal'));
+        
         // Close modals on outside click
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) closeModal(modal.id);
             });
         });
-    }
-
-    // ==================== INITIALIZE ====================
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('🚀 Admin dashboard initializing...');
-        initNotificationSounds();
-        loadOrdersFromFirebase();
-        setupEventListeners();
-        console.log('✅ Admin dashboard ready - Notification sounds active');
+        
+        // Logout button
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            window.location.href = '/login.html';
+        });
+        
+        console.log('✅ Admin Dashboard ready');
     });
+
+    // Make functions global
+    window.closeModal = closeModal;
     </script>
 </body>
 </html>
-
-
-
-
