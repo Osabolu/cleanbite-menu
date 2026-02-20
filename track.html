@@ -1740,6 +1740,83 @@ function getTimeRemainingString(minutes) {
     }
 
     console.log('📍 TRACK.HTML script loaded - ALL CONFLICTS FIXED');
+
+    // ==================== FIXED: Find Order by ID (Mobile-Optimized) ====================
+function findOrderById(orderId) {
+    try {
+        console.log('🔍 Searching for order:', orderId);
+        
+        if (!orderId) return null;
+        
+        // Clean the order ID (remove any whitespace, handle mobile input)
+        const cleanOrderId = orderId.toString().trim().replace(/\s+/g, '');
+        console.log('🧹 Cleaned order ID:', cleanOrderId);
+        
+        // Try multiple storage methods (mobile needs this)
+        
+        // METHOD 1: Check individual order in localStorage
+        try {
+            const singleOrder = localStorage.getItem(`order_${cleanOrderId}`);
+            if (singleOrder) {
+                const order = JSON.parse(singleOrder);
+                console.log('✅ Order found in individual storage:', order.id);
+                return order;
+            }
+        } catch (e) {}
+
+        // METHOD 2: Check main orders array
+        try {
+            const ordersJson = localStorage.getItem('cleanbite_orders');
+            if (ordersJson) {
+                const orders = JSON.parse(ordersJson);
+                
+                // Try exact match first
+                let foundOrder = orders.find(order => order.id === cleanOrderId);
+                if (foundOrder) {
+                    console.log('✅ Order found in orders array (exact match):', foundOrder.id);
+                    return foundOrder;
+                }
+                
+                // Try case-insensitive match (mobile sometimes capitalizes differently)
+                foundOrder = orders.find(order => 
+                    order.id.toLowerCase() === cleanOrderId.toLowerCase()
+                );
+                if (foundOrder) {
+                    console.log('✅ Order found (case-insensitive):', foundOrder.id);
+                    return foundOrder;
+                }
+                
+                // Try last 8 characters match (mobile users might type partial)
+                const last8 = cleanOrderId.slice(-8);
+                foundOrder = orders.find(order => 
+                    order.id.includes(last8) || order.id.slice(-8) === last8
+                );
+                if (foundOrder) {
+                    console.log('✅ Order found (partial match):', foundOrder.id);
+                    return foundOrder;
+                }
+            }
+        } catch (e) {}
+
+        // METHOD 3: Try sessionStorage (mobile sometimes uses this)
+        try {
+            const sessionOrders = sessionStorage.getItem('cleanbite_orders');
+            if (sessionOrders) {
+                const orders = JSON.parse(sessionOrders);
+                const foundOrder = orders.find(o => o.id === cleanOrderId);
+                if (foundOrder) return foundOrder;
+            }
+        } catch (e) {}
+
+        console.log('❌ Order not found in any storage');
+        return null;
+        
+    } catch (error) {
+        console.error('❌ Error finding order:', error);
+        return null;
+    }
+}
     </script>
 </body>
 </html>
+
