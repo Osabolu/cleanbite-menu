@@ -2293,54 +2293,78 @@
         document.getElementById('checkoutModal').classList.add('active');
     }
 
-    // ==================== FIXED: Generate Order ID in CORRECT FORMAT ====================
-    // Format: CB-XXXXXX-XXXX (e.g., CB-688184-7296)
-    function generateOrderId() {
-        // Get last 6 digits of timestamp
-        const timestamp = Date.now().toString().slice(-6); // "688184"
-        
-        // Generate 4 random digits
-        const random = Math.floor(1000 + Math.random() * 9000); // 1000-9999
-        
-        return `CB-${timestamp}-${random}`;
-    }
+// ==================== FIXED: Generate Order ID (Mobile-Friendly) ====================
+function generateOrderId() {
+    // Get timestamp (last 6 digits)
+    const timestamp = Date.now().toString().slice(-6); // "688184"
+    
+    // Generate 4 random digits (1000-9999)
+    const random = Math.floor(1000 + Math.random() * 9000); // "7296"
+    
+    // CRITICAL: Only letters and numbers, no special chars that might break URLs
+    return `CB-${timestamp}-${random}`; // "CB-688184-7296"
+}
 
-    // ==================== FIXED: Save to Firebase ====================
-    function saveOrderToFirebase(order) {
-        return new Promise((resolve) => {
-            console.log('💾 Saving to Firebase:', order.id);
+// ==================== FIXED: Save Order with Dual Storage ====================
+function saveOrderToFirebase(order) {
+    return new Promise((resolve) => {
+        console.log('💾 Saving to Firebase:', order.id);
+        
+        // ALWAYS save to localStorage FIRST (for mobile)
+        saveOrderToLocalStorage(order);
+        
+        if (!window.database) {
+            resolve({ success: false, local: true, order });
+            return;
+        }
+        
+        try {
+            const ordersRef = window.database.ref('orders');
+            const newOrderRef = ordersRef.push();
+            order.firebaseKey = newOrderRef.key;
             
-            if (!window.database) {
-                resolve({ success: false, local: true, order });
-                return;
-            }
+            const timeout = setTimeout(() => {
+                resolve({ success: false, timeout: true, order });
+            }, 3000);
             
-            try {
-                const ordersRef = window.database.ref('orders');
-                const newOrderRef = ordersRef.push();
-                order.firebaseKey = newOrderRef.key;
-                
-                const timeout = setTimeout(() => {
-                    resolve({ success: false, timeout: true, order });
-                }, 3000);
-                
-                newOrderRef.set(order)
-                    .then(() => {
-                        clearTimeout(timeout);
-                        console.log('✅ Order saved to Firebase with ID:', order.id);
-                        resolve({ success: true, order });
-                    })
-                    .catch(err => {
-                        clearTimeout(timeout);
-                        console.error('❌ Firebase save error:', err);
-                        resolve({ success: false, error: err, order });
-                    });
-            } catch (err) {
-                console.error('❌ Exception:', err);
-                resolve({ success: false, error: err, order });
-            }
-        });
+            newOrderRef.set(order)
+                .then(() => {
+                    clearTimeout(timeout);
+                    console.log('✅ Order saved to Firebase with ID:', order.id);
+                    resolve({ success: true, order });
+                })
+                .catch(err => {
+                    clearTimeout(timeout);
+                    console.error('❌ Firebase save error:', err);
+                    resolve({ success: false, error: err, order });
+                });
+        } catch (err) {
+            console.error('❌ Exception:', err);
+            resolve({ success: false, error: err, order });
+        }
+    });
+}
+
+// ==================== NEW: Save to localStorage for mobile backup ====================
+function saveOrderToLocalStorage(order) {
+    try {
+        // Get existing orders
+        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+        
+        // Add new order
+        orders.push(order);
+        
+        // Save back to localStorage
+        localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
+        
+        // Also save individual order for easy lookup
+        localStorage.setItem(`order_${order.id}`, JSON.stringify(order));
+        
+        console.log('✅ Order saved to localStorage:', order.id);
+    } catch (error) {
+        console.error('❌ Error saving to localStorage:', error);
     }
+}
 
     // ==================== FIXED: SUBMIT ORDER BUTTON ====================
     function setupSubmitButton() {
@@ -2948,6 +2972,7 @@ if (typeof showNotification !== 'function') {
     </script>
 </body>
 </html>
+
 
 
 
