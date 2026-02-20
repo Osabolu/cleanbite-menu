@@ -1400,7 +1400,19 @@
 </head>
 <body>
     <!-- ==================== PARALLAX HERO SECTION ==================== -->
-
+    <section class="parallax-hero" id="hero">
+        <div class="parallax-layer layer-1"></div>
+        <div class="parallax-layer layer-2" id="parallaxLayer2"></div>
+        <div class="parallax-layer layer-3"></div>
+        <div class="hero-content">
+            <h1>CLEAN<span>BITE</span></h1>
+            <p>Experience sovereignty in every bite — Fresh, creamy, and made with 100% real fruit.</p>
+            <div class="hero-buttons">
+                <button class="btn-hero btn-hero-primary" onclick="document.getElementById('menuSection').scrollIntoView({behavior: 'smooth'})"><i class="fas fa-ice-cream"></i> Order Now</button>
+                <button class="btn-hero btn-hero-secondary" onclick="document.getElementById('kitchenStream').scrollIntoView({behavior: 'smooth'})"><i class="fas fa-kitchen-set"></i> Watch Live Kitchen</button>
+            </div>
+        </div>
+    </section>
 
     <!-- ==================== NAVIGATION ==================== -->
     <nav class="main-nav">
@@ -1466,7 +1478,50 @@
     </div>
 
     <!-- ==================== ABOUT US PAGE ==================== -->
-    
+    <section class="about-section" id="aboutUs">
+        <div class="about-container">
+            <div class="about-header">
+                <h2><i class="fas fa-crown"></i> About CleanBite Empire</h2>
+                <p>Crafted with passion, served with pride</p>
+            </div>
+            
+            <div class="about-grid">
+                <div class="about-image">
+                    <div class="image-stack">
+                        <div class="image-main" style="background-image: url('https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=2574&auto=format&fit=crop');"></div>
+                        <div class="image-accent" style="background-image: url('https://images.unsplash.com/photo-1571212515416-fef01fc43637?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');"></div>
+                    </div>
+                </div>
+                <div class="about-content">
+                    <span class="about-badge">Since 2024</span>
+                    <h3>Nigerian Yoghurt, Reimagined</h3>
+                    <div class="about-text">
+                        <p>CleanBite Empire started with a simple vision: to create the creamiest, most delicious yoghurt using 100% real fruit and fresh cow milk from local farms in Ibadan.</p>
+                        <p>Every batch is crafted with care, combining traditional fermentation methods with innovative flavours. We believe in sovereignty — from our ingredients to your enjoyment.</p>
+                    </div>
+                    
+                    <div class="about-stats">
+                        <div class="stat-box"><span class="stat-number">5K+</span><span class="stat-label">Happy Customers</span></div>
+                        <div class="stat-box"><span class="stat-number">12</span><span class="stat-label">Flavours</span></div>
+                        <div class="stat-box"><span class="stat-number">100%</span><span class="stat-label">Natural</span></div>
+                    </div>
+                    
+                    <div class="about-features">
+                        <div class="feature"><i class="fas fa-check-circle"></i> Real Fruit Pieces</div>
+                        <div class="feature"><i class="fas fa-check-circle"></i> No Preservatives</div>
+                        <div class="feature"><i class="fas fa-check-circle"></i> Low Sugar Options</div>
+                        <div class="feature"><i class="fas fa-check-circle"></i> Probiotic Rich</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="about-mission">
+                <div class="mission-card"><i class="fas fa-leaf"></i><h4>Farm to Table</h4><p>We source fresh cow milk daily from ethical local farms.</p></div>
+                <div class="mission-card"><i class="fas fa-hand-holding-heart"></i><h4>Made with Love</h4><p>Small batches, big passion — each pot is handcrafted.</p></div>
+                <div class="mission-card"><i class="fas fa-users"></i><h4>Community First</h4><p>Supporting local farmers and creating jobs in Ibadan.</p></div>
+            </div>
+        </div>
+    </section>
 
     <!-- ==================== ENHANCED FOOTER ==================== -->
     <footer class="footer">
@@ -1614,7 +1669,7 @@
                                 <p><strong>Account Number:</strong> 3034457406</p>
                                 <p class="note"><span>Please use your <strong>Order ID</strong> as payment reference and send proof to our WhatsApp</p>
                                 <div class="flex">
-                                    <img class="flex-image"src="images/whatsapp-order.png">
+                                    <img class="flex-image" src="images/whatsapp-order.png" alt="WhatsApp">
                                     <p>Delivery on request
                                         <i class="fas fa-truck" style="color: var(--primary); font-size: 100px;"></i>
                                     </p>
@@ -1721,7 +1776,7 @@ const menuItems = [
         name: 'Plain Yoghurt',
         description: 'The Foundation: Creamy, classic plain yoghurt. Made from fresh cow milk.',
         price: 4000,
-        image: 'images/sara-cervera-4caIPcmVDII-unsplash.jpg',
+        image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=2574&auto=format&fit=crop',
         badge: 'Best Seller'
     },
     {
@@ -1729,7 +1784,7 @@ const menuItems = [
         name: 'Strawberry, Hibiscus & Dates',
         description: 'The Sentinel - Sweet strawberry flavour with real fruit pieces.',
         price: 6000,
-        image: 'images/strawberry-photo.jpg',
+        image: 'https://images.unsplash.com/photo-1584306670957-df8e9f1c1b1a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
         badge: 'Popular'
     },
     {
@@ -1745,7 +1800,7 @@ const menuItems = [
         name: 'Coconut Milk & Dates',
         description: 'Blend of Coconut Milk extract mixed with Dates puree.',
         price: 5500,
-        image: 'images/coconuts-dates.jpg',
+        image: 'https://images.unsplash.com/photo-1626200419659-dc5c39c8175d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
         badge: 'New'
     },
     {
@@ -1753,7 +1808,7 @@ const menuItems = [
         name: 'Cacao, Moringa & Dates',
         description: 'Thick, strained yoghurt with high protein.',
         price: 6000,
-        image: 'images/coconut-dates (1).jpg',
+        image: 'https://images.unsplash.com/photo-1627483262769-04d0a1401487?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
         badge: 'Premium'
     },
     {
@@ -1761,7 +1816,7 @@ const menuItems = [
         name: 'The Diplomat - Coconut Milk, Roasted Plantain & Cinnamon',
         description: 'Topped with honey and crunchy granola.',
         price: 5500,
-        image: 'images/plantain-puree.png',
+        image: 'https://images.unsplash.com/photo-1488477181946-6428a0291776?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
         badge: null
     }
 ];
@@ -2201,7 +2256,6 @@ function setupSubmitButton() {
 }
 
 // ==================== SHOW ORDER CONFIRMATION POPUP - FIXED ====================
-// ==================== SHOW ORDER CONFIRMATION POPUP - FIXED ====================
 function showOrderConfirmation(order) {
     console.log('🎉 Showing confirmation for order:', order.id);
     
@@ -2368,6 +2422,16 @@ function setupEventListeners() {
             addToCart(btn.dataset.id);
         }
     });
+    
+    document.getElementById('refreshKitchen')?.addEventListener('click', function() {
+        loadRecentOrderActivities();
+        showNotification('Kitchen feed refreshed', 'info');
+    });
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.remove('active');
 }
 
 // Make functions global
@@ -2381,5 +2445,3 @@ console.log('✅ ORDER PAGE COMPLETE - Firebase + Broadcast Ready');
 </script>
 </body>
 </html>
-
-
