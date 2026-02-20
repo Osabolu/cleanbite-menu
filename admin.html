@@ -7,23 +7,30 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* ==================== ROOT VARIABLES - Matching Order Page ==================== */
+        /* ==================== ROOT VARIABLES ==================== */
         :root {
             --primary: #ffd700;
             --primary-dark: #e6c200;
+            --primary-light: #fff9e6;
             --secondary: #2c3e50;
             --success: #2ecc71;
+            --success-light: #e8f5e9;
             --warning: #f39c12;
+            --warning-light: #fff3e0;
             --danger: #e74c3c;
+            --danger-light: #ffebee;
             --info: #3498db;
-            --light: #ecf0f1;
+            --info-light: #e3f2fd;
+            --purple: #9b59b6;
+            --purple-light: #f3e5f5;
             --dark: #2c3e50;
             --gray: #95a5a6;
+            --gray-light: #ecf0f1;
             --white: #ffffff;
             --shadow: 0 10px 30px rgba(0,0,0,0.1);
             --shadow-hover: 0 20px 40px rgba(0,0,0,0.15);
-            --border-radius: 20px;
-            --card-radius: 24px;
+            --border-radius: 24px;
+            --card-radius: 28px;
             --transition: all 0.3s ease;
         }
 
@@ -40,7 +47,7 @@
             overflow-x: hidden;
         }
 
-        /* ==================== NAVIGATION - CLEANBITE BRANDING ==================== */
+        /* ==================== NAVIGATION ==================== */
         .admin-nav {
             background: white;
             padding: 15px 40px;
@@ -136,9 +143,9 @@
             min-height: calc(100vh - 80px);
         }
 
-        /* ==================== SIDEBAR - ELEGANT ==================== */
+        /* ==================== SIDEBAR ==================== */
         .sidebar {
-            width: 280px;
+            width: 300px;
             background: white;
             border-right: 1px solid #edf2f7;
             padding: 30px 0;
@@ -176,7 +183,7 @@
         }
 
         .menu-item:hover {
-            background: #fff9e6;
+            background: var(--primary-light);
             color: var(--primary);
             transform: translateX(5px);
         }
@@ -186,7 +193,7 @@
         }
 
         .menu-item.active {
-            background: linear-gradient(135deg, #fff9e6, #fff3cd);
+            background: linear-gradient(135deg, var(--primary-light), #fff3cd);
             color: var(--primary);
             font-weight: 600;
             border-left: 4px solid var(--primary);
@@ -233,12 +240,12 @@
             overflow-y: auto;
         }
 
-        /* ==================== PAYMENT NOTICE - ELEGANT ==================== */
+        /* ==================== PAYMENT NOTICE ==================== */
         .payment-notice {
             display: none;
             align-items: center;
             gap: 20px;
-            background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+            background: linear-gradient(135deg, var(--primary-light) 0%, #fff3cd 100%);
             border: 1px solid var(--primary);
             border-left: 6px solid var(--warning);
             border-radius: 20px;
@@ -292,7 +299,7 @@
             gap: 8px;
         }
 
-        /* ==================== STATS CARDS - PREMIUM ==================== */
+        /* ==================== STATS CARDS ==================== */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -309,7 +316,6 @@
             transition: var(--transition);
             position: relative;
             overflow: hidden;
-            backdrop-filter: blur(10px);
         }
 
         .stat-card::before {
@@ -322,18 +328,6 @@
             background: linear-gradient(90deg, var(--primary), var(--primary-dark));
             opacity: 0;
             transition: opacity 0.3s ease;
-        }
-
-        .stat-card::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, rgba(255,215,0,0.05) 0%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
         }
 
         .stat-card:hover {
@@ -369,49 +363,23 @@
         }
 
         .stat-card.revenue .stat-icon {
-            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            background: linear-gradient(135deg, var(--success-light), #c8e6c9);
             color: var(--success);
-            box-shadow: 0 10px 20px rgba(46, 204, 113, 0.15);
         }
 
         .stat-card.pending .stat-icon {
-            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            background: linear-gradient(135deg, var(--warning-light), #ffe0b2);
             color: var(--warning);
-            box-shadow: 0 10px 20px rgba(243, 156, 18, 0.15);
         }
 
-        .stat-card.products .stat-icon {
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+        .stat-card.verified .stat-icon {
+            background: linear-gradient(135deg, var(--info-light), #bbdefb);
             color: var(--info);
-            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.15);
         }
 
-        .stat-card.customers .stat-icon {
-            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
-            color: #9b59b6;
-            box-shadow: 0 10px 20px rgba(155, 89, 182, 0.15);
-        }
-
-        .stat-trend {
-            padding: 6px 16px;
-            border-radius: 50px;
-            font-size: 13px;
-            font-weight: 600;
-            background: #f8f9fa;
-            border: 1px solid #edf2f7;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .stat-trend.positive {
-            color: var(--success);
-            background: #e8f5e9;
-            border-color: #a5d6a7;
-        }
-
-        .stat-trend i {
-            font-size: 12px;
+        .stat-card.cancelled .stat-icon {
+            background: linear-gradient(135deg, var(--danger-light), #ffcdd2);
+            color: var(--danger);
         }
 
         .stat-value {
@@ -437,6 +405,127 @@
             font-size: 14px;
         }
 
+        /* ==================== FILTER BAR ==================== */
+        .filter-bar {
+            background: white;
+            border-radius: 20px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.02);
+            border: 1px solid #edf2f7;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .filter-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--dark);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .filter-label i {
+            color: var(--primary);
+        }
+
+        .filter-select {
+            padding: 12px 20px;
+            border: 2px solid #edf2f7;
+            border-radius: 50px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            color: var(--dark);
+            background: white;
+            cursor: pointer;
+            min-width: 180px;
+            transition: var(--transition);
+        }
+
+        .filter-select:hover {
+            border-color: var(--primary);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(255,215,0,0.1);
+        }
+
+        .filter-search {
+            flex: 1;
+            position: relative;
+            min-width: 250px;
+        }
+
+        .filter-search i {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .filter-search input {
+            width: 100%;
+            padding: 12px 20px 12px 50px;
+            border: 2px solid #edf2f7;
+            border-radius: 50px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .filter-search input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(255,215,0,0.1);
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .filter-btn {
+            background: white;
+            border: 1px solid #edf2f7;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .filter-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: var(--dark);
+        }
+
         /* ==================== VERIFICATION SECTION ==================== */
         .verification-section {
             background: white;
@@ -447,14 +536,14 @@
             border: 1px solid #edf2f7;
         }
 
-        .verification-header {
+        .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 25px;
         }
 
-        .verification-header h3 {
+        .section-header h3 {
             font-size: 1.5rem;
             font-weight: 700;
             color: var(--dark);
@@ -463,12 +552,12 @@
             gap: 12px;
         }
 
-        .verification-header h3 i {
+        .section-header h3 i {
             color: var(--warning);
             font-size: 1.6rem;
         }
 
-        .verification-count {
+        .section-count {
             background: linear-gradient(135deg, #f8f9fa, #edf2f7);
             color: var(--dark);
             padding: 10px 25px;
@@ -481,9 +570,8 @@
             gap: 10px;
         }
 
-        .verification-count i {
+        .section-count i {
             color: var(--warning);
-            font-size: 1rem;
         }
 
         .verification-list {
@@ -503,7 +591,6 @@
             align-items: center;
             transition: var(--transition);
             position: relative;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.02);
         }
 
         .verification-item:hover {
@@ -520,16 +607,8 @@
             padding: 10px 18px;
             border-radius: 40px;
             font-size: 13px;
-            letter-spacing: 0.5px;
             text-align: center;
-            box-shadow: 0 8px 20px rgba(44,62,80,0.2);
             display: inline-block;
-            transition: var(--transition);
-        }
-
-        .verification-item:hover .order-id {
-            transform: scale(1.05);
-            box-shadow: 0 10px 25px rgba(44,62,80,0.3);
         }
 
         .customer-info h4 {
@@ -563,19 +642,12 @@
             padding: 15px 20px;
             border-radius: 18px;
             border: 1px solid #edf2f7;
-            transition: var(--transition);
-        }
-
-        .verification-item:hover .order-items {
-            background: white;
-            border-color: var(--primary);
         }
 
         .order-amount {
             font-weight: 800;
             color: var(--success);
             font-size: 1.6rem;
-            letter-spacing: 0.5px;
         }
 
         .verification-actions {
@@ -596,12 +668,6 @@
             gap: 8px;
             cursor: pointer;
             transition: var(--transition);
-            box-shadow: 0 8px 20px rgba(46,204,113,0.2);
-        }
-
-        .btn-verify:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(46,204,113,0.3);
         }
 
         .btn-reject {
@@ -620,77 +686,68 @@
         }
 
         .btn-reject:hover {
-            background: #fee9e7;
+            background: var(--danger-light);
             border-color: var(--danger);
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(231, 76, 60, 0.1);
         }
 
-        /* ==================== ORDERS SECTION ==================== */
-        .orders-header-section {
+        /* ==================== ORDERS TABS ==================== */
+        .orders-tabs {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            gap: 15px;
             margin-bottom: 25px;
             flex-wrap: wrap;
-            gap: 15px;
         }
 
-        .orders-header-section h2 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .orders-header-section h2 i {
-            color: var(--info);
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .filter-btn, .export-btn, .refresh-btn {
-            background: white;
-            border: 1px solid #edf2f7;
-            padding: 12px 24px;
+        .tab-btn {
+            padding: 14px 28px;
             border-radius: 50px;
             font-weight: 600;
-            font-size: 13px;
-            color: var(--dark);
+            font-size: 14px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             cursor: pointer;
             transition: var(--transition);
+            border: 2px solid transparent;
         }
 
-        .filter-btn:hover {
-            background: #fff9e6;
-            border-color: var(--primary);
-            color: var(--primary);
-            transform: translateY(-2px);
+        .tab-btn i {
+            font-size: 1.1rem;
         }
 
-        .export-btn:hover {
-            background: #e8f5e9;
-            border-color: var(--success);
-            color: var(--success);
-            transform: translateY(-2px);
-        }
-
-        .refresh-btn:hover {
-            background: #e3f2fd;
-            border-color: var(--info);
+        .tab-btn.verified {
+            background: var(--info-light);
             color: var(--info);
-            transform: translateY(-2px);
         }
 
+        .tab-btn.verified.active {
+            background: var(--info);
+            color: white;
+            border-color: var(--info);
+        }
+
+        .tab-btn.cancelled {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .tab-btn.cancelled.active {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        .tab-btn.all {
+            background: var(--gray-light);
+            color: var(--dark);
+        }
+
+        .tab-btn.all.active {
+            background: var(--dark);
+            color: white;
+        }
+
+        /* ==================== ORDERS CONTAINER ==================== */
         .orders-container {
             background: white;
             border-radius: 28px;
@@ -712,7 +769,6 @@
             font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            border: 1px solid #e9ecef;
             margin-bottom: 10px;
         }
 
@@ -730,112 +786,235 @@
         .order-row:hover {
             background: #f8f9fa;
             transform: scale(1.01);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+        }
+
+        .order-row.verified-row {
+            border-left: 4px solid var(--success);
+        }
+
+        .order-row.cancelled-row {
+            border-left: 4px solid var(--danger);
+            opacity: 0.8;
         }
 
         .status-badge {
             display: inline-block;
-            padding: 10px 18px;
+            padding: 8px 16px;
             border-radius: 50px;
             font-size: 12px;
             font-weight: 700;
-            text-align: center;
-            transition: var(--transition);
         }
 
-        .status-pending-payment {
-            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-            color: var(--warning);
-            border: 1px solid #ffb74d;
-        }
+        .status-pending-payment { background: var(--warning-light); color: var(--warning); }
+        .status-preparing { background: var(--info-light); color: var(--info); }
+        .status-incubating { background: var(--purple-light); color: var(--purple); }
+        .status-ready { background: var(--success-light); color: var(--success); }
+        .status-completed { background: var(--gray-light); color: var(--gray); }
+        .status-cancelled { background: var(--danger-light); color: var(--danger); }
 
-        .status-preparing {
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-            color: var(--info);
-            border: 1px solid #64b5f6;
-        }
-
-        .status-incubating {
-            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
-            color: #9b59b6;
-            border: 1px solid #ba68c8;
-        }
-
-        .status-ready {
-            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-            color: var(--success);
-            border: 1px solid #81c784;
-        }
-
-        .status-completed {
-            background: linear-gradient(135deg, #eeeeee, #e0e0e0);
-            color: var(--gray);
-            border: 1px solid #bdbdbd;
-        }
-
-        .status-cancelled {
-            background: linear-gradient(135deg, #ffebee, #ffcdd2);
-            color: var(--danger);
-            border: 1px solid #ef9a9a;
-        }
-
-        .payment-status {
+        .payment-badge {
             display: inline-block;
-            padding: 6px 16px;
+            padding: 6px 14px;
             border-radius: 50px;
             font-size: 11px;
             font-weight: 700;
             margin-top: 8px;
-            transition: var(--transition);
         }
 
-        .payment-verified {
-            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-            color: #2e7d32;
+        .payment-verified { background: var(--success-light); color: #2e7d32; }
+        .payment-pending { background: var(--warning-light); color: #ff8f00; }
+        .payment-rejected { background: var(--danger-light); color: var(--danger); }
+
+        /* ==================== CUSTOMER DETAILS PANEL ==================== */
+        .customer-panel {
+            background: white;
+            border-radius: 28px;
+            padding: 30px;
+            margin-bottom: 35px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.03);
+            border: 1px solid #edf2f7;
         }
 
-        .payment-pending {
-            background: linear-gradient(135deg, #fff8e1, #ffecb3);
-            color: #ff8f00;
-        }
-
-        .action-buttons {
+        .customer-panel-header {
             display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
         }
 
-        .btn-action {
-            padding: 10px 18px;
-            border-radius: 40px;
-            font-size: 12px;
+        .customer-panel-header h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .customer-panel-header h3 i {
+            color: var(--primary);
+        }
+
+        .customer-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .customer-stat {
+            background: #f8f9fa;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 13px;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 6px;
-            cursor: pointer;
+            gap: 8px;
+        }
+
+        .customer-stat i {
+            color: var(--primary);
+        }
+
+        .customers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .customers-grid::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .customers-grid::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .customers-grid::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        .customer-card {
+            background: #f8f9fa;
+            border-radius: 24px;
+            padding: 25px;
+            border: 1px solid #edf2f7;
             transition: var(--transition);
-            border: none;
+            position: relative;
         }
 
-        .btn-action.verify {
-            background: linear-gradient(135deg, var(--success), #27ae60);
-            color: white;
+        .customer-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.05);
         }
 
-        .btn-action.update {
-            background: linear-gradient(135deg, var(--info), #2980b9);
-            color: white;
+        .customer-card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
         }
 
-        .btn-action.complete {
-            background: linear-gradient(135deg, var(--success), #27ae60);
-            color: white;
+        .customer-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-light), #fff3cd);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--primary);
         }
 
-        .btn-action:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        .customer-card-title h4 {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .customer-card-title p {
+            color: var(--gray);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .customer-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .customer-detail-item {
+            background: white;
+            padding: 12px;
+            border-radius: 16px;
+            border: 1px solid #edf2f7;
+        }
+
+        .customer-detail-label {
+            font-size: 11px;
+            color: var(--gray);
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .customer-detail-value {
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 1rem;
+        }
+
+        .customer-orders-preview {
+            background: white;
+            border-radius: 16px;
+            padding: 15px;
+            border: 1px solid #edf2f7;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .preview-order {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed #edf2f7;
+            font-size: 12px;
+        }
+
+        .preview-order:last-child {
+            border-bottom: none;
+        }
+
+        .preview-order-id {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .preview-order-status {
+            padding: 3px 10px;
+            border-radius: 30px;
+            font-size: 10px;
+            font-weight: 600;
         }
 
         /* ==================== ACTIVITY FEED ==================== */
@@ -844,8 +1023,6 @@
             border-radius: 28px;
             padding: 30px;
             margin-top: 35px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.03);
-            border: 1px solid #edf2f7;
         }
 
         .activity-feed {
@@ -855,7 +1032,6 @@
             max-height: 500px;
             overflow-y: auto;
             padding-right: 15px;
-            margin-top: 20px;
         }
 
         .activity-feed::-webkit-scrollbar {
@@ -872,10 +1048,6 @@
             border-radius: 10px;
         }
 
-        .activity-feed::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-dark);
-        }
-
         .activity-item {
             display: flex;
             align-items: flex-start;
@@ -885,12 +1057,6 @@
             border-radius: 20px;
             border-left: 5px solid;
             transition: var(--transition);
-            animation: fadeInLeft 0.4s ease;
-        }
-
-        @keyframes fadeInLeft {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
         }
 
         .activity-item:hover {
@@ -907,15 +1073,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--dark);
             font-size: 20px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.03);
-            transition: var(--transition);
-        }
-
-        .activity-item:hover .activity-icon {
-            transform: scale(1.1) rotate(5deg);
-            color: var(--primary);
         }
 
         .activity-content {
@@ -927,10 +1085,6 @@
             color: var(--dark);
             margin-bottom: 10px;
             font-size: 14px;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
         }
 
         .activity-time {
@@ -952,15 +1106,8 @@
             gap: 6px;
         }
 
-        .activity-order {
-            background: linear-gradient(135deg, #e9ecef, #dee2e6);
-            color: var(--dark);
-        }
-
-        .activity-customer {
-            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-            color: var(--warning);
-        }
+        .activity-order { background: #e9ecef; color: var(--dark); }
+        .activity-customer { background: var(--warning-light); color: var(--warning); }
 
         /* ==================== MODALS ==================== */
         .modal {
@@ -977,9 +1124,7 @@
             justify-content: center;
         }
 
-        .modal.active {
-            display: flex;
-        }
+        .modal.active { display: flex; }
 
         .modal-content {
             background: white;
@@ -988,9 +1133,7 @@
             max-width: 550px;
             max-height: 90vh;
             overflow-y: auto;
-            animation: modalZoomIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            border: 1px solid #edf2f7;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+            animation: modalZoomIn 0.4s ease;
         }
 
         @keyframes modalZoomIn {
@@ -1004,8 +1147,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: linear-gradient(135deg, #f8f9fa, white);
-            border-radius: 32px 32px 0 0;
         }
 
         .modal-header h3 {
@@ -1017,9 +1158,7 @@
             gap: 12px;
         }
 
-        .modal-header h3 i {
-            color: var(--primary);
-        }
+        .modal-header h3 i { color: var(--primary); }
 
         .modal-close {
             background: none;
@@ -1030,209 +1169,37 @@
             transition: var(--transition);
             width: 45px;
             height: 45px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
         }
 
         .modal-close:hover {
-            background: #fee9e7;
+            background: var(--danger-light);
             color: var(--danger);
             transform: rotate(90deg);
         }
 
-        .modal-body {
-            padding: 30px;
-        }
-
-        .order-info {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 20px;
-            margin-bottom: 25px;
-            border: 1px solid #edf2f7;
-        }
-
-        .order-info p {
-            margin-bottom: 15px;
-            display: flex;
-            align-items: baseline;
-            font-size: 15px;
-        }
-
-        .order-info strong {
-            min-width: 130px;
-            color: var(--dark);
-            font-weight: 600;
-        }
-
-        .status-options {
-            margin: 25px 0;
-        }
-
-        .status-options label {
-            transition: var(--transition);
-            border-radius: 16px;
-        }
-
-        .status-options label:hover {
-            background: #fff9e6 !important;
-            border-color: var(--primary) !important;
-            transform: translateX(5px);
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: var(--dark);
-            font-size: 14px;
-        }
-
-        .form-group textarea {
-            width: 100%;
-            padding: 16px 20px;
-            border: 2px solid #edf2f7;
-            border-radius: 18px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 14px;
-            transition: var(--transition);
-            resize: vertical;
-        }
-
-        .form-group textarea:focus {
-            border-color: var(--primary);
-            outline: none;
-            box-shadow: 0 0 0 4px rgba(255,215,0,0.1);
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .btn-modal {
-            flex: 1;
-            padding: 16px 24px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: var(--transition);
-            border: none;
-        }
-
-        .btn-modal.btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: var(--dark);
-        }
-
-        .btn-modal.btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(255,215,0,0.3);
-        }
-
-        .btn-modal.btn-secondary {
-            background: #f1f5f9;
-            color: var(--dark);
-        }
-
-        .btn-modal.btn-secondary:hover {
-            background: #e2e8f0;
-            transform: translateY(-2px);
-        }
-
-        .btn-modal.btn-danger {
-            background: linear-gradient(135deg, var(--danger), #c0392b);
-            color: white;
-        }
-
-        .btn-modal.btn-danger:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(231, 76, 60, 0.3);
-        }
-
-        /* ==================== NOTIFICATION TOAST ==================== */
-        .notification-toast {
-            position: fixed;
-            top: 30px;
-            right: 30px;
-            background: white;
-            border-left: 6px solid;
-            border-radius: 20px;
-            padding: 20px 25px;
-            min-width: 360px;
-            max-width: 450px;
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-            z-index: 9999;
-            animation: slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-
-        .notification-toast.success { border-left-color: var(--success); }
-        .notification-toast.warning { border-left-color: var(--warning); }
-        .notification-toast.error { border-left-color: var(--danger); }
-
-        @keyframes slideInRight {
-            from { transform: translateX(100%) scale(0.8); opacity: 0; }
-            to { transform: translateX(0) scale(1); opacity: 1; }
-        }
+        .modal-body { padding: 30px; }
 
         /* ==================== RESPONSIVE ==================== */
         @media (max-width: 1400px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .verification-item {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-            
-            .orders-header, .order-row {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .orders-header, .order-row { grid-template-columns: 1fr; }
+            .verification-item { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .main-content {
-                padding: 20px;
-            }
-            
-            .verification-actions {
-                flex-direction: column;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-            
-            .header-actions {
-                flex-direction: column;
-                width: 100%;
-            }
+            .stats-grid { grid-template-columns: 1fr; }
+            .filter-bar { flex-direction: column; }
+            .filter-group { width: 100%; }
+            .customers-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation with CleanBite Branding -->
+    <!-- Navigation -->
     <nav class="admin-nav">
         <div class="nav-brand">
             <i class="fas fa-crown"></i>
@@ -1252,190 +1219,251 @@
         </div>
     </nav>
 
-    <!-- Main Dashboard Container -->
+    <!-- Main Dashboard -->
     <div class="dashboard-container">
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-menu">
                 <a href="#" class="menu-item active" id="dashboardTab">
                     <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
+                    <span>Dashboard Overview</span>
                 </a>
                 <a href="#" class="menu-item" id="verificationTab">
                     <i class="fas fa-check-circle"></i>
                     <span>Payment Verification</span>
                     <span class="badge" id="verificationBadge">0</span>
                 </a>
-                <a href="#" class="menu-item" id="ordersTab">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span>All Orders</span>
-                    <span class="badge" id="pendingBadge">0</span>
+                <a href="#" class="menu-item" id="verifiedOrdersTab">
+                    <i class="fas fa-check-double"></i>
+                    <span>Verified Orders</span>
+                    <span class="badge" id="verifiedBadge" style="background: var(--success);">0</span>
+                </a>
+                <a href="#" class="menu-item" id="cancelledOrdersTab">
+                    <i class="fas fa-times-circle"></i>
+                    <span>Cancelled Orders</span>
+                    <span class="badge" id="cancelledBadge" style="background: var(--danger);">0</span>
                 </a>
                 <a href="#" class="menu-item" id="customersTab">
                     <i class="fas fa-users"></i>
-                    <span>Customers</span>
+                    <span>Customer Database</span>
                 </a>
                 <a href="#" class="menu-item" id="activityTab">
                     <i class="fas fa-stream"></i>
-                    <span>Activity Feed</span>
+                    <span>Live Activity Feed</span>
                 </a>
             </div>
             <div class="sidebar-footer">
-                <i class="fas fa-shield-alt"></i>
-                Secure Admin Panel v2.0
+                <i class="fas fa-database"></i>
+                Firebase Real-time Sync
             </div>
         </div>
 
         <!-- Main Content -->
         <div class="main-content">
-            <!-- Payment Notice Banner -->
+            <!-- Payment Notice -->
             <div class="payment-notice" id="paymentNotice">
                 <i class="fas fa-exclamation-triangle"></i>
                 <div class="payment-notice-content">
-                    <h4>
-                        <i class="fas fa-bell"></i>
-                        Payment Verification Required
-                    </h4>
-                    <p id="paymentNoticeMessage">New orders require payment verification before production can begin.</p>
+                    <h4><i class="fas fa-bell"></i> Payment Verification Required</h4>
+                    <p id="paymentNoticeMessage">New orders require payment verification before production</p>
                 </div>
                 <span class="badge" id="paymentNoticeCount">
                     <i class="fas fa-clock"></i> 0 pending
                 </span>
             </div>
 
-            <!-- Premium Stats Cards -->
+            <!-- Stats Cards -->
             <div class="stats-grid">
                 <div class="stat-card revenue">
                     <div class="stat-header">
-                        <div class="stat-icon">
-                            <i class="fas fa-naira-sign"></i>
-                        </div>
-                        <div class="stat-trend positive">
-                            <i class="fas fa-arrow-up"></i> +12%
-                        </div>
+                        <div class="stat-icon"><i class="fas fa-naira-sign"></i></div>
+                        <div class="stat-trend positive"><i class="fas fa-arrow-up"></i> +12%</div>
                     </div>
                     <div class="stat-value" id="totalRevenue">₦0</div>
-                    <div class="stat-label">
-                        <i class="fas fa-circle-check"></i>
-                        Total Verified Revenue
-                    </div>
+                    <div class="stat-label"><i class="fas fa-circle-check"></i> Verified Revenue</div>
                 </div>
                 
                 <div class="stat-card pending">
                     <div class="stat-header">
-                        <div class="stat-icon">
-                            <i class="fas fa-hourglass-half"></i>
-                        </div>
-                        <div class="stat-trend" id="pendingTrend">
-                            <i class="fas fa-clock"></i> 0
-                        </div>
+                        <div class="stat-icon"><i class="fas fa-hourglass-half"></i></div>
+                        <div class="stat-trend" id="pendingTrend"><i class="fas fa-clock"></i> 0</div>
                     </div>
                     <div class="stat-value" id="awaitingVerification">0</div>
-                    <div class="stat-label">
-                        <i class="fas fa-hourglass"></i>
-                        Awaiting Verification
-                    </div>
+                    <div class="stat-label"><i class="fas fa-hourglass"></i> Pending Verification</div>
                 </div>
                 
-                <div class="stat-card products">
+                <div class="stat-card verified">
                     <div class="stat-header">
-                        <div class="stat-icon">
-                            <i class="fas fa-cube"></i>
-                        </div>
-                        <div class="stat-trend positive">
-                            <i class="fas fa-arrow-up"></i> +8%
-                        </div>
+                        <div class="stat-icon"><i class="fas fa-check-double"></i></div>
+                        <div class="stat-trend positive"><i class="fas fa-check"></i> Active</div>
                     </div>
-                    <div class="stat-value" id="totalProducts">0</div>
-                    <div class="stat-label">
-                        <i class="fas fa-box"></i>
-                        Products Sold
-                    </div>
+                    <div class="stat-value" id="verifiedOrdersCount">0</div>
+                    <div class="stat-label"><i class="fas fa-check-circle"></i> Verified Orders</div>
                 </div>
                 
-                <div class="stat-card customers">
+                <div class="stat-card cancelled">
                     <div class="stat-header">
-                        <div class="stat-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="stat-trend positive">
-                            <i class="fas fa-arrow-up"></i> +15%
-                        </div>
+                        <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
+                        <div class="stat-trend negative"><i class="fas fa-exclamation"></i> 0</div>
                     </div>
-                    <div class="stat-value" id="totalCustomers">0</div>
-                    <div class="stat-label">
-                        <i class="fas fa-user-plus"></i>
-                        Active Customers
-                    </div>
+                    <div class="stat-value" id="cancelledOrdersCount">0</div>
+                    <div class="stat-label"><i class="fas fa-ban"></i> Cancelled Orders</div>
                 </div>
+            </div>
+
+            <!-- Advanced Filter Bar -->
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <span class="filter-label"><i class="fas fa-filter"></i> Filter by:</span>
+                    <select class="filter-select" id="orderTypeFilter">
+                        <option value="all">All Orders</option>
+                        <option value="verified">Verified Only</option>
+                        <option value="cancelled">Cancelled Only</option>
+                        <option value="pending">Pending Payment</option>
+                    </select>
+                    
+                    <select class="filter-select" id="statusFilter">
+                        <option value="all">All Statuses</option>
+                        <option value="preparing">Preparing</option>
+                        <option value="incubating">Incubating</option>
+                        <option value="ready">Ready</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                    
+                    <select class="filter-select" id="dateFilter">
+                        <option value="all">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                </div>
+                
+                <div class="filter-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search by Order ID, Customer, Phone...">
+                </div>
+                
+                <div class="filter-actions">
+                    <button class="filter-btn active"><i class="fas fa-sliders-h"></i> Apply</button>
+                    <button class="filter-btn"><i class="fas fa-redo-alt"></i> Reset</button>
+                </div>
+            </div>
+
+            <!-- Orders Tabs -->
+            <div class="orders-tabs">
+                <button class="tab-btn all active" id="showAllOrders">
+                    <i class="fas fa-list"></i> All Orders (24)
+                </button>
+                <button class="tab-btn verified" id="showVerifiedOrders">
+                    <i class="fas fa-check-circle"></i> Verified (18)
+                </button>
+                <button class="tab-btn cancelled" id="showCancelledOrders">
+                    <i class="fas fa-times-circle"></i> Cancelled (6)
+                </button>
             </div>
 
             <!-- Payment Verification Queue -->
             <div class="verification-section" id="verificationSection">
-                <div class="verification-header">
-                    <h3>
-                        <i class="fas fa-check-circle"></i>
-                        Payment Verification Queue
-                    </h3>
-                    <div class="verification-count" id="verificationCount">
-                        <i class="fas fa-clock"></i> 
-                        <span id="verificationCountNum">0</span> pending
+                <div class="section-header">
+                    <h3><i class="fas fa-clock"></i> Payment Verification Queue</h3>
+                    <div class="section-count">
+                        <i class="fas fa-hourglass-half"></i>
+                        <span id="verificationCount">0</span> Pending
                     </div>
                 </div>
                 <div class="verification-list" id="verificationList">
-                    <!-- Dynamic content -->
+                    <!-- Verification items will be populated here -->
                 </div>
             </div>
 
-            <!-- Orders Header with Actions -->
-            <div class="orders-header-section">
-                <h2>
-                    <i class="fas fa-shopping-cart"></i>
-                    Recent Orders
-                </h2>
-                <div class="header-actions">
-                    <button class="filter-btn" id="filterOrders">
-                        <i class="fas fa-filter"></i> Filter
-                    </button>
-                    <button class="export-btn" id="exportOrders">
-                        <i class="fas fa-download"></i> Export
-                    </button>
-                    <button class="refresh-btn" id="refreshOrders">
-                        <i class="fas fa-sync-alt"></i> Refresh
-                    </button>
+            <!-- Customer Details Panel -->
+            <div class="customer-panel" id="customerPanel">
+                <div class="customer-panel-header">
+                    <h3><i class="fas fa-users"></i> Customer Database</h3>
+                    <div class="customer-stats">
+                        <span class="customer-stat"><i class="fas fa-user"></i> 156 Total</span>
+                        <span class="customer-stat"><i class="fas fa-shopping-cart"></i> 342 Orders</span>
+                    </div>
+                </div>
+                
+                <div class="customers-grid" id="customersGrid">
+                    <!-- Customer cards will be populated here -->
                 </div>
             </div>
 
-            <!-- Orders Table -->
+            <!-- Orders Container -->
             <div class="orders-container">
                 <div class="orders-header">
                     <div>Order ID</div>
-                    <div>Customer</div>
+                    <div>Customer Details</div>
                     <div>Items</div>
                     <div>Amount</div>
                     <div>Status</div>
                     <div>Actions</div>
                 </div>
                 <div class="orders-list" id="ordersList">
-                    <!-- Dynamic content -->
+                    <!-- Verified Orders Section -->
+                    <div style="margin-bottom: 30px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-left: 10px;">
+                            <i class="fas fa-check-circle" style="color: var(--success); font-size: 1.2rem;"></i>
+                            <h4 style="color: var(--success); font-weight: 700;">VERIFIED ORDERS</h4>
+                            <span style="background: var(--success-light); padding: 5px 15px; border-radius: 30px; font-size: 12px; color: var(--success);">8 active</span>
+                        </div>
+                        <!-- Verified order rows will go here -->
+                        <div class="order-row verified-row">
+                            <div class="order-id">CB-123456</div>
+                            <div class="customer-info">
+                                <h4><i class="fas fa-user-circle"></i> John Doe</h4>
+                                <p><i class="fas fa-phone"></i> 08012345678</p>
+                            </div>
+                            <div class="order-items">2x Plain Yoghurt<br>1x Strawberry</div>
+                            <div class="order-amount">₦14,000</div>
+                            <div>
+                                <span class="status-badge status-preparing">Preparing</span>
+                                <span class="payment-badge payment-verified">Verified</span>
+                            </div>
+                            <div class="action-buttons">
+                                <button class="btn-action update"><i class="fas fa-edit"></i> Update</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cancelled Orders Section -->
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-left: 10px;">
+                            <i class="fas fa-times-circle" style="color: var(--danger); font-size: 1.2rem;"></i>
+                            <h4 style="color: var(--danger); font-weight: 700;">CANCELLED ORDERS</h4>
+                            <span style="background: var(--danger-light); padding: 5px 15px; border-radius: 30px; font-size: 12px; color: var(--danger);">3 total</span>
+                        </div>
+                        <!-- Cancelled order rows will go here -->
+                        <div class="order-row cancelled-row">
+                            <div class="order-id">CB-123457</div>
+                            <div class="customer-info">
+                                <h4><i class="fas fa-user-circle"></i> Jane Smith</h4>
+                                <p><i class="fas fa-phone"></i> 08098765432</p>
+                            </div>
+                            <div class="order-items">1x Vanilla<br>1x Coconut</div>
+                            <div class="order-amount">₦10,500</div>
+                            <div>
+                                <span class="status-badge status-cancelled">Cancelled</span>
+                                <span class="payment-badge payment-rejected">Rejected</span>
+                            </div>
+                            <div class="action-buttons">
+                                <span style="color: var(--gray); font-size: 12px;">No actions</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Live Activity Feed -->
             <div class="activity-section">
-                <div class="orders-header-section">
-                    <h2>
-                        <i class="fas fa-stream"></i>
-                        Live Activity Feed
-                    </h2>
-                    <div class="header-actions">
-                        <button class="refresh-btn" id="refreshActivity">
-                            <i class="fas fa-sync-alt"></i> Refresh
-                        </button>
-                    </div>
+                <div class="section-header">
+                    <h3><i class="fas fa-stream"></i> Live Activity Feed</h3>
+                    <button class="filter-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
                 </div>
                 <div class="activity-feed" id="activityFeed">
-                    <!-- Dynamic content -->
+                    <!-- Activity items will be populated here -->
                 </div>
             </div>
         </div>
@@ -2720,6 +2748,7 @@ window.verifyPayment = function() {
     </script>
 </body>
 </html>
+
 
 
 
