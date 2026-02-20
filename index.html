@@ -1446,11 +1446,6 @@
         
         <div class="kitchen-stats">
             <div class="stat-item">
-                <i class="fas fa-fire"></i>
-                <div class="stat-value" id="incubatingCount">0</div>
-                <div class="stat-label">Incubating (24hrs)</div>
-            </div>
-            <div class="stat-item">
                 <i class="fas fa-utensils"></i>
                 <div class="stat-value" id="preparingCount">0</div>
                 <div class="stat-label">Preparing</div>
@@ -1662,16 +1657,18 @@
                             </div>
                         </div>
                         
-                       <div class="bank-details" id="bankDetails">
+                     <div class="bank-details" id="bankDetails">
                             <h4><i class="fas fa-university"></i> Bank Transfer Details</h4>
                             <div class="bank-info">
                                 <p><strong>Bank:</strong> CARBON MICRO FINANCE BANK</p>
                                 <p><strong>Account Name:</strong> Emmanuel Osabolu Okpere</p>
                                 <p><strong>Account Number:</strong> 3034457406</p>
-                                <p class="note">⚠️ Please use your <strong>Order ID</strong> as payment reference. <strong>⏰ 24hr incubation</strong> starts after verification.</p>
+                                <p class="note"><span>Please use your <strong>Order ID</strong> as payment reference and send proof to our WhatsApp</p>
                                 <div class="flex">
-                                    <i class="fas fa-clock" style="color: var(--primary); font-size: 48px;"></i>
-                                    <span>Ready in 24 hours after verification</span>
+                                    <img class="flex-image"src="images/whatsapp-order.png">
+                                    <p>Delivery on request
+                                        <i class="fas fa-truck" style="color: var(--primary); font-size: 100px;"></i>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -2497,3 +2494,4 @@ if (order.status === 'incubating' && order.incubatingStarted) {
     </script>
 </body>
 </html>
+
