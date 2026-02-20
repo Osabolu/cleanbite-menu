@@ -1521,6 +1521,362 @@
     let currentStatusOrder = null;
     let activityChannel = null;
 
+    // ==================== FIXED BROADCAST SYSTEM ====================
+let adminBroadcastChannel = null;
+
+function initBroadcastSystem() {
+    console.log('📡 Initializing admin broadcast system...');
+    
+    try {
+        // Create broadcast channel
+        if (typeof BroadcastChannel !== 'undefined') {
+            adminBroadcastChannel = new BroadcastChannel('cleanbite_activities');
+            console.log('✅ BroadcastChannel created');
+        } else {
+            console.warn('⚠️ BroadcastChannel not supported, using localStorage fallback');
+        }
+    } catch (e) {
+        console.error('❌ Failed to create BroadcastChannel:', e);
+    }
+}
+
+// ==================== FIXED BROADCAST FUNCTION ====================
+function broadcastToOrderPage(type, message, orderId, customerName, additionalData = {}) {
+    const activity = {
+        id: Date.now() + Math.random(),
+        type: type,
+        message: message,
+        orderId: orderId,
+        customerName: customerName,
+        timestamp: new Date().toISOString(),
+        icon: getBroadcastIcon(type),
+        color: getBroadcastColor(type),
+        ...additionalData
+    };
+    
+    console.log('📢 BROADCASTING to Order Page:', { type, message, orderId });
+    
+    // Method 1: BroadcastChannel (primary)
+    if (adminBroadcastChannel) {
+        try {
+            adminBroadcastChannel.postMessage({
+                type: 'NEW_ACTIVITY',
+                activity: activity
+            });
+            console.log('✅ BroadcastChannel message sent');
+        } catch (e) {
+            console.error('❌ BroadcastChannel error:', e);
+        }
+    }
+    
+    // Method 2: localStorage event (fallback for cross-tab)
+    try {
+        localStorage.setItem('cleanbite_broadcast', JSON.stringify({
+            type: 'ACTIVITY',
+            activity: activity,
+            timestamp: Date.now()
+        }));
+        // Remove immediately to allow next broadcast
+        setTimeout(() => localStorage.removeItem('cleanbite_broadcast'), 100);
+        console.log('✅ localStorage broadcast sent');
+    } catch (e) {
+        console.error('❌ localStorage error:', e);
+    }
+    
+    // Method 3: Direct Firebase listener will also pick up changes
+    // This is handled by the order page's Firebase listener
+}
+
+// ==================== FIXED ACTIVITY FEED FUNCTION ====================
+function addActivityToFeed(activity) {
+    const feed = document.getElementById('activityFeed');
+    if (!feed) return;
+    
+    // Remove any empty state
+    const emptyState = feed.querySelector('.empty-activity, .loading-activity');
+    if (emptyState) emptyState.remove();
+    
+    const timeAgo = formatTimeAgo(activity.timestamp);
+    const date = new Date(activity.timestamp).toLocaleString();
+    
+    const activityElement = document.createElement('div');
+    activityElement.className = 'activity-item';
+    activityElement.style.borderLeftColor = activity.color || '#3498db';
+    activityElement.dataset.activityId = activity.id || Date.now();
+    
+    activityElement.innerHTML = `
+        <div class="activity-icon" style="color: ${activity.color || '#3498db'};">
+            <i class="fas ${activity.icon || 'fa-bell'}"></i>
+        </div>
+        <div class="activity-content">
+            <div class="activity-message">${activity.message}</div>
+            <div class="activity-time">
+                <i class="far fa-clock"></i> ${timeAgo}
+                ${activity.customerName ? 
+                    `<span class="activity-customer"><i class="fas fa-user"></i> ${activity.customerName}</span>` : ''}
+                ${activity.orderId ? 
+                    `<span class="activity-order"><i class="fas fa-hashtag"></i> ${activity.orderId.slice(-8)}</span>` : ''}
+            </div>
+        </div>
+    `;
+    
+    // Add to top of feed
+    if (feed.firstChild) {
+        feed.insertBefore(activityElement, feed.firstChild);
+    } else {
+        feed.appendChild(activityElement);
+    }
+    
+    // Limit to 50 items
+    while (feed.children.length > 50) {
+        feed.removeChild(feed.lastChild);
+    }
+    
+    // Highlight new activity
+    setTimeout(() => {
+        activityElement.style.background = 'rgba(255,215,0,0.1)';
+        setTimeout(() => {
+            activityElement.style.background = '';
+        }, 1000);
+    }, 100);
+}
+
+// ==================== UPDATE ALL VERIFICATION FUNCTIONS TO BROADCAST ====================
+
+// Update your verifyPayment function:
+window.verifyPayment = function() {
+    console.log('🔍 Verify payment started');
+    
+    if (!currentVerificationOrder) {
+        showNotification('No order selected', 'error');
+        return;
+    }
+    
+    const order = allOrders.find(o => o.id === currentVerificationOrder);
+    if (!order || !order.firebaseKey) {
+        showNotification('Order not found', 'error');
+        closeModal('verifyModal');
+        return;
+    }
+    
+    const verifyBtn = document.getElementById('confirmVerification');
+    const originalText = verifyBtn.innerHTML;
+    verifyBtn.disabled = true;
+    verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+    
+    const timeoutId = setTimeout(() => {
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = originalText;
+        showNotification('Verification timed out', 'warning');
+    }, 5000);
+    
+    database.ref(`orders/${order.firebaseKey}`).update({
+        paymentStatus: 'verified',
+        status: 'preparing',
+        verifiedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        preparingStarted: new Date().toISOString()
+    })
+    .then(() => {
+        clearTimeout(timeoutId);
+        
+        // Play sound
+        if (window.playApprovalSound) window.playApprovalSound();
+        
+        // Create message
+        const message = `💰 Payment VERIFIED for order ${order.id.slice(-8)} - Now PREPARING`;
+        
+        // Add to admin feed
+        addActivityToFeed({
+            type: 'payment_verified',
+            message: message,
+            orderId: order.id,
+            customerName: order.customerName,
+            timestamp: new Date().toISOString(),
+            icon: 'fa-check-circle',
+            color: '#2ecc71'
+        });
+        
+        // 🔥 CRITICAL: Broadcast to order page
+        broadcastToOrderPage('payment_verified', message, order.id, order.customerName, {
+            amount: order.total,
+            status: 'preparing'
+        });
+        
+        showNotification(`✅ Payment verified`, 'success');
+        closeModal('verifyModal');
+        currentVerificationOrder = null;
+        
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = originalText;
+    })
+    .catch(error => {
+        clearTimeout(timeoutId);
+        console.error('❌ Error:', error);
+        showNotification('Error verifying payment', 'error');
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = originalText;
+    });
+};
+
+// Update your updateOrderStatus function:
+window.updateOrderStatus = function() {
+    console.log('🔍 Update status started');
+    
+    if (!currentStatusOrder) {
+        showNotification('No order selected', 'error');
+        return;
+    }
+    
+    const selectedStatus = document.querySelector('input[name="status"]:checked');
+    if (!selectedStatus) {
+        showNotification('Please select a status', 'warning');
+        return;
+    }
+    
+    const newStatus = selectedStatus.value;
+    const order = allOrders.find(o => o.id === currentStatusOrder);
+    
+    if (!order || !order.firebaseKey) {
+        showNotification('Order not found', 'error');
+        closeModal('statusModal');
+        return;
+    }
+    
+    const updateBtn = document.getElementById('confirmUpdate');
+    const originalText = updateBtn.innerHTML;
+    updateBtn.disabled = true;
+    updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+    
+    const timeoutId = setTimeout(() => {
+        updateBtn.disabled = false;
+        updateBtn.innerHTML = originalText;
+        showNotification('Update timed out', 'warning');
+    }, 5000);
+    
+    const updates = {
+        status: newStatus,
+        updatedAt: new Date().toISOString()
+    };
+    
+    if (newStatus === 'preparing' && !order.preparingStarted) {
+        updates.preparingStarted = new Date().toISOString();
+    }
+    if (newStatus === 'incubating' && !order.incubatingStarted) {
+        updates.incubatingStarted = new Date().toISOString();
+    }
+    if (newStatus === 'ready' && !order.readyAt) {
+        updates.readyAt = new Date().toISOString();
+    }
+    if (newStatus === 'completed') {
+        updates.completedAt = new Date().toISOString();
+    }
+    
+    database.ref(`orders/${order.firebaseKey}`).update(updates)
+    .then(() => {
+        clearTimeout(timeoutId);
+        
+        if (window.playApprovalSound) window.playApprovalSound();
+        
+        let message = '';
+        if (newStatus === 'preparing') message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
+        if (newStatus === 'incubating') message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (24hr countdown)`;
+        if (newStatus === 'ready') message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
+        if (newStatus === 'completed') message = `📦 Order ${order.id.slice(-8)} completed and picked up`;
+        
+        if (message) {
+            // Add to admin feed
+            addActivityToFeed({
+                type: 'status_change',
+                message: message,
+                orderId: order.id,
+                customerName: order.customerName,
+                timestamp: new Date().toISOString(),
+                icon: 'fa-sync-alt',
+                color: '#3498db'
+            });
+            
+            // 🔥 CRITICAL: Broadcast to order page
+            broadcastToOrderPage('status_change', message, order.id, order.customerName, {
+                newStatus: newStatus,
+                oldStatus: order.status
+            });
+        }
+        
+        showNotification(`Order updated to ${newStatus}`, 'success');
+        closeModal('statusModal');
+        currentStatusOrder = null;
+        
+        updateBtn.disabled = false;
+        updateBtn.innerHTML = originalText;
+    })
+    .catch(error => {
+        clearTimeout(timeoutId);
+        console.error('❌ Error:', error);
+        showNotification('Error updating status', 'error');
+        updateBtn.disabled = false;
+        updateBtn.innerHTML = originalText;
+    });
+};
+
+// Update your completeOrderManually function:
+window.completeOrderManually = function(orderId) {
+    console.log('🏁 Completing order:', orderId);
+    
+    const order = allOrders.find(o => o.id === orderId);
+    if (!order || !order.firebaseKey) {
+        showNotification('Order not found', 'error');
+        return;
+    }
+    
+    const timeoutId = setTimeout(() => {
+        showNotification('Completion timed out', 'warning');
+    }, 5000);
+    
+    database.ref(`orders/${order.firebaseKey}`).update({
+        status: 'completed',
+        completedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    })
+    .then(() => {
+        clearTimeout(timeoutId);
+        
+        if (window.playApprovalSound) window.playApprovalSound();
+        
+        const message = `🏁 Order ${orderId.slice(-8)} marked COMPLETED`;
+        
+        // Add to admin feed
+        addActivityToFeed({
+            type: 'order_completed',
+            message: message,
+            orderId: order.id,
+            customerName: order.customerName,
+            timestamp: new Date().toISOString(),
+            icon: 'fa-flag-checkered',
+            color: '#3498db'
+        });
+        
+        // 🔥 CRITICAL: Broadcast to order page
+        broadcastToOrderPage('order_completed', message, order.id, order.customerName);
+        
+        showNotification(`✅ Order completed`, 'success');
+    })
+    .catch(error => {
+        clearTimeout(timeoutId);
+        console.error('❌ Error:', error);
+        showNotification('Error completing order', 'error');
+    });
+};
+
+// Call init in DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Admin dashboard initializing...');
+    initNotificationSounds();
+    initBroadcastSystem(); // 🔥 ADD THIS
+    loadOrdersFromFirebase();
+    setupEventListeners();
+});
+
     // ==================== NOTIFICATION SOUNDS ====================
     function initNotificationSounds() {
         try {
@@ -2364,5 +2720,6 @@ window.verifyPayment = function() {
     </script>
 </body>
 </html>
+
 
 
