@@ -2463,48 +2463,41 @@ function saveOrderToLocalStorage(order) {
         });
     }
 
-    // ==================== FIXED: CONFIRMATION MODAL ====================
-    function showOrderConfirmation(order) {
-        const modal = document.getElementById('confirmationModal');
-        if (!modal) {
-            alert(`✅ ORDER PLACED!\nOrder ID: ${order.id}\nTotal: ₦${(order.total || 0).toLocaleString()}\n\nTrack your order at: track.html?order=${order.id}`);
-            return;
-        }
-        
-        document.getElementById('confirmCustomerName').textContent = order.customerName || 'Customer';
-        document.getElementById('confirmOrderId').textContent = order.id; // Shows CB-688184-7296
-        document.getElementById('confirmTotal').textContent = `₦${(order.total || 0).toLocaleString()}`;
-        
-        // 24 hours from now for ready time
-        const readyTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
-        document.getElementById('confirmEstimatedTime').textContent = 
-            readyTime.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-        
-        // 🔥 FIXED: Track order button with proper URL
-        const trackBtn = document.getElementById('trackOrderBtn');
-        if (trackBtn) {
-            trackBtn.onclick = function() {
-                const trackUrl = `track.html?order=${order.id}`;
-                console.log('🔗 Opening track URL:', trackUrl);
-                window.open(trackUrl, '_blank');
-            };
-        }
-        
-        // Also update footer track link
-        const footerTrackLink = document.getElementById('trackOrderLink');
-        if (footerTrackLink) {
-            footerTrackLink.href = `track.html?order=${order.id}`;
-        }
-        
-        modal.classList.add('active');
-        
-        // Save to localStorage for backup tracking
-        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
-        orders.push(order);
-        localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
-        
-        console.log('✅ Order saved for tracking:', order.id);
+  // ==================== FIXED: Track Order Button ====================
+function showOrderConfirmation(order) {
+    const modal = document.getElementById('confirmationModal');
+    if (!modal) {
+        alert(`✅ ORDER PLACED!\nOrder ID: ${order.id}\nTotal: ₦${(order.total || 0).toLocaleString()}`);
+        return;
     }
+    
+    document.getElementById('confirmCustomerName').textContent = order.customerName || 'Customer';
+    document.getElementById('confirmOrderId').textContent = order.id;
+    document.getElementById('confirmTotal').textContent = `₦${(order.total || 0).toLocaleString()}`;
+    
+    const readyTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    document.getElementById('confirmEstimatedTime').textContent = 
+        readyTime.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    
+    // FIXED: Mobile-friendly track button
+    const trackBtn = document.getElementById('trackOrderBtn');
+    trackBtn.onclick = function() {
+        // Use window.location for better mobile handling
+        const trackUrl = `track.html?order=${encodeURIComponent(order.id)}`;
+        console.log('🔗 Opening track URL:', trackUrl);
+        
+        // Try multiple methods for mobile
+        if (navigator.userAgent.match(/Mobi|Android|iPhone|iPad|iPod/i)) {
+            // Mobile devices - use window.location
+            window.location.href = trackUrl;
+        } else {
+            // Desktop - open in new tab
+            window.open(trackUrl, '_blank');
+        }
+    };
+    
+    modal.classList.add('active');
+}
 
     // ==================== LIVE KITCHEN STATS ====================
     class LiveKitchenSystem {
@@ -2972,6 +2965,7 @@ if (typeof showNotification !== 'function') {
     </script>
 </body>
 </html>
+
 
 
 
