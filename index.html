@@ -1764,6 +1764,241 @@
     let cart = JSON.parse(localStorage.getItem('cleanbite_cart') || '[]');
     let broadcastChannel = null;
 
+    // ==================== FIXED ORDER PAGE BROADCAST RECEIVER ====================
+let orderPageChannel = null;
+
+function initOrderPageBroadcastReceiver() {
+    console.log('📡 Initializing order page broadcast receiver...');
+    
+    const feed = document.getElementById('activityFeed');
+    if (feed) {
+        feed.innerHTML = '<div class="activity-item"><div class="activity-icon"><i class="fas fa-circle-notch fa-spin"></i></div><div class="activity-content"><div class="activity-message">Connecting to live kitchen...</div></div></div>';
+    }
+    
+    // Method 1: BroadcastChannel
+    if (typeof BroadcastChannel !== 'undefined') {
+        try {
+            orderPageChannel = new BroadcastChannel('cleanbite_activities');
+            
+            orderPageChannel.onmessage = function(event) {
+                if (event.data && event.data.type === 'NEW_ACTIVITY') {
+                    console.log('📢 Received broadcast:', event.data.activity);
+                    addActivityToOrderFeed(event.data.activity);
+                    
+                    // Play sound for new activity
+                    playNotificationSound();
+                    
+                    // Update kitchen stats if needed
+                    if (event.data.activity.type === 'payment_verified' || 
+                        event.data.activity.type === 'status_change') {
+                        refreshKitchenStats();
+                    }
+                }
+            };
+            
+            console.log('✅ BroadcastChannel receiver active');
+        } catch (e) {
+            console.error('❌ BroadcastChannel error:', e);
+        }
+    }
+    
+    // Method 2: localStorage fallback
+    window.addEventListener('storage', function(event) {
+        if (event.key === 'cleanbite_broadcast' && event.newValue) {
+            try {
+                const data = JSON.parse(event.newValue);
+                if (data.type === 'ACTIVITY') {
+                    console.log('📢 Received localStorage broadcast:', data.activity);
+                    addActivityToOrderFeed(data.activity);
+                    playNotificationSound();
+                }
+            } catch (e) {
+                console.error('❌ Error parsing localStorage broadcast:', e);
+            }
+        }
+    });
+    
+    // Method 3: Firebase real-time listener (backup)
+    if (window.database) {
+        database.ref('orders').limitToLast(5).on('child_changed', (snapshot) => {
+            const order = snapshot.val();
+            if (order && order.id) {
+                console.log('📢 Firebase order changed:', order.id, order.status);
+                
+                // Only show recent changes (last 30 seconds)
+                const updateTime = new Date(order.updatedAt || order.verifiedAt || 0);
+                const now = new Date();
+                if (now - updateTime < 30000) { // 30 seconds
+                    
+                    let message = '';
+                    let icon = 'fa-sync-alt';
+                    let color = '#3498db';
+                    
+                    if (order.verifiedAt && order.paymentStatus === 'verified') {
+                        message = `💰 Payment verified for order ${order.id.slice(-8)}`;
+                        icon = 'fa-check-circle';
+                        color = '#2ecc71';
+                    } else if (order.status === 'preparing') {
+                        message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
+                    } else if (order.status === 'incubating') {
+                        message = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
+                    } else if (order.status === 'ready') {
+                        message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
+                        icon = 'fa-check-circle';
+                        color = '#2ecc71';
+                    } else if (order.status === 'completed') {
+                        message = `📦 Order ${order.id.slice(-8)} completed`;
+                        icon = 'fa-flag-checkered';
+                    }
+                    
+                    if (message) {
+                        addActivityToOrderFeed({
+                            message: message,
+                            orderId: order.id,
+                            customerName: order.customerName,
+                            timestamp: order.updatedAt || new Date().toISOString(),
+                            icon: icon,
+                            color: color
+                        });
+                        playNotificationSound();
+                    }
+                }
+            }
+        });
+    }
+}
+
+// ==================== FIXED ACTIVITY FEED FUNCTION ====================
+function addActivityToOrderFeed(activity, animate = true) {
+    const feed = document.getElementById('activityFeed');
+    if (!feed) return;
+    
+    // Remove loading message
+    const loading = feed.querySelector('.fa-spin');
+    if (loading) {
+        feed.innerHTML = '';
+    }
+    
+    // Check for duplicates (last 2 seconds)
+    const lastItem = feed.firstChild;
+    if (lastItem) {
+        const lastText = lastItem.querySelector('.activity-text')?.textContent || '';
+        if (lastText.includes(activity.message?.slice(0, 20))) {
+            console.log('⚠️ Duplicate activity skipped');
+            return;
+        }
+    }
+    
+    const timeAgo = getTimeAgo(activity.timestamp);
+    
+    const activityElement = document.createElement('div');
+    activityElement.className = 'activity-item';
+    activityElement.style.borderLeftColor = activity.color || '#3498db';
+    activityElement.style.animation = animate ? 'fadeIn 0.4s ease' : 'none';
+    
+    activityElement.innerHTML = `
+        <div class="activity-icon" style="color: ${activity.color || '#3498db'};">
+            <i class="fas ${activity.icon || 'fa-bell'}"></i>
+        </div>
+        <div class="activity-content">
+            <div class="activity-text">${activity.message || 'Kitchen update'}</div>
+            <div class="activity-meta">
+                <span class="activity-time"><i class="far fa-clock"></i> ${timeAgo}</span>
+                ${activity.customerName ? 
+                    `<span class="activity-customer"><i class="fas fa-user"></i> ${activity.customerName}</span>` : ''}
+                ${activity.orderId ? 
+                    `<span class="activity-order"><i class="fas fa-hashtag"></i> ${activity.orderId.slice(-8)}</span>` : ''}
+            </div>
+        </div>
+    `;
+    
+    // Add to top of feed
+    if (feed.firstChild) {
+        feed.insertBefore(activityElement, feed.firstChild);
+    } else {
+        feed.appendChild(activityElement);
+    }
+    
+    // Limit to 20 items
+    while (feed.children.length > 20) {
+        feed.removeChild(feed.lastChild);
+    }
+    
+    // Highlight new activity
+    setTimeout(() => {
+        activityElement.style.background = 'rgba(255,215,0,0.1)';
+        setTimeout(() => {
+            activityElement.style.background = '';
+        }, 1000);
+    }, 100);
+    
+    console.log('✅ Activity added to order feed:', activity.message);
+}
+
+// ==================== FIXED KITCHEN STATS REFRESH ====================
+function refreshKitchenStats() {
+    if (window.liveKitchen) {
+        window.liveKitchen.loadKitchenStats();
+    } else {
+        // Manual refresh
+        database.ref('orders').once('value', (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+            
+            const orders = Object.values(data);
+            
+            document.getElementById('preparingCount').textContent = 
+                orders.filter(o => o.paymentStatus === 'verified' && o.status === 'preparing').length;
+            document.getElementById('incubatingCount').textContent = 
+                orders.filter(o => o.paymentStatus === 'verified' && o.status === 'incubating').length;
+            document.getElementById('readyCount').textContent = 
+                orders.filter(o => o.paymentStatus === 'verified' && o.status === 'ready').length;
+            document.getElementById('completedCount').textContent = 
+                orders.filter(o => o.paymentStatus === 'verified' && o.status === 'completed').length;
+        });
+    }
+}
+
+// ==================== FIXED NOTIFICATION SOUND ====================
+function playNotificationSound() {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 600;
+        gainNode.gain.value = 0.2;
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.2);
+    } catch (e) {
+        console.log('Sound play failed:', e);
+    }
+}
+
+// ==================== INITIALIZE ON PAGE LOAD ====================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🍽️ Order Page Initializing...');
+    
+    renderMenu();
+    updateCartDisplay();
+    
+    window.liveKitchen = new LiveKitchenSystem();
+    initOrderPageBroadcastReceiver(); // 🔥 ADD THIS
+    
+    setupEventListeners();
+    setupParallax();
+    setupSubmitButton();
+    
+    console.log('✅ Order Page Ready - Live feed active');
+});
+
     // ==================== MENU DATA ====================
     const menuItems = [
         {
@@ -2467,5 +2702,6 @@ function showOrderConfirmation(order) {
     </script>
 </body>
 </html>
+
 
 
