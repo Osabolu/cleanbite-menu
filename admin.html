@@ -2730,127 +2730,153 @@
         `).join('');
     }
 
-    // ==================== AUTO PROGRESS CHECKER (STOPS AT READY) ====================
-    function checkOrderProgressions() {
-        console.log('⏰ Checking order progressions...');
+// ==================== AUTO PROGRESS CHECKER (STOPS AT READY) ====================
+function checkOrderProgressions() {
+    console.log('⏰ Checking order progressions in Firebase...');
+    
+    // Get orders DIRECTLY from Firebase (not localStorage)
+    database.ref('orders').once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+            console.log('No orders found');
+            return;
+        }
         
-        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
-        let updated = false;
         const now = new Date();
+        let updates = [];
+        
+        // Convert Firebase object to array
+        const orders = Object.entries(data).map(([key, order]) => ({
+            ...order,
+            firebaseKey: key
+        }));
         
         orders.forEach(order => {
+            // Only process verified orders
             if (order.paymentStatus !== 'verified') return;
             
-            // Skip if already ready or completed (no further auto-progress)
+            // Skip if already ready or completed
             if (order.status === 'ready' || order.status === 'completed') return;
-            
-            // Use stage-specific start times
-            let stageStartTime;
-            
-            if (order.status === 'preparing') {
-                stageStartTime = new Date(order.preparingStarted || order.verifiedAt || order.updatedAt);
-            } else if (order.status === 'incubating') {
-                stageStartTime = new Date(order.incubatingStarted || order.updatedAt);
-            } else {
-                return; // Skip other statuses
-            }
-            
-            // Skip if invalid date
-            if (isNaN(stageStartTime)) return;
-            
-            const timeElapsed = now - stageStartTime;
             
             // =============================================
             // STAGE 1: Preparing → Incubating (30 minutes)
             // =============================================
-            if (order.status === 'preparing' && timeElapsed >= 30 * 60 * 1000) {
-                console.log(`⏩ Auto-progress: Order ${order.id} preparing → incubating`);
+            if (order.status === 'preparing') {
+                const stageStartTime = new Date(order.preparingStarted || order.verifiedAt || order.updatedAt);
                 
-                // Update order
-                order.status = 'incubating';
-                order.incubatingStarted = now.toISOString();
-                order.updatedAt = now.toISOString();
+                // Skip if invalid date
+                if (isNaN(stageStartTime)) {
+                    console.warn(`Invalid date for order ${order.id}`);
+                    return;
+                }
                 
-                // Save to localStorage
-                updated = true;
+                const timeElapsed = now - stageStartTime;
+                const elapsedMinutes = Math.floor(timeElapsed / (60 * 1000));
                 
-                // SYNC TO FIREBASE (for live updates)
-                if (order.firebaseKey && window.database) {
-                    database.ref(`orders/${order.firebaseKey}`).update({
+                console.log(`Order ${order.id.slice(-8)}: Preparing for ${elapsedMinutes} minutes`);
+                
+                if (timeElapsed >= 30 * 60 * 1000) { // 30 minutes
+                    console.log(`⏩ Auto-progress: Order ${order.id} preparing → incubating`);
+                    
+                    const updateData = {
                         status: 'incubating',
                         incubatingStarted: now.toISOString(),
                         updatedAt: now.toISOString()
-                    }).catch(err => console.error('Firebase sync error:', err));
+                    };
+                    
+                    // Update Firebase
+                    updates.push(
+                        database.ref(`orders/${order.firebaseKey}`).update(updateData)
+                            .then(() => {
+                                const message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (23hr countdown started)`;
+                                
+                                // Add to activity feed
+                                addActivityToFeed({
+                                    type: 'status_change',
+                                    message: message,
+                                    orderId: order.id,
+                                    customerName: order.customerName,
+                                    timestamp: now.toISOString(),
+                                    icon: 'fa-clock',
+                                    color: '#f39c12'
+                                });
+                                
+                                broadcastToOrderPage('status_change', message, order.id, order.customerName);
+                                console.log(`✅ Order ${order.id.slice(-8)} now incubating`);
+                            })
+                            .catch(err => console.error('Firebase error:', err))
+                    );
                 }
-                
-                // Add activity
-                const message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (24hr countdown started)`;
-                addActivityToFeed({
-                    type: 'status_change',
-                    message: message,
-                    orderId: order.id,
-                    customerName: order.customerName,
-                    timestamp: now.toISOString(),
-                    icon: 'fa-clock',
-                    color: '#f39c12'
-                });
-                
-                broadcastToOrderPage('status_change', message, order.id, order.customerName);
             }
             
             // =============================================
-            // STAGE 2: Incubating → Ready (24 hours)
+            // STAGE 2: Incubating → Ready (23 hours)
             // =============================================
-            else if (order.status === 'incubating' && timeElapsed >= 24 * 60 * 60 * 1000) {
-                console.log(`⏩ Auto-progress: Order ${order.id} incubating → READY`);
+            else if (order.status === 'incubating') {
+                const stageStartTime = new Date(order.incubatingStarted || order.updatedAt);
                 
-                // Update order
-                order.status = 'ready';
-                order.readyAt = now.toISOString();
-                order.updatedAt = now.toISOString();
+                // Skip if invalid date
+                if (isNaN(stageStartTime)) {
+                    console.warn(`Invalid date for order ${order.id}`);
+                    return;
+                }
                 
-                // Save to localStorage
-                updated = true;
+                const timeElapsed = now - stageStartTime;
+                const elapsedHours = Math.floor(timeElapsed / (60 * 60 * 1000));
                 
-                // SYNC TO FIREBASE (for live updates)
-                if (order.firebaseKey && window.database) {
-                    database.ref(`orders/${order.firebaseKey}`).update({
+                console.log(`Order ${order.id.slice(-8)}: Incubating for ${elapsedHours} hours`);
+                
+                if (timeElapsed >= 23 * 60 * 60 * 1000) { // 23 hours
+                    console.log(`⏩ Auto-progress: Order ${order.id} incubating → READY`);
+                    
+                    const updateData = {
                         status: 'ready',
                         readyAt: now.toISOString(),
                         updatedAt: now.toISOString()
-                    }).catch(err => console.error('Firebase sync error:', err));
+                    };
+                    
+                    // Update Firebase
+                    updates.push(
+                        database.ref(`orders/${order.firebaseKey}`).update(updateData)
+                            .then(() => {
+                                const message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
+                                
+                                addActivityToFeed({
+                                    type: 'status_change',
+                                    message: message,
+                                    orderId: order.id,
+                                    customerName: order.customerName,
+                                    timestamp: now.toISOString(),
+                                    icon: 'fa-check-circle',
+                                    color: '#2ecc71'
+                                });
+                                
+                                broadcastToOrderPage('status_change', message, order.id, order.customerName);
+                                console.log(`✅ Order ${order.id.slice(-8)} is now READY`);
+                            })
+                            .catch(err => console.error('Firebase error:', err))
+                    );
                 }
-                
-                // Add activity
-                const message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
-                addActivityToFeed({
-                    type: 'status_change',
-                    message: message,
-                    orderId: order.id,
-                    customerName: order.customerName,
-                    timestamp: now.toISOString(),
-                    icon: 'fa-check-circle',
-                    color: '#2ecc71'
-                });
-                
-                broadcastToOrderPage('status_change', message, order.id, order.customerName);
             }
-            
-            // =============================================
-            // STAGE 3: Ready → Completed (NOT AUTOMATIC)
-            // Admin must click COMPLETE button manually
-            // =============================================
-            // ❌ NO AUTO-COMPLETE - Intentionally removed
         });
         
-        if (updated) {
-            localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
-            loadDashboardData();
-        }
-    }
-    
-    // Start auto-progression checker (runs every minute)
-    setInterval(checkOrderProgressions, 60 * 1000);
+        // Wait for all updates
+        Promise.all(updates).then(() => {
+            if (updates.length > 0) {
+                console.log(`✅ Completed ${updates.length} auto-progressions`);
+                
+                // Reload orders from Firebase to refresh dashboard
+                loadOrdersFromFirebase();
+            }
+        });
+        
+    }).catch(error => {
+        console.error('❌ Error checking progressions:', error);
+    });
+}
+
+// Start auto-progression checker (runs every minute)
+setInterval(checkOrderProgressions, 60 * 1000);
 
     // ==================== MANUAL UPDATE STATUS (ADMIN CLICK) ====================
     window.updateOrderStatus = function() {
@@ -3998,3 +4024,4 @@
     </script>
 </body>
 </html>
+
