@@ -2679,6 +2679,369 @@
         `).join('');
     }
 
+    // ==================== AUTO PROGRESS CHECKER ====================
+        function checkOrderProgressions() {
+            console.log('⏰ Checking order progressions...');
+            
+            const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+            let updated = false;
+            const now = new Date();
+            
+            orders.forEach(order => {
+                if (order.paymentStatus !== 'verified') return;
+                
+                // Use stage-specific start times
+                let stageStartTime;
+                
+                if (order.status === 'preparing') {
+                    stageStartTime = new Date(order.preparingStarted || order.verifiedAt || order.updatedAt);
+                } else if (order.status === 'incubating') {
+                    stageStartTime = new Date(order.incubatingStarted || order.updatedAt);
+                } else {
+                    return; // Skip other statuses
+                }
+                
+                // Skip if invalid date
+                if (isNaN(stageStartTime)) return;
+                
+                const timeElapsed = now - stageStartTime;
+                
+                // Preparing → Incubating (30 minutes)
+                if (order.status === 'preparing' && timeElapsed >= 30 * 60 * 1000) {
+                    console.log(`⏩ Auto-progress: Order ${order.id} preparing → incubating`);
+                    
+                    // Update order
+                    order.status = 'incubating';
+                    order.incubatingStarted = now.toISOString();
+                    order.updatedAt = now.toISOString();
+                    
+                    // Save to localStorage
+                    updated = true;
+                    
+                    // SYNC TO FIREBASE (for live updates)
+                    if (order.firebaseKey && window.database) {
+                        database.ref(`orders/${order.firebaseKey}`).update({
+                            status: 'incubating',
+                            incubatingStarted: now.toISOString(),
+                            updatedAt: now.toISOString()
+                        }).catch(err => console.error('Firebase sync error:', err));
+                    }
+                    
+                    // Add activity
+                    const message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (24hr countdown started)`;
+                    addActivityToFeed({
+                        type: 'status_change',
+                        message: message,
+                        orderId: order.id,
+                        customerName: order.customerName,
+                        timestamp: now.toISOString(),
+                        icon: 'fa-clock',
+                        color: '#f39c12'
+                    });
+                    
+                    broadcastToOrderPage('status_change', message, order.id, order.customerName);
+                }
+                
+                // Incubating → Ready (24 hours)
+                if (order.status === 'incubating' && timeElapsed >= 24 * 60 * 60 * 1000) {
+                    console.log(`⏩ Auto-progress: Order ${order.id} incubating → ready`);
+                    
+                    // Update order
+                    order.status = 'ready';
+                    order.readyAt = now.toISOString();
+                    order.updatedAt = now.toISOString();
+                    
+                    // Save to localStorage
+                    updated = true;
+                    
+                    // SYNC TO FIREBASE (for live updates)
+                    if (order.firebaseKey && window.database) {
+                        database.ref(`orders/${order.firebaseKey}`).update({
+                            status: 'ready',
+                            readyAt: now.toISOString(),
+                            updatedAt: now.toISOString()
+                        }).catch(err => console.error('Firebase sync error:', err));
+                    }
+                    
+                    // Add activity
+                    const message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
+                    addActivityToFeed({
+                        type: 'status_change',
+                        message: message,
+                        orderId: order.id,
+                        customerName: order.customerName,
+                        timestamp: now.toISOString(),
+                        icon: 'fa-check-circle',
+                        color: '#2ecc71'
+                    });
+                    
+                    broadcastToOrderPage('status_change', message, order.id, order.customerName);
+                }
+            });
+            
+            if (updated) {
+                localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
+                loadDashboardData();
+            }
+        }
+        
+        // Start the auto-checker (runs every minute)
+        setInterval(checkOrderProgressions, 60 * 1000);
+
+    // ==================== MANUAL UPDATE STATUS (ADMIN CLICK) ====================
+window.updateOrderStatus = function() {
+    console.log('🔍 Manual status update started');
+    
+    if (!currentStatusOrder) {
+        showNotification('No order selected', 'error');
+        return;
+    }
+    
+    const selectedStatus = document.querySelector('input[name="status"]:checked');
+    if (!selectedStatus) {
+        showNotification('Please select a status', 'warning');
+        return;
+    }
+    
+    const newStatus = selectedStatus.value;
+    const order = allOrders.find(o => o.id === currentStatusOrder);
+    
+    if (!order || !order.firebaseKey) {
+        showNotification('Order not found', 'error');
+        closeModal('statusModal');
+        return;
+    }
+    
+    const updateBtn = document.getElementById('confirmUpdate');
+    const originalText = updateBtn.innerHTML;
+    updateBtn.disabled = true;
+    updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+    
+    // Prepare updates
+    const updates = {
+        status: newStatus,
+        updatedAt: new Date().toISOString()
+    };
+    
+    // Add stage-specific timestamps
+    if (newStatus === 'preparing' && !order.preparingStarted) {
+        updates.preparingStarted = new Date().toISOString();
+    }
+    if (newStatus === 'incubating' && !order.incubatingStarted) {
+        updates.incubatingStarted = new Date().toISOString();
+    }
+    if (newStatus === 'ready' && !order.readyAt) {
+        updates.readyAt = new Date().toISOString();
+    }
+    if (newStatus === 'completed') {
+        updates.completedAt = new Date().toISOString();
+        updates.completedBy = 'admin';
+    }
+    
+    // Timeout protection
+    const timeout = setTimeout(() => {
+        updateBtn.disabled = false;
+        updateBtn.innerHTML = originalText;
+        showNotification('Update timed out', 'warning');
+    }, 5000);
+    
+    // 🔥 UPDATE FIREBASE (triggers live sync to order page)
+    database.ref(`orders/${order.firebaseKey}`).update(updates)
+    .then(() => {
+        clearTimeout(timeout);
+        
+        // Update local array
+        Object.assign(order, updates);
+        
+        // Play sound
+        if (window.playApprovalSound) window.playApprovalSound();
+        
+        // Create message
+        let message = '';
+        if (newStatus === 'preparing') message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation (manual)`;
+        if (newStatus === 'incubating') message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (manual)`;
+        if (newStatus === 'ready') message = `✅ Order ${order.id.slice(-8)} is READY for pickup (manual)`;
+        if (newStatus === 'completed') message = `📦 Order ${order.id.slice(-8)} completed by admin`;
+        
+        if (message) {
+            // Add to admin activity feed
+            addActivityToFeed({
+                type: 'status_change',
+                message: message,
+                orderId: order.id,
+                customerName: order.customerName,
+                timestamp: new Date().toISOString(),
+                icon: 'fa-sync-alt',
+                color: '#3498db'
+            });
+            
+            // 🔥 BROADCAST to order page
+            broadcastToOrderPage('status_change', message, order.id, order.customerName);
+        }
+        
+        showNotification(`Order manually updated to ${newStatus}`, 'success');
+        closeModal('statusModal');
+        currentStatusOrder = null;
+        
+        updateBtn.disabled = false;
+        updateBtn.innerHTML = originalText;
+        
+        // Refresh dashboard
+        loadDashboardData();
+    })
+    .catch(error => {
+        clearTimeout(timeout);
+        console.error('❌ Error:', error);
+        showNotification('Error updating status: ' + error.message, 'error');
+        updateBtn.disabled = false;
+        updateBtn.innerHTML = originalText;
+    });
+};
+
+    // ==================== MANUAL COMPLETE ORDER ====================
+window.completeOrderManually = function(orderId) {
+    console.log('🏁 Admin manually completing order:', orderId);
+    
+    const order = allOrders.find(o => o.id === orderId);
+    if (!order || !order.firebaseKey) {
+        showNotification('Order not found', 'error');
+        return;
+    }
+    
+    // Confirm with admin
+    if (!confirm(`Mark order ${orderId.slice(-8)} as COMPLETED?`)) {
+        return;
+    }
+    
+    const completeBtn = event?.target;
+    const originalText = completeBtn?.innerHTML;
+    if (completeBtn) {
+        completeBtn.disabled = true;
+        completeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    }
+    
+    const timeout = setTimeout(() => {
+        if (completeBtn) {
+            completeBtn.disabled = false;
+            completeBtn.innerHTML = originalText;
+        }
+        showNotification('Completion timed out', 'warning');
+    }, 5000);
+    
+    // 🔥 UPDATE FIREBASE
+    database.ref(`orders/${order.firebaseKey}`).update({
+        status: 'completed',
+        completedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        completedBy: 'admin'
+    })
+    .then(() => {
+        clearTimeout(timeout);
+        
+        // Update local array
+        order.status = 'completed';
+        order.completedAt = new Date().toISOString();
+        
+        if (window.playApprovalSound) window.playApprovalSound();
+        
+        const message = `📦 Order ${orderId.slice(-8)} completed by admin`;
+        
+        // Add to admin feed
+        addActivityToFeed({
+            type: 'order_completed',
+            message: message,
+            orderId: order.id,
+            customerName: order.customerName,
+            timestamp: new Date().toISOString(),
+            icon: 'fa-flag-checkered',
+            color: '#3498db'
+        });
+        
+        // 🔥 BROADCAST to order page
+        broadcastToOrderPage('order_completed', message, order.id, order.customerName);
+        
+        showNotification(`✅ Order completed`, 'success');
+        
+        if (completeBtn) {
+            completeBtn.disabled = false;
+            completeBtn.innerHTML = originalText;
+        }
+        
+        // Refresh dashboard
+        loadDashboardData();
+    })
+    .catch(error => {
+        clearTimeout(timeout);
+        console.error('❌ Error:', error);
+        showNotification('Error completing order: ' + error.message, 'error');
+        if (completeBtn) {
+            completeBtn.disabled = false;
+            completeBtn.innerHTML = originalText;
+        }
+    });
+};
+
+    // ==================== BROADCAST TO ORDER PAGE ====================
+function broadcastToOrderPage(type, message, orderId, customerName) {
+    const activity = {
+        id: Date.now() + Math.random(),
+        type: type,
+        message: message,
+        orderId: orderId,
+        customerName: customerName,
+        timestamp: new Date().toISOString(),
+        icon: getBroadcastIcon(type),
+        color: getBroadcastColor(type)
+    };
+    
+    console.log('📢 BROADCASTING to Order Page:', message);
+    
+    // Method 1: BroadcastChannel
+    if (window.broadcastChannel) {
+        try {
+            window.broadcastChannel.postMessage({
+                type: 'NEW_ACTIVITY',
+                activity: activity
+            });
+        } catch (e) {}
+    }
+    
+    // Method 2: Create new channel if needed
+    if (typeof BroadcastChannel !== 'undefined') {
+        try {
+            const channel = new BroadcastChannel('cleanbite_activities');
+            channel.postMessage({
+                type: 'NEW_ACTIVITY',
+                activity: activity
+            });
+            setTimeout(() => channel.close(), 100);
+        } catch (e) {}
+    }
+    
+    // Method 3: localStorage fallback
+    try {
+        localStorage.setItem('cleanbite_broadcast', JSON.stringify({
+            type: 'ACTIVITY',
+            activity: activity,
+            timestamp: Date.now()
+        }));
+        setTimeout(() => localStorage.removeItem('cleanbite_broadcast'), 100);
+    } catch (e) {}
+}
+
+        // Initialize broadcast channel
+if (typeof BroadcastChannel !== 'undefined') {
+    try {
+        window.broadcastChannel = new BroadcastChannel('cleanbite_activities');
+        console.log('✅ Broadcast channel initialized');
+    } catch (e) {
+        console.error('❌ Broadcast channel error:', e);
+    }
+}
+
+// Start auto-progression checker
+setInterval(checkOrderProgressions, 60 * 1000);
+
     // ==================== UPDATE ACTIVITY FEED ====================
     function updateActivityFeed() {
         const feed = document.getElementById('activityFeed');
@@ -3549,3 +3912,4 @@
     </script>
 </body>
 </html>
+
