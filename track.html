@@ -1284,239 +1284,222 @@
         updateKitchenView();
     });
 
-    // ==================== FIND ORDER BY ID ====================
-    function findOrderById(orderId) {
-        try {
-            console.log('🔍 Searching for order:', orderId);
+    // ==================== FIXED: Find Order by ID (Checks Firebase FIRST) ====================
+function findOrderById(orderId) {
+    return new Promise((resolve) => {
+        console.log('🔍 Searching for order:', orderId);
+        
+        if (!orderId) {
+            resolve(null);
+            return;
+        }
+        
+        const cleanOrderId = orderId.toString().trim().replace(/\s+/g, '');
+        
+        // METHOD 1: Check Firebase FIRST (live data)
+        database.ref('orders').orderByChild('id').equalTo(cleanOrderId).once('value', (snapshot) => {
+            const data = snapshot.val();
             
-            if (!orderId) return null;
-            
-            const ordersJson = localStorage.getItem('cleanbite_orders');
-            if (!ordersJson) {
-                console.log('❌ No orders found');
-                return null;
+            if (data) {
+                // Found in Firebase
+                const order = Object.values(data)[0];
+                console.log('✅ Order found in Firebase:', order.id);
+                
+                // Update localStorage with latest data
+                try {
+                    localStorage.setItem(`order_${order.id}`, JSON.stringify(order));
+                    
+                    const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+                    const index = orders.findIndex(o => o.id === order.id);
+                    if (index !== -1) {
+                        orders[index] = order;
+                    } else {
+                        orders.push(order);
+                    }
+                    localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
+                } catch (e) {}
+                
+                resolve(order);
+            } else {
+                // METHOD 2: Try case-insensitive search in Firebase
+                database.ref('orders').once('value', (snapshot) => {
+                    const allData = snapshot.val();
+                    if (!allData) {
+                        // METHOD 3: Fallback to localStorage
+                        resolve(findOrderInLocalStorage(cleanOrderId));
+                        return;
+                    }
+                    
+                    const orders = Object.values(allData);
+                    
+                    // Try case-insensitive match
+                    const caseInsensitiveMatch = orders.find(o => 
+                        o.id && o.id.toUpperCase() === cleanOrderId.toUpperCase()
+                    );
+                    
+                    if (caseInsensitiveMatch) {
+                        console.log('✅ Order found (case-insensitive Firebase):', caseInsensitiveMatch.id);
+                        resolve(caseInsensitiveMatch);
+                        return;
+                    }
+                    
+                    // Try partial match (last 8 chars)
+                    const last8 = cleanOrderId.slice(-8);
+                    const partialMatch = orders.find(o => 
+                        o.id && (o.id.includes(last8) || o.id.slice(-8) === last8)
+                    );
+                    
+                    if (partialMatch) {
+                        console.log('✅ Order found (partial match Firebase):', partialMatch.id);
+                        resolve(partialMatch);
+                        return;
+                    }
+                    
+                    // METHOD 4: Final fallback to localStorage
+                    resolve(findOrderInLocalStorage(cleanOrderId));
+                });
             }
-            
+        }).catch(error => {
+            console.error('Firebase error:', error);
+            // Fallback to localStorage on error
+            resolve(findOrderInLocalStorage(cleanOrderId));
+        });
+    });
+}
+
+// ==================== Fallback: Search in localStorage ====================
+function findOrderInLocalStorage(orderId) {
+    console.log('💾 Falling back to localStorage for:', orderId);
+    
+    try {
+        // Check individual order first
+        const singleOrder = localStorage.getItem(`order_${orderId}`);
+        if (singleOrder) {
+            const order = JSON.parse(singleOrder);
+            console.log('✅ Order found in individual storage:', order.id);
+            return order;
+        }
+        
+        // Check main orders array
+        const ordersJson = localStorage.getItem('cleanbite_orders');
+        if (ordersJson) {
             const orders = JSON.parse(ordersJson);
-            console.log('📦 Total orders:', orders.length);
             
-            const searchId = orderId.trim();
+            // Exact match
+            let found = orders.find(o => o.id === orderId);
+            if (found) return found;
             
-            const foundOrder = orders.find(order => 
-                order.id === searchId || 
-                order.orderId === searchId ||
-                order.id?.slice(-8) === searchId.slice(-8)
-            );
+            // Case-insensitive
+            found = orders.find(o => o.id?.toUpperCase() === orderId.toUpperCase());
+            if (found) return found;
             
-            if (foundOrder) {
-                console.log('✅ Order found:', foundOrder.id);
-                return foundOrder;
-            }
-            
-            console.log('❌ Order not found');
-            return null;
-            
-        } catch (error) {
-            console.error('❌ Error:', error);
-            return null;
+            // Partial match
+            const last8 = orderId.slice(-8);
+            found = orders.find(o => o.id?.includes(last8) || o.id?.slice(-8) === last8);
+            if (found) return found;
         }
-    }
+    } catch (e) {}
+    
+    return null;
+}
 
-    // ==================== TRACK ORDER ====================
-    function trackOrder(orderId) {
-        showLoading();
-        hideError();
-        
-        const order = findOrderById(orderId);
-        
-        if (order) {
-            currentOrderId = orderId;
-            displayOrderData(order);
-            document.getElementById('trackingDisplay').style.display = 'block';
-            startAutoRefresh();
-        } else {
-            showError('Order "' + orderId + '" not found. Please check your Order ID.');
-        }
-        
+// ==================== FIXED: Track Order (Async/Await) ====================
+async function trackOrder(orderId) {
+    showLoading();
+    hideError();
+    
+    if (!orderId) {
         hideLoading();
+        alert('Please enter your Order ID');
+        return;
     }
+    
+    const order = await findOrderById(orderId);
+    
+    if (order) {
+        currentOrderId = order.id;
+        displayOrderData(order);
+        document.getElementById('trackingDisplay').style.display = 'block';
+        startAutoRefresh();
+        
+        // 🔥 NEW: Set up real-time Firebase listener for this order
+        setupFirebaseListener(order.id);
+    } else {
+        showError('Order "' + orderId + '" not found. Please check your Order ID.');
+    }
+    
+    hideLoading();
+}
 
-    // ==================== DISPLAY ORDER DATA ====================
-    function displayOrderData(order) {
-        document.getElementById('displayOrderId').textContent = order.id;
-        document.getElementById('customerName').textContent = order.customerName || 'Customer';
-        
-        const amount = order.totalAmount || order.total || 0;
-        document.getElementById('orderAmount').textContent = '₦' + amount.toLocaleString();
-        
-        document.getElementById('itemCount').textContent = (order.items?.length || 0) + ' items';
-        
-        if (order.createdAt) {
-            const orderTime = new Date(order.createdAt);
-            document.getElementById('orderTime').textContent = 
-                orderTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+// ==================== NEW: Real-time Firebase Listener ====================
+function setupFirebaseListener(orderId) {
+    console.log('👂 Setting up real-time listener for order:', orderId);
+    
+    // Remove existing listener if any
+    if (window.orderListener) {
+        database.ref('orders').off('child_changed', window.orderListener);
+    }
+    
+    // Listen for changes to this specific order
+    window.orderListener = database.ref('orders').orderByChild('id').equalTo(orderId)
+        .on('child_changed', (snapshot) => {
+            const updatedOrder = snapshot.val();
+            console.log('🔄 Real-time update received:', updatedOrder.status);
+            
+            // Update the display with new data
+            displayOrderData(updatedOrder);
+            
+            // Show a subtle notification
+            showNotification(`Order status updated to: ${updatedOrder.status}`, 'info');
+        });
+}
+
+// ==================== FIXED: Auto Refresh (Now shorter interval) ====================
+function startAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    
+    // Refresh every 5 seconds instead of 10 for more real-time feel
+    refreshInterval = setInterval(async function() {
+        if (currentOrderId) {
+            // Check Firebase for updates
+            const order = await findOrderById(currentOrderId);
+            if (order) {
+                displayOrderData(order);
+            }
         }
-        
-        updateTimeline(order);
-        updateCurrentStatus(order);
-        updateETA(order);
         updateKitchenView();
-    }
+    }, 5000); // 5 seconds
+}
 
-    // ==================== UPDATE TIMELINE ====================
-    function updateTimeline(order) {
-        const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG['pending-payment'];
-        let currentStep = statusConfig.step;
+// ==================== FIXED: Update Kitchen View (Use Firebase) ====================
+function updateKitchenView() {
+    // Get kitchen stats from Firebase, not localStorage
+    database.ref('orders').once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
         
-        // Reset all steps
-        for (let i = 1; i <= 5; i++) {
-            const step = document.getElementById('step' + i);
-            if (step) {
-                step.classList.remove('active', 'completed');
-            }
-        }
+        const orders = Object.values(data);
         
-        // Update steps
-        for (let i = 1; i <= 5; i++) {
-            const step = document.getElementById('step' + i);
-            if (step) {
-                if (i < currentStep) {
-                    step.classList.add('completed');
-                } else if (i === currentStep) {
-                    step.classList.add('active');
-                }
-            }
-        }
-    }
-
-    // ==================== UPDATE CURRENT STATUS ====================
-    function updateCurrentStatus(order) {
-        const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG['pending-payment'];
+        const prepCount = orders.filter(o => 
+            o.paymentStatus === 'verified' && o.status === 'preparing'
+        ).length;
         
-        let displayTitle = statusConfig.title;
-        let displayMessage = statusConfig.message;
+        const incubatingCount = orders.filter(o => 
+            o.paymentStatus === 'verified' && o.status === 'incubating'
+        ).length;
         
-        if (order.paymentStatus === 'pending' && order.status === 'pending-payment') {
-            displayTitle = 'Awaiting Payment Verification';
-            displayMessage = 'Your payment is being verified. The kitchen will start preparation once payment is confirmed.';
-        }
+        const readyCount = orders.filter(o => 
+            o.paymentStatus === 'verified' && o.status === 'ready'
+        ).length;
         
-        document.getElementById('currentStatusTitle').textContent = displayTitle;
-        document.getElementById('statusMessage').textContent = displayMessage;
-    }
-
-    // ==================== UPDATE ETA ====================
-    function updateETA(order) {
-        const etaTimer = document.getElementById('etaTimer');
-        const etaProgress = document.getElementById('etaProgress');
-        if (!etaTimer || !etaProgress) return;
+        document.getElementById('prepCountLive').textContent = prepCount;
+        document.getElementById('incubatingCountLive').textContent = incubatingCount;
+        document.getElementById('readyCountLive').textContent = readyCount;
         
-        // If order is ready or completed
-        if (order.status === 'ready') {
-            etaTimer.textContent = 'READY NOW';
-            etaProgress.style.width = '100%';
-            return;
-        }
-        
-        if (order.status === 'completed') {
-            etaTimer.textContent = 'COMPLETED';
-            etaProgress.style.width = '100%';
-            return;
-        }
-        
-        // Get the time when order entered current status
-        let statusStartTime;
-        if (order.status === 'pending-payment' && order.createdAt) {
-            statusStartTime = new Date(order.createdAt);
-        } else if (order.status === 'preparing' && (order.preparingStarted || order.verifiedAt)) {
-            statusStartTime = new Date(order.preparingStarted || order.verifiedAt);
-        } else if (order.status === 'incubating' && order.incubatingStarted) {
-            statusStartTime = new Date(order.incubatingStarted);
-        } else {
-            statusStartTime = new Date(order.updatedAt || order.createdAt);
-        }
-        
-        const now = new Date();
-        const elapsedMinutes = Math.floor((now - statusStartTime) / (60 * 1000));
-        
-        if (order.status === 'pending-payment') {
-            etaTimer.textContent = 'Pending Payment';
-            etaProgress.style.width = '0%';
-            return;
-            
-        } else if (order.status === 'preparing') {
-            const minutesLeft = Math.max(0, 30 - elapsedMinutes);
-            
-            if (minutesLeft <= 0) {
-                etaTimer.textContent = 'Starting Incubation...';
-                etaProgress.style.width = '100%';
-            } else {
-                const hours = Math.floor(minutesLeft / 60);
-                const mins = minutesLeft % 60;
-                
-                if (hours > 0) {
-                    etaTimer.textContent = `${hours}h ${mins}m`;
-                } else {
-                    etaTimer.textContent = `${mins}m`;
-                }
-                
-                const progressPercent = Math.min(100, (elapsedMinutes / 30) * 100);
-                etaProgress.style.width = progressPercent + '%';
-            }
-            
-        } else if (order.status === 'incubating') {
-            const minutesLeft = Math.max(0, 1380 - elapsedMinutes);
-            
-            if (minutesLeft <= 0) {
-                etaTimer.textContent = 'Ready Soon';
-                etaProgress.style.width = '100%';
-            } else {
-                const hours = Math.floor(minutesLeft / 60);
-                const mins = minutesLeft % 60;
-                
-                if (hours > 0) {
-                    etaTimer.textContent = `${hours}h ${mins}m`;
-                } else {
-                    etaTimer.textContent = `${mins}m`;
-                }
-                
-                const totalElapsed = elapsedMinutes + 30;
-                const totalOverall = 24 * 60;
-                const progressPercent = Math.min(100, (totalElapsed / totalOverall) * 100);
-                etaProgress.style.width = progressPercent + '%';
-            }
-        }
-    }
-
-    // ==================== UPDATE KITCHEN VIEW ====================
-    function updateKitchenView() {
-        try {
-            const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
-            
-            // Count PREPARING orders
-            const prepCount = orders.filter(order => 
-                order.paymentStatus === 'verified' && order.status === 'preparing'
-            ).length;
-            
-            // Count INCUBATING orders
-            const incubatingCount = orders.filter(order => 
-                order.paymentStatus === 'verified' && order.status === 'incubating'
-            ).length;
-            
-            // Count READY orders
-            const readyCount = orders.filter(order => 
-                order.paymentStatus === 'verified' && order.status === 'ready'
-            ).length;
-            
-            // Update the display
-            document.getElementById('prepCountLive').textContent = prepCount;
-            document.getElementById('incubatingCountLive').textContent = incubatingCount;
-            document.getElementById('readyCountLive').textContent = readyCount;
-            
-        } catch (error) {
-            console.error('Kitchen view error:', error);
-        }
-    }
+    }).catch(error => {
+        console.error('Error updating kitchen view:', error);
+    });
+}
 
     // ==================== EVENT LISTENERS ====================
     function setupEventListeners() {
@@ -1618,3 +1601,4 @@
     </script>
 </body>
 </html>
+
