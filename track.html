@@ -1301,34 +1301,37 @@
         hideLoading();
     }, 2000);
 
-    // ==================== INITIALIZATION ====================
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('📍 TRACK.HTML initializing...');
-        
-        // Get order ID from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        let orderIdFromUrl = urlParams.get('order');
-        
-        if (orderIdFromUrl) {
-            // Decode URL for mobile
-            try {
-                orderIdFromUrl = decodeURIComponent(orderIdFromUrl);
-            } catch (e) {}
-            
-            document.getElementById('orderIdInput').value = orderIdFromUrl;
-            
-            // Auto-track after short delay
-            setTimeout(function() {
-                trackOrder(orderIdFromUrl);
-            }, 500);
-        } else {
-            // No order ID, hide loading immediately
-            hideLoading();
+    // ==================== ADD THIS RIGHT AFTER YOUR EXISTING CODE ====================
+
+// Find this section in your DOMContentLoaded:
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📍 TRACK.HTML initializing...');
+    
+    // Hide loading overlay after 1 second
+    setTimeout(function() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
         }
-        
-        setupEventListeners();
-        updateKitchenView();
-    });
+    }, 1000);
+    
+    // Get order ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderIdFromUrl = urlParams.get('order');
+    
+    if (orderIdFromUrl) {
+        document.getElementById('orderIdInput').value = orderIdFromUrl;
+        setTimeout(function() {
+            trackOrder(orderIdFromUrl);
+        }, 500);
+    } else {
+        // 🔥 FIX: Add THIS LINE to hide loading when no order ID
+        hideLoading(); // Add this!
+    }
+    
+    setupEventListeners();
+    updateKitchenView();
+});
 
     // ==================== FIXED: Find Order (Now with Firebase + localStorage) ====================
     function findOrderById(orderId) {
@@ -1670,6 +1673,7 @@
     </script>
 </body>
 </html>
+
 
 
 
