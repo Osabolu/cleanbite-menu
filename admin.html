@@ -2680,115 +2680,126 @@
     }
 
     // ==================== AUTO PROGRESS CHECKER ====================
-        function checkOrderProgressions() {
-            console.log('⏰ Checking order progressions...');
-            
-            const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
-            let updated = false;
-            const now = new Date();
-            
-            orders.forEach(order => {
-                if (order.paymentStatus !== 'verified') return;
-                
-                // Use stage-specific start times
-                let stageStartTime;
-                
-                if (order.status === 'preparing') {
-                    stageStartTime = new Date(order.preparingStarted || order.verifiedAt || order.updatedAt);
-                } else if (order.status === 'incubating') {
-                    stageStartTime = new Date(order.incubatingStarted || order.updatedAt);
-                } else {
-                    return; // Skip other statuses
-                }
-                
-                // Skip if invalid date
-                if (isNaN(stageStartTime)) return;
-                
-                const timeElapsed = now - stageStartTime;
-                
-                // Preparing → Incubating (30 minutes)
-                if (order.status === 'preparing' && timeElapsed >= 30 * 60 * 1000) {
-                    console.log(`⏩ Auto-progress: Order ${order.id} preparing → incubating`);
-                    
-                    // Update order
-                    order.status = 'incubating';
-                    order.incubatingStarted = now.toISOString();
-                    order.updatedAt = now.toISOString();
-                    
-                    // Save to localStorage
-                    updated = true;
-                    
-                    // SYNC TO FIREBASE (for live updates)
-                    if (order.firebaseKey && window.database) {
-                        database.ref(`orders/${order.firebaseKey}`).update({
-                            status: 'incubating',
-                            incubatingStarted: now.toISOString(),
-                            updatedAt: now.toISOString()
-                        }).catch(err => console.error('Firebase sync error:', err));
-                    }
-                    
-                    // Add activity
-                    const message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (24hr countdown started)`;
-                    addActivityToFeed({
-                        type: 'status_change',
-                        message: message,
-                        orderId: order.id,
-                        customerName: order.customerName,
-                        timestamp: now.toISOString(),
-                        icon: 'fa-clock',
-                        color: '#f39c12'
-                    });
-                    
-                    broadcastToOrderPage('status_change', message, order.id, order.customerName);
-                }
-                
-                // Incubating → Ready (24 hours)
-                if (order.status === 'incubating' && timeElapsed >= 24 * 60 * 60 * 1000) {
-                    console.log(`⏩ Auto-progress: Order ${order.id} incubating → ready`);
-                    
-                    // Update order
-                    order.status = 'ready';
-                    order.readyAt = now.toISOString();
-                    order.updatedAt = now.toISOString();
-                    
-                    // Save to localStorage
-                    updated = true;
-                    
-                    // SYNC TO FIREBASE (for live updates)
-                    if (order.firebaseKey && window.database) {
-                        database.ref(`orders/${order.firebaseKey}`).update({
-                            status: 'ready',
-                            readyAt: now.toISOString(),
-                            updatedAt: now.toISOString()
-                        }).catch(err => console.error('Firebase sync error:', err));
-                    }
-                    
-                    // Add activity
-                    const message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
-                    addActivityToFeed({
-                        type: 'status_change',
-                        message: message,
-                        orderId: order.id,
-                        customerName: order.customerName,
-                        timestamp: now.toISOString(),
-                        icon: 'fa-check-circle',
-                        color: '#2ecc71'
-                    });
-                    
-                    broadcastToOrderPage('status_change', message, order.id, order.customerName);
-                }
-            });
-            
-            if (updated) {
-                localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
-                loadDashboardData();
-            }
+// ==================== AUTO PROGRESS CHECKER (STOPS AT READY) ====================
+function checkOrderProgressions() {
+    console.log('⏰ Checking order progressions...');
+    
+    const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+    let updated = false;
+    const now = new Date();
+    
+    orders.forEach(order => {
+        if (order.paymentStatus !== 'verified') return;
+        
+        // Skip if already ready or completed (no further auto-progress)
+        if (order.status === 'ready' || order.status === 'completed') return;
+        
+        // Use stage-specific start times
+        let stageStartTime;
+        
+        if (order.status === 'preparing') {
+            stageStartTime = new Date(order.preparingStarted || order.verifiedAt || order.updatedAt);
+        } else if (order.status === 'incubating') {
+            stageStartTime = new Date(order.incubatingStarted || order.updatedAt);
+        } else {
+            return; // Skip other statuses
         }
         
-        // Start the auto-checker (runs every minute)
-        setInterval(checkOrderProgressions, 60 * 1000);
-
-    // ==================== MANUAL UPDATE STATUS (ADMIN CLICK) ====================
+        // Skip if invalid date
+        if (isNaN(stageStartTime)) return;
+        
+        const timeElapsed = now - stageStartTime;
+        
+        // =============================================
+        // STAGE 1: Preparing → Incubating (30 minutes)
+        // =============================================
+        if (order.status === 'preparing' && timeElapsed >= 30 * 60 * 1000) {
+            console.log(`⏩ Auto-progress: Order ${order.id} preparing → incubating`);
+            
+            // Update order
+            order.status = 'incubating';
+            order.incubatingStarted = now.toISOString();
+            order.updatedAt = now.toISOString();
+            
+            // Save to localStorage
+            updated = true;
+            
+            // SYNC TO FIREBASE (for live updates)
+            if (order.firebaseKey && window.database) {
+                database.ref(`orders/${order.firebaseKey}`).update({
+                    status: 'incubating',
+                    incubatingStarted: now.toISOString(),
+                    updatedAt: now.toISOString()
+                }).catch(err => console.error('Firebase sync error:', err));
+            }
+            
+            // Add activity
+            const message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (24hr countdown started)`;
+            addActivityToFeed({
+                type: 'status_change',
+                message: message,
+                orderId: order.id,
+                customerName: order.customerName,
+                timestamp: now.toISOString(),
+                icon: 'fa-clock',
+                color: '#f39c12'
+            });
+            
+            broadcastToOrderPage('status_change', message, order.id, order.customerName);
+        }
+        
+        // =============================================
+        // STAGE 2: Incubating → Ready (24 hours)
+        // =============================================
+        else if (order.status === 'incubating' && timeElapsed >= 24 * 60 * 60 * 1000) {
+            console.log(`⏩ Auto-progress: Order ${order.id} incubating → READY`);
+            
+            // Update order
+            order.status = 'ready';
+            order.readyAt = now.toISOString();
+            order.updatedAt = now.toISOString();
+            
+            // Save to localStorage
+            updated = true;
+            
+            // SYNC TO FIREBASE (for live updates)
+            if (order.firebaseKey && window.database) {
+                database.ref(`orders/${order.firebaseKey}`).update({
+                    status: 'ready',
+                    readyAt: now.toISOString(),
+                    updatedAt: now.toISOString()
+                }).catch(err => console.error('Firebase sync error:', err));
+            }
+            
+            // Add activity
+            const message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
+            addActivityToFeed({
+                type: 'status_change',
+                message: message,
+                orderId: order.id,
+                customerName: order.customerName,
+                timestamp: now.toISOString(),
+                icon: 'fa-check-circle',
+                color: '#2ecc71'
+            });
+            
+            broadcastToOrderPage('status_change', message, order.id, order.customerName);
+        }
+        
+        // =============================================
+        // STAGE 3: Ready → Completed (NOT AUTOMATIC)
+        // Admin must click COMPLETE button manually
+        // =============================================
+        // ❌ NO AUTO-COMPLETE - Intentionally removed
+    });
+    
+    if (updated) {
+        localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
+        loadDashboardData();
+    }
+}
+        
+         (ADMIN CLICK) ====================
 window.updateOrderStatus = function() {
     console.log('🔍 Manual status update started');
     
@@ -3912,4 +3923,5 @@ setInterval(checkOrderProgressions, 60 * 1000);
     </script>
 </body>
 </html>
+
 
