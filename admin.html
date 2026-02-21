@@ -7,7 +7,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* ==================== ROOT VARIABLES ==================== */
+        /* ==================== YOUR EXISTING STYLES HERE ==================== */
+        /* Keep all your existing CSS styles exactly as they are */
         :root {
             --primary: #ffd700;
             --primary-dark: #e6c200;
@@ -47,7 +48,7 @@
             overflow-x: hidden;
         }
 
-        /* ==================== NAVIGATION ==================== */
+        /* Navigation */
         .admin-nav {
             background: white;
             padding: 15px 40px;
@@ -137,13 +138,13 @@
             box-shadow: 0 10px 25px rgba(231, 76, 60, 0.15);
         }
 
-        /* ==================== DASHBOARD LAYOUT ==================== */
+        /* Dashboard Layout */
         .dashboard-container {
             display: flex;
             min-height: calc(100vh - 80px);
         }
 
-        /* ==================== SIDEBAR ==================== */
+        /* Sidebar */
         .sidebar {
             width: 300px;
             background: white;
@@ -232,7 +233,7 @@
             color: var(--primary);
         }
 
-        /* ==================== MAIN CONTENT ==================== */
+        /* Main Content */
         .main-content {
             flex: 1;
             padding: 30px 40px;
@@ -240,7 +241,7 @@
             overflow-y: auto;
         }
 
-        /* ==================== PAYMENT NOTICE ==================== */
+        /* Payment Notice */
         .payment-notice {
             display: none;
             align-items: center;
@@ -303,7 +304,7 @@
             gap: 8px;
         }
 
-        /* ==================== STATS CARDS ==================== */
+        /* Stats Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -409,7 +410,7 @@
             font-size: 14px;
         }
 
-        /* ==================== FILTER BAR ==================== */
+        /* Filter Bar */
         .filter-bar {
             background: white;
             border-radius: 20px;
@@ -530,7 +531,7 @@
             color: var(--dark);
         }
 
-        /* ==================== PAYMENT VERIFICATION QUEUE ==================== */
+        /* Payment Verification Queue */
         .verification-section {
             background: white;
             border-radius: 28px;
@@ -811,7 +812,7 @@
             margin-bottom: 5px;
         }
 
-        /* ==================== ORDERS TABS ==================== */
+        /* Orders Tabs */
         .orders-tabs {
             display: flex;
             gap: 15px;
@@ -876,7 +877,7 @@
             color: white;
         }
 
-        /* ==================== ORDERS GRID ==================== */
+        /* Orders Grid */
         .orders-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
@@ -1330,7 +1331,7 @@
             transform: none;
         }
 
-        /* ==================== CUSTOMER SECTION ==================== */
+        /* Customer Section */
         .customer-section {
             background: white;
             border-radius: 28px;
@@ -1528,7 +1529,7 @@
             transform: translateY(-2px);
         }
 
-        /* ==================== ACTIVITY FEED ==================== */
+        /* Activity Feed */
         .activity-section {
             background: white;
             border-radius: 28px;
@@ -1633,7 +1634,7 @@
             color: var(--warning);
         }
 
-        /* ==================== MODALS ==================== */
+        /* Modals */
         .modal {
             display: none;
             position: fixed;
@@ -1873,7 +1874,7 @@
             transform: none;
         }
 
-        /* ==================== NOTIFICATION TOAST ==================== */
+        /* Notification Toast */
         .notification-toast {
             position: fixed;
             top: 30px;
@@ -1901,7 +1902,7 @@
             to { transform: translateX(0); opacity: 1; }
         }
 
-        /* ==================== RESPONSIVE ==================== */
+        /* Responsive */
         @media (max-width: 1400px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .verification-grid { grid-template-columns: 1fr; }
@@ -1982,7 +1983,7 @@
         </div>
     </div>
 
-    <!-- ==================== VERIFY MODAL ==================== -->
+    <!-- Verify Modal -->
     <div class="modal" id="verifyModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -2024,7 +2025,7 @@
         </div>
     </div>
 
-    <!-- ==================== REJECT MODAL ==================== -->
+    <!-- Reject Modal -->
     <div class="modal" id="rejectModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -2062,7 +2063,7 @@
         </div>
     </div>
 
-    <!-- ==================== STATUS MODAL ==================== -->
+    <!-- Status Modal -->
     <div class="modal" id="statusModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -2099,7 +2100,7 @@
         </div>
     </div>
 
-    <!-- ==================== CUSTOMER DETAILS MODAL ==================== -->
+    <!-- Customer Details Modal -->
     <div class="modal" id="customerModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -2108,6 +2109,44 @@
             </div>
             <div class="modal-body" id="customerModalBody">
                 <!-- Customer details will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="modal" id="filterModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-filter"></i> Filter Orders</h3>
+                <button class="modal-close" id="closeFilterModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="filterStatus" class="form-control">
+                        <option value="all">All Orders</option>
+                        <option value="pending-payment">Pending Payment</option>
+                        <option value="preparing">Preparing</option>
+                        <option value="incubating">Incubating</option>
+                        <option value="ready">Ready</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date Range</label>
+                    <select id="filterDate" class="form-control">
+                        <option value="all">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-modal secondary" id="clearFilters">Clear</button>
+                    <button class="btn-modal primary" id="applyFilters">Apply Filters</button>
+                </div>
             </div>
         </div>
     </div>
@@ -2278,6 +2317,12 @@
 
     // ==================== UPDATE ALL DISPLAYS ====================
     function updateAllDisplays() {
+        // Add safety checks to prevent errors when elements don't exist yet
+        if (!document.getElementById('totalRevenue')) {
+            console.log('⏳ Dashboard elements not ready yet, skipping update');
+            return;
+        }
+        
         updateStats();
         updateVerificationQueue();
         updateVerifiedOrders();
@@ -2289,6 +2334,9 @@
 
     // ==================== UPDATE STATS ====================
     function updateStats() {
+        // Safety check
+        if (!document.getElementById('totalRevenue')) return;
+        
         const verifiedRevenue = allOrders
             .filter(o => o.paymentStatus === 'verified')
             .reduce((sum, o) => sum + (o.total || o.totalAmount || 0), 0);
@@ -2311,6 +2359,9 @@
 
     // ==================== UPDATE SIDEBAR BADGES ====================
     function updateSidebarBadges() {
+        // Safety check
+        if (!document.getElementById('verificationBadge')) return;
+        
         const pendingCount = allOrders.filter(o => 
             o.paymentStatus === 'pending' && o.status !== 'cancelled'
         ).length;
@@ -2679,379 +2730,419 @@
         `).join('');
     }
 
-    // ==================== AUTO PROGRESS CHECKER ====================
-// ==================== AUTO PROGRESS CHECKER (STOPS AT READY) ====================
-function checkOrderProgressions() {
-    console.log('⏰ Checking order progressions...');
-    
-    const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
-    let updated = false;
-    const now = new Date();
-    
-    orders.forEach(order => {
-        if (order.paymentStatus !== 'verified') return;
+    // ==================== AUTO PROGRESS CHECKER (STOPS AT READY) ====================
+    function checkOrderProgressions() {
+        console.log('⏰ Checking order progressions...');
         
-        // Skip if already ready or completed (no further auto-progress)
-        if (order.status === 'ready' || order.status === 'completed') return;
+        const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+        let updated = false;
+        const now = new Date();
         
-        // Use stage-specific start times
-        let stageStartTime;
-        
-        if (order.status === 'preparing') {
-            stageStartTime = new Date(order.preparingStarted || order.verifiedAt || order.updatedAt);
-        } else if (order.status === 'incubating') {
-            stageStartTime = new Date(order.incubatingStarted || order.updatedAt);
-        } else {
-            return; // Skip other statuses
-        }
-        
-        // Skip if invalid date
-        if (isNaN(stageStartTime)) return;
-        
-        const timeElapsed = now - stageStartTime;
-        
-        // =============================================
-        // STAGE 1: Preparing → Incubating (30 minutes)
-        // =============================================
-        if (order.status === 'preparing' && timeElapsed >= 30 * 60 * 1000) {
-            console.log(`⏩ Auto-progress: Order ${order.id} preparing → incubating`);
+        orders.forEach(order => {
+            if (order.paymentStatus !== 'verified') return;
             
-            // Update order
-            order.status = 'incubating';
-            order.incubatingStarted = now.toISOString();
-            order.updatedAt = now.toISOString();
+            // Skip if already ready or completed (no further auto-progress)
+            if (order.status === 'ready' || order.status === 'completed') return;
             
-            // Save to localStorage
-            updated = true;
+            // Use stage-specific start times
+            let stageStartTime;
             
-            // SYNC TO FIREBASE (for live updates)
-            if (order.firebaseKey && window.database) {
-                database.ref(`orders/${order.firebaseKey}`).update({
-                    status: 'incubating',
-                    incubatingStarted: now.toISOString(),
-                    updatedAt: now.toISOString()
-                }).catch(err => console.error('Firebase sync error:', err));
+            if (order.status === 'preparing') {
+                stageStartTime = new Date(order.preparingStarted || order.verifiedAt || order.updatedAt);
+            } else if (order.status === 'incubating') {
+                stageStartTime = new Date(order.incubatingStarted || order.updatedAt);
+            } else {
+                return; // Skip other statuses
             }
             
-            // Add activity
-            const message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (24hr countdown started)`;
-            addActivityToFeed({
-                type: 'status_change',
-                message: message,
-                orderId: order.id,
-                customerName: order.customerName,
-                timestamp: now.toISOString(),
-                icon: 'fa-clock',
-                color: '#f39c12'
-            });
+            // Skip if invalid date
+            if (isNaN(stageStartTime)) return;
             
-            broadcastToOrderPage('status_change', message, order.id, order.customerName);
-        }
-        
-        // =============================================
-        // STAGE 2: Incubating → Ready (24 hours)
-        // =============================================
-        else if (order.status === 'incubating' && timeElapsed >= 24 * 60 * 60 * 1000) {
-            console.log(`⏩ Auto-progress: Order ${order.id} incubating → READY`);
+            const timeElapsed = now - stageStartTime;
             
-            // Update order
-            order.status = 'ready';
-            order.readyAt = now.toISOString();
-            order.updatedAt = now.toISOString();
-            
-            // Save to localStorage
-            updated = true;
-            
-            // SYNC TO FIREBASE (for live updates)
-            if (order.firebaseKey && window.database) {
-                database.ref(`orders/${order.firebaseKey}`).update({
-                    status: 'ready',
-                    readyAt: now.toISOString(),
-                    updatedAt: now.toISOString()
-                }).catch(err => console.error('Firebase sync error:', err));
+            // =============================================
+            // STAGE 1: Preparing → Incubating (30 minutes)
+            // =============================================
+            if (order.status === 'preparing' && timeElapsed >= 30 * 60 * 1000) {
+                console.log(`⏩ Auto-progress: Order ${order.id} preparing → incubating`);
+                
+                // Update order
+                order.status = 'incubating';
+                order.incubatingStarted = now.toISOString();
+                order.updatedAt = now.toISOString();
+                
+                // Save to localStorage
+                updated = true;
+                
+                // SYNC TO FIREBASE (for live updates)
+                if (order.firebaseKey && window.database) {
+                    database.ref(`orders/${order.firebaseKey}`).update({
+                        status: 'incubating',
+                        incubatingStarted: now.toISOString(),
+                        updatedAt: now.toISOString()
+                    }).catch(err => console.error('Firebase sync error:', err));
+                }
+                
+                // Add activity
+                const message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (24hr countdown started)`;
+                addActivityToFeed({
+                    type: 'status_change',
+                    message: message,
+                    orderId: order.id,
+                    customerName: order.customerName,
+                    timestamp: now.toISOString(),
+                    icon: 'fa-clock',
+                    color: '#f39c12'
+                });
+                
+                broadcastToOrderPage('status_change', message, order.id, order.customerName);
             }
             
-            // Add activity
-            const message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
-            addActivityToFeed({
-                type: 'status_change',
-                message: message,
-                orderId: order.id,
-                customerName: order.customerName,
-                timestamp: now.toISOString(),
-                icon: 'fa-check-circle',
-                color: '#2ecc71'
-            });
+            // =============================================
+            // STAGE 2: Incubating → Ready (24 hours)
+            // =============================================
+            else if (order.status === 'incubating' && timeElapsed >= 24 * 60 * 60 * 1000) {
+                console.log(`⏩ Auto-progress: Order ${order.id} incubating → READY`);
+                
+                // Update order
+                order.status = 'ready';
+                order.readyAt = now.toISOString();
+                order.updatedAt = now.toISOString();
+                
+                // Save to localStorage
+                updated = true;
+                
+                // SYNC TO FIREBASE (for live updates)
+                if (order.firebaseKey && window.database) {
+                    database.ref(`orders/${order.firebaseKey}`).update({
+                        status: 'ready',
+                        readyAt: now.toISOString(),
+                        updatedAt: now.toISOString()
+                    }).catch(err => console.error('Firebase sync error:', err));
+                }
+                
+                // Add activity
+                const message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
+                addActivityToFeed({
+                    type: 'status_change',
+                    message: message,
+                    orderId: order.id,
+                    customerName: order.customerName,
+                    timestamp: now.toISOString(),
+                    icon: 'fa-check-circle',
+                    color: '#2ecc71'
+                });
+                
+                broadcastToOrderPage('status_change', message, order.id, order.customerName);
+            }
             
-            broadcastToOrderPage('status_change', message, order.id, order.customerName);
+            // =============================================
+            // STAGE 3: Ready → Completed (NOT AUTOMATIC)
+            // Admin must click COMPLETE button manually
+            // =============================================
+            // ❌ NO AUTO-COMPLETE - Intentionally removed
+        });
+        
+        if (updated) {
+            localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
+            loadDashboardData();
+        }
+    }
+    
+    // Start auto-progression checker (runs every minute)
+    setInterval(checkOrderProgressions, 60 * 1000);
+
+    // ==================== MANUAL UPDATE STATUS (ADMIN CLICK) ====================
+    window.updateOrderStatus = function() {
+        console.log('🔍 Manual status update started');
+        
+        if (!currentStatusOrder) {
+            showNotification('No order selected', 'error');
+            return;
         }
         
-        // =============================================
-        // STAGE 3: Ready → Completed (NOT AUTOMATIC)
-        // Admin must click COMPLETE button manually
-        // =============================================
-        // ❌ NO AUTO-COMPLETE - Intentionally removed
-    });
-    
-    if (updated) {
-        localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
-        loadDashboardData();
-    }
-}
+        const selectedStatus = document.querySelector('input[name="status"]:checked');
+        if (!selectedStatus) {
+            showNotification('Please select a status', 'warning');
+            return;
+        }
         
-         (ADMIN CLICK) ====================
-window.updateOrderStatus = function() {
-    console.log('🔍 Manual status update started');
-    
-    if (!currentStatusOrder) {
-        showNotification('No order selected', 'error');
-        return;
-    }
-    
-    const selectedStatus = document.querySelector('input[name="status"]:checked');
-    if (!selectedStatus) {
-        showNotification('Please select a status', 'warning');
-        return;
-    }
-    
-    const newStatus = selectedStatus.value;
-    const order = allOrders.find(o => o.id === currentStatusOrder);
-    
-    if (!order || !order.firebaseKey) {
-        showNotification('Order not found', 'error');
-        closeModal('statusModal');
-        return;
-    }
-    
-    const updateBtn = document.getElementById('confirmUpdate');
-    const originalText = updateBtn.innerHTML;
-    updateBtn.disabled = true;
-    updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
-    
-    // Prepare updates
-    const updates = {
-        status: newStatus,
-        updatedAt: new Date().toISOString()
+        const newStatus = selectedStatus.value;
+        const order = allOrders.find(o => o.id === currentStatusOrder);
+        
+        if (!order || !order.firebaseKey) {
+            showNotification('Order not found', 'error');
+            closeModal('statusModal');
+            return;
+        }
+        
+        const updateBtn = document.getElementById('confirmUpdate');
+        const originalText = updateBtn.innerHTML;
+        updateBtn.disabled = true;
+        updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+        
+        // Prepare updates
+        const updates = {
+            status: newStatus,
+            updatedAt: new Date().toISOString()
+        };
+        
+        // Add stage-specific timestamps
+        if (newStatus === 'preparing' && !order.preparingStarted) {
+            updates.preparingStarted = new Date().toISOString();
+        }
+        if (newStatus === 'incubating' && !order.incubatingStarted) {
+            updates.incubatingStarted = new Date().toISOString();
+        }
+        if (newStatus === 'ready' && !order.readyAt) {
+            updates.readyAt = new Date().toISOString();
+        }
+        if (newStatus === 'completed') {
+            updates.completedAt = new Date().toISOString();
+            updates.completedBy = 'admin';
+        }
+        
+        // Timeout protection
+        const timeout = setTimeout(() => {
+            updateBtn.disabled = false;
+            updateBtn.innerHTML = originalText;
+            showNotification('Update timed out', 'warning');
+        }, 5000);
+        
+        // 🔥 UPDATE FIREBASE (triggers live sync to order page)
+        database.ref(`orders/${order.firebaseKey}`).update(updates)
+        .then(() => {
+            clearTimeout(timeout);
+            
+            // Update local array
+            Object.assign(order, updates);
+            
+            // Play sound
+            if (window.playApprovalSound) window.playApprovalSound();
+            
+            // Create message
+            let message = '';
+            if (newStatus === 'preparing') message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation (manual)`;
+            if (newStatus === 'incubating') message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (manual)`;
+            if (newStatus === 'ready') message = `✅ Order ${order.id.slice(-8)} is READY for pickup (manual)`;
+            if (newStatus === 'completed') message = `📦 Order ${order.id.slice(-8)} completed by admin`;
+            
+            if (message) {
+                // Add to admin activity feed
+                addActivityToFeed({
+                    type: 'status_change',
+                    message: message,
+                    orderId: order.id,
+                    customerName: order.customerName,
+                    timestamp: new Date().toISOString(),
+                    icon: 'fa-sync-alt',
+                    color: '#3498db'
+                });
+                
+                // 🔥 BROADCAST to order page
+                broadcastToOrderPage('status_change', message, order.id, order.customerName);
+            }
+            
+            showNotification(`Order manually updated to ${newStatus}`, 'success');
+            closeModal('statusModal');
+            currentStatusOrder = null;
+            
+            updateBtn.disabled = false;
+            updateBtn.innerHTML = originalText;
+            
+            // Refresh dashboard
+            loadDashboardData();
+        })
+        .catch(error => {
+            clearTimeout(timeout);
+            console.error('❌ Error:', error);
+            showNotification('Error updating status: ' + error.message, 'error');
+            updateBtn.disabled = false;
+            updateBtn.innerHTML = originalText;
+        });
     };
-    
-    // Add stage-specific timestamps
-    if (newStatus === 'preparing' && !order.preparingStarted) {
-        updates.preparingStarted = new Date().toISOString();
-    }
-    if (newStatus === 'incubating' && !order.incubatingStarted) {
-        updates.incubatingStarted = new Date().toISOString();
-    }
-    if (newStatus === 'ready' && !order.readyAt) {
-        updates.readyAt = new Date().toISOString();
-    }
-    if (newStatus === 'completed') {
-        updates.completedAt = new Date().toISOString();
-        updates.completedBy = 'admin';
-    }
-    
-    // Timeout protection
-    const timeout = setTimeout(() => {
-        updateBtn.disabled = false;
-        updateBtn.innerHTML = originalText;
-        showNotification('Update timed out', 'warning');
-    }, 5000);
-    
-    // 🔥 UPDATE FIREBASE (triggers live sync to order page)
-    database.ref(`orders/${order.firebaseKey}`).update(updates)
-    .then(() => {
-        clearTimeout(timeout);
+
+    // ==================== MANUAL COMPLETE ORDER ====================
+    window.completeOrderManually = function(orderId) {
+        console.log('🏁 Admin manually completing order:', orderId);
         
-        // Update local array
-        Object.assign(order, updates);
+        const order = allOrders.find(o => o.id === orderId);
+        if (!order || !order.firebaseKey) {
+            showNotification('Order not found', 'error');
+            return;
+        }
         
-        // Play sound
-        if (window.playApprovalSound) window.playApprovalSound();
+        // Confirm with admin
+        if (!confirm(`Mark order ${orderId.slice(-8)} as COMPLETED?`)) {
+            return;
+        }
         
-        // Create message
-        let message = '';
-        if (newStatus === 'preparing') message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation (manual)`;
-        if (newStatus === 'incubating') message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (manual)`;
-        if (newStatus === 'ready') message = `✅ Order ${order.id.slice(-8)} is READY for pickup (manual)`;
-        if (newStatus === 'completed') message = `📦 Order ${order.id.slice(-8)} completed by admin`;
+        const completeBtn = event?.target;
+        const originalText = completeBtn?.innerHTML;
+        if (completeBtn) {
+            completeBtn.disabled = true;
+            completeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        }
         
-        if (message) {
-            // Add to admin activity feed
+        const timeout = setTimeout(() => {
+            if (completeBtn) {
+                completeBtn.disabled = false;
+                completeBtn.innerHTML = originalText;
+            }
+            showNotification('Completion timed out', 'warning');
+        }, 5000);
+        
+        // 🔥 UPDATE FIREBASE
+        database.ref(`orders/${order.firebaseKey}`).update({
+            status: 'completed',
+            completedAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            completedBy: 'admin'
+        })
+        .then(() => {
+            clearTimeout(timeout);
+            
+            // Update local array
+            order.status = 'completed';
+            order.completedAt = new Date().toISOString();
+            
+            if (window.playApprovalSound) window.playApprovalSound();
+            
+            const message = `📦 Order ${orderId.slice(-8)} completed by admin`;
+            
+            // Add to admin feed
             addActivityToFeed({
-                type: 'status_change',
+                type: 'order_completed',
                 message: message,
                 orderId: order.id,
                 customerName: order.customerName,
                 timestamp: new Date().toISOString(),
-                icon: 'fa-sync-alt',
+                icon: 'fa-flag-checkered',
                 color: '#3498db'
             });
             
             // 🔥 BROADCAST to order page
-            broadcastToOrderPage('status_change', message, order.id, order.customerName);
-        }
-        
-        showNotification(`Order manually updated to ${newStatus}`, 'success');
-        closeModal('statusModal');
-        currentStatusOrder = null;
-        
-        updateBtn.disabled = false;
-        updateBtn.innerHTML = originalText;
-        
-        // Refresh dashboard
-        loadDashboardData();
-    })
-    .catch(error => {
-        clearTimeout(timeout);
-        console.error('❌ Error:', error);
-        showNotification('Error updating status: ' + error.message, 'error');
-        updateBtn.disabled = false;
-        updateBtn.innerHTML = originalText;
-    });
-};
-
-    // ==================== MANUAL COMPLETE ORDER ====================
-window.completeOrderManually = function(orderId) {
-    console.log('🏁 Admin manually completing order:', orderId);
-    
-    const order = allOrders.find(o => o.id === orderId);
-    if (!order || !order.firebaseKey) {
-        showNotification('Order not found', 'error');
-        return;
-    }
-    
-    // Confirm with admin
-    if (!confirm(`Mark order ${orderId.slice(-8)} as COMPLETED?`)) {
-        return;
-    }
-    
-    const completeBtn = event?.target;
-    const originalText = completeBtn?.innerHTML;
-    if (completeBtn) {
-        completeBtn.disabled = true;
-        completeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    }
-    
-    const timeout = setTimeout(() => {
-        if (completeBtn) {
-            completeBtn.disabled = false;
-            completeBtn.innerHTML = originalText;
-        }
-        showNotification('Completion timed out', 'warning');
-    }, 5000);
-    
-    // 🔥 UPDATE FIREBASE
-    database.ref(`orders/${order.firebaseKey}`).update({
-        status: 'completed',
-        completedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        completedBy: 'admin'
-    })
-    .then(() => {
-        clearTimeout(timeout);
-        
-        // Update local array
-        order.status = 'completed';
-        order.completedAt = new Date().toISOString();
-        
-        if (window.playApprovalSound) window.playApprovalSound();
-        
-        const message = `📦 Order ${orderId.slice(-8)} completed by admin`;
-        
-        // Add to admin feed
-        addActivityToFeed({
-            type: 'order_completed',
-            message: message,
-            orderId: order.id,
-            customerName: order.customerName,
-            timestamp: new Date().toISOString(),
-            icon: 'fa-flag-checkered',
-            color: '#3498db'
+            broadcastToOrderPage('order_completed', message, order.id, order.customerName);
+            
+            showNotification(`✅ Order completed`, 'success');
+            
+            if (completeBtn) {
+                completeBtn.disabled = false;
+                completeBtn.innerHTML = originalText;
+            }
+            
+            // Refresh dashboard
+            loadDashboardData();
+        })
+        .catch(error => {
+            clearTimeout(timeout);
+            console.error('❌ Error:', error);
+            showNotification('Error completing order: ' + error.message, 'error');
+            if (completeBtn) {
+                completeBtn.disabled = false;
+                completeBtn.innerHTML = originalText;
+            }
         });
-        
-        // 🔥 BROADCAST to order page
-        broadcastToOrderPage('order_completed', message, order.id, order.customerName);
-        
-        showNotification(`✅ Order completed`, 'success');
-        
-        if (completeBtn) {
-            completeBtn.disabled = false;
-            completeBtn.innerHTML = originalText;
-        }
-        
-        // Refresh dashboard
-        loadDashboardData();
-    })
-    .catch(error => {
-        clearTimeout(timeout);
-        console.error('❌ Error:', error);
-        showNotification('Error completing order: ' + error.message, 'error');
-        if (completeBtn) {
-            completeBtn.disabled = false;
-            completeBtn.innerHTML = originalText;
-        }
-    });
-};
+    };
 
     // ==================== BROADCAST TO ORDER PAGE ====================
-function broadcastToOrderPage(type, message, orderId, customerName) {
-    const activity = {
-        id: Date.now() + Math.random(),
-        type: type,
-        message: message,
-        orderId: orderId,
-        customerName: customerName,
-        timestamp: new Date().toISOString(),
-        icon: getBroadcastIcon(type),
-        color: getBroadcastColor(type)
-    };
-    
-    console.log('📢 BROADCASTING to Order Page:', message);
-    
-    // Method 1: BroadcastChannel
-    if (window.broadcastChannel) {
+    function broadcastToOrderPage(type, message, orderId, customerName) {
+        const activity = {
+            id: Date.now() + Math.random(),
+            type: type,
+            message: message,
+            orderId: orderId,
+            customerName: customerName,
+            timestamp: new Date().toISOString(),
+            icon: getBroadcastIcon(type),
+            color: getBroadcastColor(type)
+        };
+        
+        console.log('📢 BROADCASTING to Order Page:', message);
+        
+        // Method 1: BroadcastChannel
+        if (window.broadcastChannel) {
+            try {
+                window.broadcastChannel.postMessage({
+                    type: 'NEW_ACTIVITY',
+                    activity: activity
+                });
+            } catch (e) {}
+        }
+        
+        // Method 2: Create new channel if needed
+        if (typeof BroadcastChannel !== 'undefined') {
+            try {
+                const channel = new BroadcastChannel('cleanbite_activities');
+                channel.postMessage({
+                    type: 'NEW_ACTIVITY',
+                    activity: activity
+                });
+                setTimeout(() => channel.close(), 100);
+            } catch (e) {}
+        }
+        
+        // Method 3: localStorage fallback
         try {
-            window.broadcastChannel.postMessage({
-                type: 'NEW_ACTIVITY',
-                activity: activity
-            });
+            localStorage.setItem('cleanbite_broadcast', JSON.stringify({
+                type: 'ACTIVITY',
+                activity: activity,
+                timestamp: Date.now()
+            }));
+            setTimeout(() => localStorage.removeItem('cleanbite_broadcast'), 100);
         } catch (e) {}
     }
-    
-    // Method 2: Create new channel if needed
+
+    // Initialize broadcast channel
     if (typeof BroadcastChannel !== 'undefined') {
         try {
-            const channel = new BroadcastChannel('cleanbite_activities');
-            channel.postMessage({
-                type: 'NEW_ACTIVITY',
-                activity: activity
-            });
-            setTimeout(() => channel.close(), 100);
-        } catch (e) {}
+            window.broadcastChannel = new BroadcastChannel('cleanbite_activities');
+            console.log('✅ Broadcast channel initialized');
+        } catch (e) {
+            console.error('❌ Broadcast channel error:', e);
+        }
     }
-    
-    // Method 3: localStorage fallback
-    try {
-        localStorage.setItem('cleanbite_broadcast', JSON.stringify({
-            type: 'ACTIVITY',
-            activity: activity,
-            timestamp: Date.now()
-        }));
-        setTimeout(() => localStorage.removeItem('cleanbite_broadcast'), 100);
-    } catch (e) {}
-}
 
-        // Initialize broadcast channel
-if (typeof BroadcastChannel !== 'undefined') {
-    try {
-        window.broadcastChannel = new BroadcastChannel('cleanbite_activities');
-        console.log('✅ Broadcast channel initialized');
-    } catch (e) {
-        console.error('❌ Broadcast channel error:', e);
+    // ==================== ADD ACTIVITY TO FEED ====================
+    function addActivityToFeed(activity) {
+        const feed = document.getElementById('activityFeed');
+        if (!feed) return;
+        
+        const el = document.createElement('div');
+        el.className = 'activity-item';
+        el.style.borderLeftColor = activity.color || '#3498db';
+        el.innerHTML = `
+            <div class="activity-icon" style="color: ${activity.color || '#3498db'};">
+                <i class="fas ${activity.icon || 'fa-bell'}"></i>
+            </div>
+            <div class="activity-content">
+                <div class="activity-message">${activity.message}</div>
+                <div class="activity-time">
+                    <i class="far fa-clock"></i> Just now
+                    ${activity.customerName ? `
+                        <span class="activity-customer">
+                            <i class="fas fa-user"></i> ${activity.customerName}
+                        </span>
+                    ` : ''}
+                    ${activity.orderId ? `
+                        <span class="activity-order">
+                            <i class="fas fa-hashtag"></i> ${activity.orderId.slice(-8)}
+                        </span>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+        
+        if (feed.firstChild) {
+            feed.insertBefore(el, feed.firstChild);
+        } else {
+            feed.appendChild(el);
+        }
+        
+        while (feed.children.length > 30) {
+            feed.removeChild(feed.lastChild);
+        }
     }
-}
-
-// Start auto-progression checker
-setInterval(checkOrderProgressions, 60 * 1000);
 
     // ==================== UPDATE ACTIVITY FEED ====================
     function updateActivityFeed() {
@@ -3191,29 +3282,6 @@ setInterval(checkOrderProgressions, 60 * 1000);
         } catch (e) {}
     }
 
-    function broadcastToOrderPage(type, message, orderId, customerName) {
-        const activity = {
-            type: type,
-            message: message,
-            orderId: orderId,
-            customerName: customerName,
-            timestamp: new Date().toISOString(),
-            icon: getBroadcastIcon(type),
-            color: getBroadcastColor(type)
-        };
-        
-        if (broadcastChannel) {
-            broadcastChannel.postMessage({ type: 'NEW_ACTIVITY', activity });
-        }
-        
-        localStorage.setItem('admin_broadcast', JSON.stringify({
-            type: 'ACTIVITY',
-            activity,
-            timestamp: Date.now()
-        }));
-        setTimeout(() => localStorage.removeItem('admin_broadcast'), 100);
-    }
-
     function getBroadcastIcon(type) {
         const icons = {
             'payment_verified': 'fa-check-circle',
@@ -3290,7 +3358,7 @@ setInterval(checkOrderProgressions, 60 * 1000);
         document.getElementById('verifyModal').classList.add('active');
     };
 
-    document.getElementById('confirmVerification').addEventListener('click', function() {
+    document.getElementById('confirmVerification')?.addEventListener('click', function() {
         const btn = this;
         if (!currentVerificationOrder) return;
         
@@ -3358,7 +3426,7 @@ setInterval(checkOrderProgressions, 60 * 1000);
         document.getElementById('rejectModal').classList.add('active');
     };
 
-    document.getElementById('confirmRejection').addEventListener('click', function() {
+    document.getElementById('confirmRejection')?.addEventListener('click', function() {
         const btn = this;
         if (!currentVerificationOrder) return;
         
@@ -3446,7 +3514,7 @@ setInterval(checkOrderProgressions, 60 * 1000);
         document.getElementById('statusModal').classList.add('active');
     };
 
-    document.getElementById('confirmUpdate').addEventListener('click', function() {
+    document.getElementById('confirmUpdate')?.addEventListener('click', function() {
         const btn = this;
         if (!currentStatusOrder) return;
         
@@ -3654,7 +3722,8 @@ setInterval(checkOrderProgressions, 60 * 1000);
 
     // ==================== MODAL FUNCTIONS ====================
     function closeModal(modalId) {
-        document.getElementById(modalId)?.classList.remove('active');
+        const modal = document.getElementById(modalId);
+        if (modal) modal.classList.remove('active');
     }
 
     // ==================== LOAD DASHBOARD CONTENT ====================
@@ -3803,16 +3872,16 @@ setInterval(checkOrderProgressions, 60 * 1000);
         `;
         
         // Add event listeners for filters
-        document.getElementById('applyFilter').addEventListener('click', applyFilters);
-        document.getElementById('resetFilter').addEventListener('click', resetFilters);
-        document.getElementById('refreshActivity').addEventListener('click', () => updateActivityFeed());
-        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('applyFilter')?.addEventListener('click', applyFilters);
+        document.getElementById('resetFilter')?.addEventListener('click', resetFilters);
+        document.getElementById('refreshActivity')?.addEventListener('click', () => updateActivityFeed());
+        document.getElementById('searchInput')?.addEventListener('input', applyFilters);
     }
 
     // ==================== FILTER FUNCTIONS ====================
     function applyFilters() {
-        const filter = document.getElementById('mainFilter').value;
-        const search = document.getElementById('searchInput').value.toLowerCase();
+        const filter = document.getElementById('mainFilter')?.value;
+        const search = document.getElementById('searchInput')?.value.toLowerCase();
         
         // Filter orders based on criteria
         const filteredOrders = allOrders.filter(order => {
@@ -3835,9 +3904,14 @@ setInterval(checkOrderProgressions, 60 * 1000);
     }
 
     function resetFilters() {
-        document.getElementById('mainFilter').value = 'all';
-        document.getElementById('dateFilter').value = 'all';
-        document.getElementById('searchInput').value = '';
+        const mainFilter = document.getElementById('mainFilter');
+        const dateFilter = document.getElementById('dateFilter');
+        const searchInput = document.getElementById('searchInput');
+        
+        if (mainFilter) mainFilter.value = 'all';
+        if (dateFilter) dateFilter.value = 'all';
+        if (searchInput) searchInput.value = '';
+        
         updateAllDisplays();
     }
 
@@ -3894,14 +3968,15 @@ setInterval(checkOrderProgressions, 60 * 1000);
         setupTabSwitching();
         
         // Modal close buttons
-        document.getElementById('closeVerifyModal').addEventListener('click', () => closeModal('verifyModal'));
-        document.getElementById('closeRejectModal').addEventListener('click', () => closeModal('rejectModal'));
-        document.getElementById('closeStatusModal').addEventListener('click', () => closeModal('statusModal'));
-        document.getElementById('closeCustomerModal').addEventListener('click', () => closeModal('customerModal'));
+        document.getElementById('closeVerifyModal')?.addEventListener('click', () => closeModal('verifyModal'));
+        document.getElementById('closeRejectModal')?.addEventListener('click', () => closeModal('rejectModal'));
+        document.getElementById('closeStatusModal')?.addEventListener('click', () => closeModal('statusModal'));
+        document.getElementById('closeCustomerModal')?.addEventListener('click', () => closeModal('customerModal'));
+        document.getElementById('closeFilterModal')?.addEventListener('click', () => closeModal('filterModal'));
         
-        document.getElementById('cancelVerification').addEventListener('click', () => closeModal('verifyModal'));
-        document.getElementById('cancelRejection').addEventListener('click', () => closeModal('rejectModal'));
-        document.getElementById('cancelUpdate').addEventListener('click', () => closeModal('statusModal'));
+        document.getElementById('cancelVerification')?.addEventListener('click', () => closeModal('verifyModal'));
+        document.getElementById('cancelRejection')?.addEventListener('click', () => closeModal('rejectModal'));
+        document.getElementById('cancelUpdate')?.addEventListener('click', () => closeModal('statusModal'));
         
         // Close modals on outside click
         document.querySelectorAll('.modal').forEach(modal => {
@@ -3911,7 +3986,7 @@ setInterval(checkOrderProgressions, 60 * 1000);
         });
         
         // Logout button
-        document.getElementById('logoutBtn').addEventListener('click', () => {
+        document.getElementById('logoutBtn')?.addEventListener('click', () => {
             window.location.href = '/login.html';
         });
         
@@ -3923,5 +3998,3 @@ setInterval(checkOrderProgressions, 60 * 1000);
     </script>
 </body>
 </html>
-
-
