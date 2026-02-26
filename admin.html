@@ -1682,11 +1682,6 @@
                     <i class="fas fa-stream"></i>
                     <span>Activity Feed</span>
                 </a>
-                <a href="#" class="menu-item" id="completedOrdersTab">
-                    <i class="fas fa-archive"></i>
-                    <span>Completed Orders</span>
-                    <span class="badge" id="completedBadge" style="background: var(--cleanbite-gray); color: white;">0</span>
-                </a>
             </div>
             <div class="sidebar-footer">
                 <i class="fas fa-database"></i> Firebase Live Sync
@@ -1966,233 +1961,257 @@
     }
 
     // ==================== PROCESS CUSTOMERS ====================
-// ==================== PROCESS CUSTOMERS (UPDATED) ====================
-function processCustomers() {
-    allCustomers.clear();
-    
-    allOrders.forEach(order => {
-        if (!order.customerPhone) return;
+    function processCustomers() {
+        allCustomers.clear();
         
-        const phone = order.customerPhone;
-        const email = order.customerEmail || order.customer?.email || 'N/A';
-        const name = order.customerName || order.customer?.name || 'Unknown';
-        
-        if (!allCustomers.has(phone)) {
-            // New customer
-            allCustomers.set(phone, {
-                id: `CUST-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-                name: name,
-                phone: phone,
-                email: email,
-                totalOrders: 0,
-                totalSpent: 0,
-                firstOrder: order.createdAt || order.timestamp,
-                lastOrder: order.createdAt || order.timestamp,
-                orders: [],
-                status: 'active',
-                preferredPayment: order.paymentMethod || 'Unknown'
+        allOrders.forEach(order => {
+            if (!order.customerPhone) return;
+            
+            const key = `${order.customerPhone}`;
+            
+            if (!allCustomers.has(key)) {
+                allCustomers.set(key, {
+                    name: order.customerName || 'Unknown',
+                    phone: order.customerPhone,
+                    email: order.customerEmail || 'N/A',
+                    totalOrders: 0,
+                    totalSpent: 0,
+                    orders: [],
+                    lastOrder: null
+                });
+            }
+            
+            const customer = allCustomers.get(key);
+            customer.totalOrders++;
+            customer.totalSpent += order.total || order.totalAmount || 0;
+            customer.orders.push({
+                id: order.id,
+                date: order.createdAt || order.timestamp,
+                amount: order.total || order.totalAmount,
+                status: order.status,
+                paymentStatus: order.paymentStatus
             });
-        }
-        
-        const customer = allCustomers.get(phone);
-        customer.totalOrders++;
-        customer.totalSpent += order.total || order.totalAmount || 0;
-        
-        // Update name/email if changed
-        if (name !== 'Unknown') customer.name = name;
-        if (email !== 'N/A') customer.email = email;
-        
-        // Add order to customer's history
-        customer.orders.push({
-            id: order.id,
-            date: order.createdAt || order.timestamp,
-            amount: order.total || order.totalAmount,
-            status: order.status,
-            paymentStatus: order.paymentStatus,
-            items: order.items?.length || 0
+            
+            const orderDate = new Date(order.createdAt || order.timestamp || 0);
+            if (!customer.lastOrder || orderDate > new Date(customer.lastOrder)) {
+                customer.lastOrder = order.createdAt || order.timestamp;
+            }
         });
         
-        // Update last order date
-        const orderDate = new Date(order.createdAt || order.timestamp || 0);
-        const lastDate = new Date(customer.lastOrder || 0);
-        if (orderDate > lastDate) {
-            customer.lastOrder = order.createdAt || order.timestamp;
+        console.log(`✅ Processed ${allCustomers.size} customers`);
+    }
+
+    // ==================== CHECK FOR NEW ORDERS ====================
+    let lastOrderCount = 0;
+    
+    function checkForNewOrders() {
+        if (allOrders.length > lastOrderCount) {
+            const newOrders = allOrders.slice(lastOrderCount);
+            newOrders.forEach(order => {
+                if (order.paymentStatus === 'pending' && order.status === 'pending-payment') {
+                    playNotificationSound();
+                    showNotification(`💰 New order from ${order.customerName || 'Customer'}`, 'warning');
+                    
+                    addActivity({
+                        type: 'order_created',
+                        message: `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
+                        orderId: order.id,
+                        customerName: order.customerName,
+                        icon: 'fa-cart-plus',
+                        color: '#9b59b6'
+                    });
+                }
+            });
         }
-    });
-    
-    console.log(`✅ Processed ${allCustomers.size} unique customers`);
-}
-
-// ==================== UPDATE ALL DISPLAYS (UPDATED) ====================
-function updateAllDisplays() {
-    // Add safety checks to prevent errors when elements don't exist yet
-    if (!document.getElementById('totalRevenue')) {
-        console.log('⏳ Dashboard elements not ready yet, skipping update');
-        return;
+        lastOrderCount = allOrders.length;
     }
-    
-    updateStats();
-    updateVerificationQueue();
-    updateVerifiedOrders();
-    updateCancelledOrders();
-    updateCompletedOrders(); // ✅ NEW
-    updateCustomersDisplay();
-    updateActivityFeed();
-    updateSidebarBadges();
-}
 
-// ==================== UPDATE STATS (UPDATED) ====================
-function updateStats() {
-    // Safety check
-    if (!document.getElementById('totalRevenue')) return;
-    
-    const verifiedRevenue = allOrders
-        .filter(o => o.paymentStatus === 'verified' && o.status === 'completed')
-        .reduce((sum, o) => sum + (o.total || o.totalAmount || 0), 0);
-    
-    const pendingCount = allOrders.filter(o => 
-        o.paymentStatus === 'pending' && o.status !== 'cancelled'
-    ).length;
-    
-    // Active verified orders (excluding completed)
-    const activeCount = allOrders.filter(o => 
-        o.paymentStatus === 'verified' && 
-        o.status !== 'cancelled' && 
-        o.status !== 'completed'
-    ).length;
-    
-    const customersCount = allCustomers.size;
-    
-    document.getElementById('totalRevenue').textContent = `₦${verifiedRevenue.toLocaleString()}`;
-    document.getElementById('awaitingVerification').textContent = pendingCount;
-    document.getElementById('verifiedOrdersCount').textContent = activeCount;
-    document.getElementById('totalCustomers').textContent = customersCount;
-}
+    // ==================== UPDATE ALL DISPLAYS ====================
+    function updateAllDisplays() {
+        // Add safety checks to prevent errors when elements don't exist yet
+        if (!document.getElementById('totalRevenue')) {
+            console.log('⏳ Dashboard elements not ready yet, skipping update');
+            return;
+        }
+        
+        updateStats();
+        updateVerificationQueue();
+        updateVerifiedOrders();
+        updateCancelledOrders();
+        updateCustomersDisplay();
+        updateActivityFeed();
+        updateSidebarBadges();
+    }
 
-// ==================== UPDATE SIDEBAR BADGES (UPDATED) ====================
-function updateSidebarBadges() {
-    // Safety check
-    if (!document.getElementById('verificationBadge')) return;
-    
-    const pendingCount = allOrders.filter(o => 
-        o.paymentStatus === 'pending' && o.status !== 'cancelled'
-    ).length;
-    
-    const activeCount = allOrders.filter(o => 
-        o.paymentStatus === 'verified' && 
-        o.status !== 'cancelled' && 
-        o.status !== 'completed'
-    ).length;
-    
-    const cancelledCount = allOrders.filter(o => 
-        o.status === 'cancelled'
-    ).length;
-    
-    const completedCount = allOrders.filter(o => 
-        o.status === 'completed'
-    ).length;
-    
-    document.getElementById('verificationBadge').textContent = pendingCount;
-    document.getElementById('verifiedBadge').textContent = activeCount;
-    document.getElementById('cancelledBadge').textContent = cancelledCount;
-    
-    // Add completed badge if element exists
-    const completedBadge = document.getElementById('completedBadge');
-    if (completedBadge) completedBadge.textContent = completedCount;
-    
-    const paymentNotice = document.getElementById('paymentNotice');
-    if (paymentNotice) {
-        if (pendingCount > 0) {
-            paymentNotice.style.display = 'flex';
-            document.getElementById('paymentNoticeMessage').textContent = 
-                `${pendingCount} order${pendingCount > 1 ? 's' : ''} pending verification`;
-            document.getElementById('paymentNoticeCount').innerHTML = 
-                `<i class="fas fa-clock"></i> ${pendingCount} pending`;
-        } else {
-            paymentNotice.style.display = 'none';
+    // ==================== UPDATE STATS ====================
+    function updateStats() {
+        // Safety check
+        if (!document.getElementById('totalRevenue')) return;
+        
+        const verifiedRevenue = allOrders
+            .filter(o => o.paymentStatus === 'verified')
+            .reduce((sum, o) => sum + (o.total || o.totalAmount || 0), 0);
+        
+        const pendingCount = allOrders.filter(o => 
+            o.paymentStatus === 'pending' && o.status !== 'cancelled'
+        ).length;
+        
+        const verifiedCount = allOrders.filter(o => 
+            o.paymentStatus === 'verified' && o.status !== 'cancelled'
+        ).length;
+        
+        const customersCount = allCustomers.size;
+        
+        document.getElementById('totalRevenue').textContent = `₦${verifiedRevenue.toLocaleString()}`;
+        document.getElementById('awaitingVerification').textContent = pendingCount;
+        document.getElementById('verifiedOrdersCount').textContent = verifiedCount;
+        document.getElementById('totalCustomers').textContent = customersCount;
+    }
+
+    // ==================== UPDATE SIDEBAR BADGES ====================
+    function updateSidebarBadges() {
+        // Safety check
+        if (!document.getElementById('verificationBadge')) return;
+        
+        const pendingCount = allOrders.filter(o => 
+            o.paymentStatus === 'pending' && o.status !== 'cancelled'
+        ).length;
+        
+        const verifiedCount = allOrders.filter(o => 
+            o.paymentStatus === 'verified' && o.status !== 'cancelled'
+        ).length;
+        
+        const cancelledCount = allOrders.filter(o => 
+            o.status === 'cancelled'
+        ).length;
+        
+        document.getElementById('verificationBadge').textContent = pendingCount;
+        document.getElementById('verifiedBadge').textContent = verifiedCount;
+        document.getElementById('cancelledBadge').textContent = cancelledCount;
+        
+        const paymentNotice = document.getElementById('paymentNotice');
+        if (paymentNotice) {
+            if (pendingCount > 0) {
+                paymentNotice.style.display = 'flex';
+                document.getElementById('paymentNoticeMessage').textContent = 
+                    `${pendingCount} order${pendingCount > 1 ? 's' : ''} pending verification`;
+                document.getElementById('paymentNoticeCount').innerHTML = 
+                    `<i class="fas fa-clock"></i> ${pendingCount} pending`;
+            } else {
+                paymentNotice.style.display = 'none';
+            }
         }
     }
-}
 
-// ==================== UPDATE VERIFIED ORDERS (UPDATED) ====================
-function updateVerifiedOrders() {
-    const container = document.getElementById('verifiedOrdersList');
-    if (!container) return;
-    
-    // Only show ACTIVE orders (not completed, not cancelled)
-    const activeOrders = allOrders.filter(o => 
-        o.paymentStatus === 'verified' && 
-        o.status !== 'cancelled' && 
-        o.status !== 'completed'
-    ).sort((a, b) => new Date(b.verifiedAt || b.createdAt) - new Date(a.verifiedAt || a.createdAt));
-    
-    if (activeOrders.length === 0) {
-        container.innerHTML = `
-            <div class="empty-queue">
-                <i class="fas fa-shopping-cart"></i>
-                <p>No active orders</p>
-                <span style="color: var(--gray);">All verified orders are completed or cancelled</span>
+    // ==================== UPDATE VERIFICATION QUEUE ====================
+    function updateVerificationQueue() {
+        const container = document.getElementById('verificationList');
+        if (!container) return;
+        
+        const pendingOrders = allOrders.filter(o => 
+            o.paymentStatus === 'pending' && 
+            o.status !== 'cancelled'
+        ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        if (pendingOrders.length === 0) {
+            container.innerHTML = `
+                <div class="empty-queue">
+                    <i class="fas fa-check-circle"></i>
+                    <p>No payments pending verification</p>
+                    <span style="color: var(--gray);">All caught up!</span>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = pendingOrders.map(order => `
+            <div class="verification-card" data-order-id="${order.id}">
+                <div class="verification-card-header">
+                    <span class="verification-order-id">${order.id}</span>
+                    <span class="verification-time">
+                        <i class="far fa-clock"></i> ${timeAgo(order.createdAt)}
+                    </span>
+                </div>
+                
+                <div class="verification-customer">
+                    <div class="customer-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="customer-details">
+                        <h4>${order.customerName || 'Customer'}</h4>
+                        <p><i class="fas fa-phone-alt"></i> ${order.customerPhone || 'N/A'}</p>
+                    </div>
+                </div>
+                
+                <div class="verification-items">
+                    ${order.items?.map(item => `
+                        <div class="verification-item-row">
+                            <span class="item-name">${item.name}</span>
+                            <span class="item-quantity">x${item.quantity}</span>
+                            <span class="item-price">₦${(item.price * item.quantity).toLocaleString()}</span>
+                        </div>
+                    `).join('') || '<div>No items</div>'}
+                </div>
+                
+                <div class="verification-footer">
+                    <span class="verification-amount">₦${(order.total || order.totalAmount || 0).toLocaleString()}</span>
+                    <div class="verification-actions">
+                        <button class="btn-verify" onclick="openVerifyModal('${order.id}')">
+                            <i class="fas fa-check"></i> Verify
+                        </button>
+                        <button class="btn-reject" onclick="openRejectModal('${order.id}')">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                    </div>
+                </div>
             </div>
-        `;
-        return;
+        `).join('');
     }
-    
-    container.innerHTML = activeOrders.map(order => renderOrderCard(order, 'verified')).join('');
-    
-    // Update active count in header
-    const verifiedCount = document.getElementById('verifiedCount');
-    if (verifiedCount) verifiedCount.textContent = activeOrders.length;
-}
 
-// ==================== UPDATE CANCELLED ORDERS (UPDATED) ====================
-function updateCancelledOrders() {
-    const container = document.getElementById('cancelledOrdersList');
-    if (!container) return;
-    
-    // Show CANCELLED orders (archived)
-    const cancelledOrders = allOrders.filter(o => 
-        o.status === 'cancelled'
-    ).sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
-    
-    if (cancelledOrders.length === 0) {
-        container.innerHTML = `
-            <div class="empty-queue">
-                <i class="fas fa-times-circle"></i>
-                <p>No cancelled orders</p>
-            </div>
-        `;
-        return;
+    // ==================== UPDATE VERIFIED ORDERS ====================
+    function updateVerifiedOrders() {
+        const container = document.getElementById('verifiedOrdersList');
+        if (!container) return;
+        
+        const verifiedOrders = allOrders.filter(o => 
+            o.paymentStatus === 'verified' && 
+            o.status !== 'cancelled'
+        ).sort((a, b) => new Date(b.verifiedAt || b.createdAt) - new Date(a.verifiedAt || a.createdAt));
+        
+        if (verifiedOrders.length === 0) {
+            container.innerHTML = `
+                <div class="empty-queue">
+                    <i class="fas fa-shopping-cart"></i>
+                    <p>No verified orders yet</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = verifiedOrders.map(order => renderOrderCard(order, 'verified')).join('');
     }
-    
-    container.innerHTML = cancelledOrders.map(order => renderOrderCard(order, 'cancelled')).join('');
-    
-    // Update cancelled count
-    const cancelledCount = document.getElementById('cancelledCount');
-    if (cancelledCount) cancelledCount.textContent = cancelledOrders.length;
-}
 
-// ==================== NEW: COMPLETED ORDERS ARCHIVE ====================
-function updateCompletedOrders() {
-    const container = document.getElementById('completedOrdersList');
-    if (!container) return;
-    
-    // Show COMPLETED orders (archived)
-    const completedOrders = allOrders.filter(o => 
-        o.status === 'completed'
-    ).sort((a, b) => new Date(b.completedAt || b.updatedAt) - new Date(a.completedAt || a.updatedAt));
-    
-    if (completedOrders.length === 0) {
-        container.innerHTML = `
-            <div class="empty-queue">
-                <i class="fas fa-archive"></i>
-                <p>No completed orders in archive</p>
-            </div>
-        `;
-        return;
+    // ==================== UPDATE CANCELLED ORDERS ====================
+    function updateCancelledOrders() {
+        const container = document.getElementById('cancelledOrdersList');
+        if (!container) return;
+        
+        const cancelledOrders = allOrders.filter(o => 
+            o.status === 'cancelled'
+        ).sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+        
+        if (cancelledOrders.length === 0) {
+            container.innerHTML = `
+                <div class="empty-queue">
+                    <i class="fas fa-times-circle"></i>
+                    <p>No cancelled orders</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = cancelledOrders.map(order => renderOrderCard(order, 'cancelled')).join('');
     }
-    
-    container.innerHTML = completedOrders.map(order => renderOrderCard(order, 'completed')).join('');
-}
 
     // ==================== RENDER ORDER CARD ====================
     function renderOrderCard(order, type) {
@@ -3567,18 +3586,6 @@ setInterval(checkOrderProgressions, 60 * 1000);
                 <div class="orders-grid" id="cancelledOrdersList"></div>
             </div>
 
-            <!-- Completed Orders Archive -->
-            <div class="verification-section" id="completedSection" style="display: none;">
-                <div class="section-header">
-                    <h3><i class="fas fa-archive" style="color: var(--cleanbite-gray);"></i> Completed Orders Archive</h3>
-                    <div class="section-count" style="color: var(--cleanbite-gray); border-color: var(--cleanbite-gray);">
-                        <i class="fas fa-check-circle"></i>
-                        <span id="completedCount">0</span> Total
-                    </div>
-                </div>
-                <div class="orders-grid" id="completedOrdersList"></div>
-            </div>
-
             <!-- Customer Database -->
             <div class="customer-section" id="customerSection">
                 <div class="section-header">
@@ -3652,42 +3659,40 @@ setInterval(checkOrderProgressions, 60 * 1000);
     }
 
     // ==================== TAB SWITCHING ====================
-// ==================== TAB SWITCHING (UPDATED) ====================
-function setupTabSwitching() {
-    const tabs = {
-        dashboardTab: ['verificationSection', 'verifiedSection', 'cancelledSection', 'completedSection', 'customerSection', 'activitySection'],
-        verificationTab: ['verificationSection'],
-        verifiedOrdersTab: ['verifiedSection'],
-        cancelledOrdersTab: ['cancelledSection'],
-        completedOrdersTab: ['completedSection'],
-        customersTab: ['customerSection'],
-        activityTab: ['activitySection']
-    };
-    
-    Object.keys(tabs).forEach(tabId => {
-        document.getElementById(tabId)?.addEventListener('click', (e) => {
-            e.preventDefault();
-            
-            // Update active tab
-            document.querySelectorAll('.menu-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            e.currentTarget.classList.add('active');
-            
-            // Show relevant sections
-            const allSections = ['verificationSection', 'verifiedSection', 'cancelledSection', 'completedSection', 'customerSection', 'activitySection'];
-            allSections.forEach(section => {
-                const el = document.getElementById(section);
-                if (el) el.style.display = 'none';
-            });
-            
-            tabs[tabId].forEach(section => {
-                const el = document.getElementById(section);
-                if (el) el.style.display = 'block';
+    function setupTabSwitching() {
+        const tabs = {
+            dashboardTab: ['verificationSection', 'verifiedSection', 'cancelledSection', 'customerSection', 'activitySection'],
+            verificationTab: ['verificationSection'],
+            verifiedOrdersTab: ['verifiedSection'],
+            cancelledOrdersTab: ['cancelledSection'],
+            customersTab: ['customerSection'],
+            activityTab: ['activitySection']
+        };
+        
+        Object.keys(tabs).forEach(tabId => {
+            document.getElementById(tabId)?.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Update active tab
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                e.currentTarget.classList.add('active');
+                
+                // Show relevant sections
+                const allSections = ['verificationSection', 'verifiedSection', 'cancelledSection', 'customerSection', 'activitySection'];
+                allSections.forEach(section => {
+                    const el = document.getElementById(section);
+                    if (el) el.style.display = 'none';
+                });
+                
+                tabs[tabId].forEach(section => {
+                    const el = document.getElementById(section);
+                    if (el) el.style.display = 'block';
+                });
             });
         });
-    });
-}
+    }
 
     // ==================== INITIALIZE ====================
     document.addEventListener('DOMContentLoaded', () => {
@@ -3731,11 +3736,3 @@ function setupTabSwitching() {
     
 </body>
 </html>
-
-
-
-
-
-
-
-
