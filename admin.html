@@ -1627,7 +1627,132 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #b49450;
         }
-    </style>
+
+    .archive-filter-bar {
+            background: var(--cleanbite-white);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--cleanbite-light-gray);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .customer-filter-bar {
+            background: var(--cleanbite-white);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid var(--cleanbite-light-gray);
+        }
+        
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .filter-input {
+            padding: 10px 16px;
+            border: 1.5px solid var(--cleanbite-light-gray);
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            min-width: 250px;
+        }
+        
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--cleanbite-gold);
+            box-shadow: 0 0 0 3px var(--cleanbite-gold-light);
+        }
+        
+        .filter-btn.small {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+        
+        .results-count {
+            color: var(--cleanbite-gray);
+            font-size: 0.9rem;
+            border-top: 1px dashed var(--cleanbite-light-gray);
+            padding-top: 15px;
+            margin-top: 5px;
+            text-align: right;
+        }
+        
+        .results-count span {
+            font-weight: 700;
+            color: var(--cleanbite-gold);
+        }
+        
+        /* Customer Card Enhancements */
+        .customer-card {
+            position: relative;
+        }
+        
+        .customer-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .customer-badge.vip {
+            background: var(--cleanbite-gold);
+            color: var(--cleanbite-dark);
+        }
+        
+        .customer-badge.inactive {
+            background: var(--cleanbite-light-gray);
+            color: var(--cleanbite-gray);
+        }
+        
+        .cancelled-reason {
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--cleanbite-danger-light);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: var(--cleanbite-danger);
+            border-left: 3px solid var(--cleanbite-danger);
+        }
+        
+        .cancelled-reason i {
+            margin-right: 6px;
+        }
+        
+        .order-count-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .order-count-badge.high {
+            background: var(--cleanbite-success);
+            color: white;
+        }
+        
+        .order-count-badge.medium {
+            background: var(--cleanbite-warning);
+            color: white;
+        }
+        
+        .order-count-badge.low {
+            background: var(--cleanbite-info);
+            color: white;
+        }
+        </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -2168,536 +2293,408 @@
         `).join('');
     }
 
-    // ==================== UPDATE VERIFIED ORDERS ====================
-    function updateVerifiedOrders() {
-        const container = document.getElementById('verifiedOrdersList');
-        if (!container) return;
-        
-        const verifiedOrders = allOrders.filter(o => 
-            o.paymentStatus === 'verified' && 
-            o.status !== 'cancelled'
-        ).sort((a, b) => new Date(b.verifiedAt || b.createdAt) - new Date(a.verifiedAt || a.createdAt));
-        
-        if (verifiedOrders.length === 0) {
-            container.innerHTML = `
-                <div class="empty-queue">
-                    <i class="fas fa-shopping-cart"></i>
-                    <p>No verified orders yet</p>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = verifiedOrders.map(order => renderOrderCard(order, 'verified')).join('');
+// ==================== UPDATE VERIFIED ORDERS (Active Only) ====================
+function updateVerifiedOrders() {
+    const container = document.getElementById('verifiedOrdersList');
+    if (!container) return;
+    
+    // Only show ACTIVE orders (preparing, incubating, ready)
+    const activeOrders = allOrders.filter(o => 
+        o.paymentStatus === 'verified' && 
+        ['preparing', 'incubating', 'ready'].includes(o.status)
+    ).sort((a, b) => new Date(b.verifiedAt || b.createdAt) - new Date(a.verifiedAt || a.createdAt));
+    
+    if (activeOrders.length === 0) {
+        container.innerHTML = `
+            <div class="empty-queue">
+                <i class="fas fa-shopping-cart"></i>
+                <p>No active orders</p>
+                <span style="color: var(--gray);">All verified orders are completed or cancelled</span>
+            </div>
+        `;
+        return;
     }
+    
+    container.innerHTML = activeOrders.map(order => renderOrderCard(order, 'verified')).join('');
+    
+    // Update active count in header
+    const verifiedCount = document.getElementById('verifiedCount');
+    if (verifiedCount) verifiedCount.textContent = activeOrders.length;
+}
 
-    // ==================== UPDATE CANCELLED ORDERS ====================
-    function updateCancelledOrders() {
-        const container = document.getElementById('cancelledOrdersList');
-        if (!container) return;
-        
-        const cancelledOrders = allOrders.filter(o => 
-            o.status === 'cancelled'
-        ).sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
-        
-        if (cancelledOrders.length === 0) {
-            container.innerHTML = `
-                <div class="empty-queue">
-                    <i class="fas fa-times-circle"></i>
-                    <p>No cancelled orders</p>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = cancelledOrders.map(order => renderOrderCard(order, 'cancelled')).join('');
+// ==================== UPDATE CANCELLED ORDERS (With Archive) ====================
+let cancelledMonthFilter = 'all';
+
+function updateCancelledOrders() {
+    const container = document.getElementById('cancelledOrdersList');
+    if (!container) return;
+    
+    // Get all cancelled orders
+    let cancelledOrders = allOrders.filter(o => 
+        o.status === 'cancelled'
+    ).sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+    
+    // Apply month filter if selected
+    if (cancelledMonthFilter !== 'all') {
+        const [year, month] = cancelledMonthFilter.split('-');
+        cancelledOrders = cancelledOrders.filter(order => {
+            const orderDate = new Date(order.updatedAt || order.createdAt);
+            return orderDate.getFullYear() === parseInt(year) && 
+                   orderDate.getMonth() === parseInt(month);
+        });
     }
+    
+    if (cancelledOrders.length === 0) {
+        container.innerHTML = `
+            <div class="empty-queue">
+                <i class="fas fa-times-circle"></i>
+                <p>No cancelled orders found</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = cancelledOrders.map(order => renderOrderCard(order, 'cancelled')).join('');
+    
+    // Update cancelled count
+    const cancelledCount = document.getElementById('cancelledCount');
+    if (cancelledCount) cancelledCount.textContent = cancelledOrders.length;
+    
+    // Update month filter dropdown
+    updateCancelledMonthFilter();
+}
 
-    // ==================== RENDER ORDER CARD ====================
-    function renderOrderCard(order, type) {
-        const cardClass = type === 'verified' ? 'verified-card' : 'cancelled-card';
-        const statusText = order.status?.replace('-', ' ') || 'pending';
-        
-        let progressHtml = '';
-        if (type === 'verified' && order.status !== 'cancelled' && order.status !== 'completed') {
-            progressHtml = renderTimeline(order);
-        }
-        
-        return `
-            <div class="order-card ${cardClass}" data-order-id="${order.id}">
-                <div class="order-card-header">
-                    <div class="order-badge">
-                        <span class="order-id-badge">${order.id}</span>
-                        <span class="status-badge ${order.status || 'pending'}">
-                            <i class="fas ${getStatusIcon(order.status)}"></i> ${statusText}
-                        </span>
-                    </div>
-                    <span class="order-time">
-                        <i class="far fa-clock"></i> ${timeAgo(order.createdAt)}
+// ==================== UPDATE CANCELLED MONTH FILTER ====================
+function updateCancelledMonthFilter() {
+    const select = document.getElementById('cancelledMonthFilter');
+    if (!select) return;
+    
+    // Get unique months from cancelled orders
+    const months = new Set();
+    allOrders.filter(o => o.status === 'cancelled').forEach(order => {
+        const date = new Date(order.updatedAt || order.createdAt);
+        const yearMonth = `${date.getFullYear()}-${date.getMonth()}`;
+        const displayName = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+        months.add(JSON.stringify({ value: yearMonth, label: displayName }));
+    });
+    
+    // Sort months descending (newest first)
+    const sortedMonths = Array.from(months)
+        .map(m => JSON.parse(m))
+        .sort((a, b) => b.value.localeCompare(a.value));
+    
+    let options = '<option value="all">All Time</option>';
+    sortedMonths.forEach(month => {
+        options += `<option value="${month.value}">${month.label}</option>`;
+    });
+    
+    select.innerHTML = options;
+    select.value = cancelledMonthFilter;
+}
+
+// ==================== RENDER ORDER CARD (Updated to show rejection reason) ====================
+function renderOrderCard(order, type) {
+    const cardClass = type === 'verified' ? 'verified-card' : 'cancelled-card';
+    const statusText = order.status?.replace('-', ' ') || 'pending';
+    
+    let progressHtml = '';
+    if (type === 'verified' && order.status !== 'cancelled' && order.status !== 'completed') {
+        progressHtml = renderTimeline(order);
+    }
+    
+    // Add rejection reason for cancelled orders
+    const rejectionHtml = (type === 'cancelled' && order.rejectionReason) ? `
+        <div class="cancelled-reason" style="margin: 10px 0; padding: 8px; background: #fee2e2; border-left: 3px solid #ef4444; font-size: 0.75rem;">
+            <i class="fas fa-exclamation-circle"></i> 
+            <strong>Reason:</strong> ${order.rejectionReason}
+        </div>
+    ` : '';
+    
+    return `
+        <div class="order-card ${cardClass}" data-order-id="${order.id}">
+            <div class="order-card-header">
+                <div class="order-badge">
+                    <span class="order-id-badge">${order.id}</span>
+                    <span class="status-badge ${order.status || 'pending'}">
+                        <i class="fas ${getStatusIcon(order.status)}"></i> ${statusText}
                     </span>
                 </div>
+                <span class="order-time">
+                    <i class="far fa-clock"></i> ${timeAgo(order.createdAt)}
+                </span>
+            </div>
 
-                <div class="order-customer-row">
-                    <div class="customer-avatar-large">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                    <div class="customer-info-detailed">
-                        <h4>${order.customerName || 'Customer'}</h4>
-                        <div class="customer-contact">
-                            <span><i class="fas fa-phone-alt"></i> ${order.customerPhone || 'N/A'}</span>
-                            <span><i class="fas fa-envelope"></i> ${order.customerEmail || 'N/A'}</span>
-                        </div>
+            <div class="order-customer-row">
+                <div class="customer-avatar-large">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="customer-info-detailed">
+                    <h4>${order.customerName || 'Customer'}</h4>
+                    <div class="customer-contact">
+                        <span><i class="fas fa-phone-alt"></i> ${order.customerPhone || 'N/A'}</span>
+                        <span><i class="fas fa-envelope"></i> ${order.customerEmail || 'N/A'}</span>
                     </div>
                 </div>
+            </div>
 
-                <div class="order-items-list">
-                    ${order.items?.map(item => `
-                        <div class="order-item-row">
-                            <div class="item-info">
-                                <span class="item-quantity-badge">${item.quantity}x</span>
-                                <span class="item-name">${item.name}</span>
-                            </div>
-                            <span class="item-price">₦${(item.price * item.quantity).toLocaleString()}</span>
+            <div class="order-items-list">
+                ${order.items?.map(item => `
+                    <div class="order-item-row">
+                        <div class="item-info">
+                            <span class="item-quantity-badge">${item.quantity}x</span>
+                            <span class="item-name">${item.name}</span>
                         </div>
-                    `).join('') || '<div>No items</div>'}
-                </div>
-
-                ${progressHtml}
-
-                <div class="order-footer">
-                    <div class="order-total">
-                        <span class="total-label">Total Amount</span>
-                        <span class="total-amount">₦${(order.total || order.totalAmount || 0).toLocaleString()}</span>
+                        <span class="item-price">₦${(item.price * item.quantity).toLocaleString()}</span>
                     </div>
-                    <div class="order-actions">
-                        ${type === 'verified' ? `
-                            ${order.status === 'ready' ? `
-                                <button class="btn-action complete" onclick="completeOrderManually('${order.id}')">
-                                    <i class="fas fa-flag-checkered"></i> Complete
-                                </button>
-                            ` : ''}
-                            <button class="btn-action update" onclick="openStatusModal('${order.id}')">
-                                <i class="fas fa-edit"></i> Update
+                `).join('') || '<div>No items</div>'}
+            </div>
+
+            ${rejectionHtml}
+            ${progressHtml}
+
+            <div class="order-footer">
+                <div class="order-total">
+                    <span class="total-label">Total Amount</span>
+                    <span class="total-amount">₦${(order.total || order.totalAmount || 0).toLocaleString()}</span>
+                </div>
+                <div class="order-actions">
+                    ${type === 'verified' ? `
+                        ${order.status === 'ready' ? `
+                            <button class="btn-action complete" onclick="completeOrderManually('${order.id}')">
+                                <i class="fas fa-flag-checkered"></i> Complete
                             </button>
-                        ` : `
-                            <span style="color: var(--gray); font-size: 12px;">No actions</span>
-                        `}
-                    </div>
+                        ` : ''}
+                        <button class="btn-action update" onclick="openStatusModal('${order.id}')">
+                            <i class="fas fa-edit"></i> Update
+                        </button>
+                    ` : `
+                        <span style="color: var(--gray); font-size: 12px;">No actions</span>
+                    `}
                 </div>
             </div>
-        `;
-    }
+        </div>
+    `;
+}
 
-    // ==================== RENDER TIMELINE ====================
-    function renderTimeline(order) {
-        const steps = ['verified', 'preparing', 'incubating', 'ready'];
-        const currentIndex = steps.indexOf(order.status);
-        
-        let incubationHtml = '';
-        if (order.status === 'incubating' && order.incubatingStarted) {
-            const start = new Date(order.incubatingStarted);
-            const now = new Date();
-            const elapsed = now - start;
-            const total = 24 * 60 * 60 * 1000;
-            const percent = Math.min(100, Math.round((elapsed / total) * 100));
-            const remaining = Math.max(0, Math.round((total - elapsed) / (60 * 60 * 1000)));
-            
-            incubationHtml = `
-                <div class="incubation-timer">
-                    <div class="timer-info">
-                        <i class="fas fa-hourglass-half"></i>
-                        <div class="timer-text">
-                            <span>Time remaining</span>
-                            <strong>${remaining}h</strong>
-                        </div>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${percent}%;"></div>
-                    </div>
-                </div>
-            `;
-        } else if (order.status === 'ready') {
-            incubationHtml = `
-                <div class="incubation-timer" style="background: var(--success-light);">
-                    <div class="timer-info">
-                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
-                        <div class="timer-text">
-                            <span>Ready for pickup</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        return `
-            <div class="order-timeline">
-                <div class="timeline-header">
-                    <span><i class="fas fa-clock"></i> Order Progress</span>
-                </div>
-                <div class="timeline-steps">
-                    ${steps.map((step, index) => `
-                        <div class="timeline-step">
-                            <div class="step-icon ${index < currentIndex ? 'completed' : index === currentIndex ? 'active' : ''}">
-                                <i class="fas ${getStepIcon(step)}"></i>
-                            </div>
-                            <span class="step-label ${index < currentIndex ? 'completed' : index === currentIndex ? 'active' : ''}">
-                                ${step.charAt(0).toUpperCase() + step.slice(1)}
-                            </span>
-                        </div>
-                    `).join('')}
-                </div>
-                ${incubationHtml}
+// ==================== CUSTOMER FILTERS ====================
+let customerFilters = {
+    search: '',
+    status: 'all',
+    orders: 'all'
+};
+
+function updateCustomersDisplay() {
+    const container = document.getElementById('customersList');
+    if (!container) return;
+    
+    if (allCustomers.size === 0) {
+        container.innerHTML = `
+            <div class="empty-queue">
+                <i class="fas fa-users"></i>
+                <p>No customers yet</p>
             </div>
         `;
+        return;
     }
-
-    function getStepIcon(step) {
-        const icons = {
-            'verified': 'fa-check',
-            'preparing': 'fa-utensils',
-            'incubating': 'fa-fire',
-            'ready': 'fa-check-circle'
-        };
-        return icons[step] || 'fa-circle';
+    
+    // Convert customers map to array and apply filters
+    let customersArray = Array.from(allCustomers.values());
+    
+    // Apply search filter
+    if (customerFilters.search) {
+        const search = customerFilters.search.toLowerCase();
+        customersArray = customersArray.filter(customer => 
+            customer.name.toLowerCase().includes(search) ||
+            customer.phone.includes(search) ||
+            customer.email.toLowerCase().includes(search)
+        );
     }
-
-    // ==================== UPDATE CUSTOMERS DISPLAY ====================
-    function updateCustomersDisplay() {
-        const container = document.getElementById('customersList');
-        if (!container) return;
-        
-        if (allCustomers.size === 0) {
-            container.innerHTML = `
-                <div class="empty-queue">
-                    <i class="fas fa-users"></i>
-                    <p>No customers yet</p>
-                </div>
-            `;
-            return;
+    
+    // Apply status filter
+    if (customerFilters.status !== 'all') {
+        if (customerFilters.status === 'active') {
+            customersArray = customersArray.filter(c => c.totalOrders > 0);
+        } else if (customerFilters.status === 'inactive') {
+            customersArray = customersArray.filter(c => c.totalOrders === 0);
+        } else if (customerFilters.status === 'vip') {
+            customersArray = customersArray.filter(c => c.totalOrders >= 5);
         }
-        
-        const customersArray = Array.from(allCustomers.values())
-            .sort((a, b) => b.totalOrders - a.totalOrders);
-        
-        container.innerHTML = customersArray.map(customer => `
-            <div class="customer-card" data-phone="${customer.phone}">
-                <div class="customer-card-header">
-                    <div class="customer-avatar-lg">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                    <div class="customer-title">
-                        <h4>${customer.name}</h4>
-                        <p><i class="fas fa-phone-alt"></i> ${customer.phone}</p>
-                    </div>
-                </div>
-                
-                <div class="customer-stats-grid">
-                    <div class="customer-stat-item">
-                        <div class="customer-stat-value">${customer.totalOrders}</div>
-                        <div class="customer-stat-label">Orders</div>
-                    </div>
-                    <div class="customer-stat-item">
-                        <div class="customer-stat-value">₦${(customer.totalSpent / 1000).toFixed(1)}k</div>
-                        <div class="customer-stat-label">Spent</div>
-                    </div>
-                    <div class="customer-stat-item">
-                        <div class="customer-stat-value">${customer.orders.length}</div>
-                        <div class="customer-stat-label">Items</div>
-                    </div>
-                </div>
-                
-                <div class="customer-contact-info">
-                    <div class="contact-row">
-                        <i class="fas fa-envelope"></i>
-                        <span>${customer.email}</span>
-                    </div>
-                    <div class="contact-row">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Last order: ${customer.lastOrder ? new Date(customer.lastOrder).toLocaleDateString() : 'N/A'}</span>
-                    </div>
-                </div>
-                
-                <div class="customer-orders-preview">
-                    <div class="preview-header">
-                        <span>Recent Orders</span>
-                        <span>${customer.orders.length} total</span>
-                    </div>
-                    ${customer.orders.slice(0, 3).map(order => `
-                        <div class="preview-order-item">
-                            <span class="preview-order-id">${order.id.slice(-8)}</span>
-                            <span class="preview-order-status ${order.status}" 
-                                  style="background: ${getStatusColor(order.status)}20; color: ${getStatusColor(order.status)};">
-                                ${order.status || 'pending'}
-                            </span>
-                            <span>₦${(order.amount || 0).toLocaleString()}</span>
-                        </div>
-                    `).join('')}
-                </div>
-                
-                <button class="view-customer-btn" onclick="viewCustomerDetails('${customer.phone}')">
-                    <i class="fas fa-eye"></i> View Full History
+    }
+    
+    // Apply orders count filter
+    if (customerFilters.orders !== 'all') {
+        if (customerFilters.orders === '1') {
+            customersArray = customersArray.filter(c => c.totalOrders === 1);
+        } else if (customerFilters.orders === '2-3') {
+            customersArray = customersArray.filter(c => c.totalOrders >= 2 && c.totalOrders <= 3);
+        } else if (customerFilters.orders === '4+') {
+            customersArray = customersArray.filter(c => c.totalOrders >= 4);
+        }
+    }
+    
+    // Sort by total orders (descending)
+    customersArray.sort((a, b) => b.totalOrders - a.totalOrders);
+    
+    // Update results count
+    const showingEl = document.getElementById('customerShowing');
+    const totalEl = document.getElementById('customerTotal');
+    if (showingEl) showingEl.textContent = customersArray.length;
+    if (totalEl) totalEl.textContent = allCustomers.size;
+    
+    if (customersArray.length === 0) {
+        container.innerHTML = `
+            <div class="empty-queue">
+                <i class="fas fa-search"></i>
+                <p>No customers match your filters</p>
+                <button class="filter-btn" onclick="resetCustomerFilters()">
+                    <i class="fas fa-redo-alt"></i> Reset Filters
                 </button>
             </div>
-        `).join('');
+        `;
+        return;
     }
-
-// ==================== AUTO PROGRESS CHECKER (STOPS AT READY) ====================
-function checkOrderProgressions() {
-    console.log('⏰ Checking order progressions in Firebase...');
     
-    // Get orders DIRECTLY from Firebase (not localStorage)
-    database.ref('orders').once('value', (snapshot) => {
-        const data = snapshot.val();
-        if (!data) {
-            console.log('No orders found');
-            return;
-        }
-        
-        const now = new Date();
-        let updates = [];
-        
-        // Convert Firebase object to array
-        const orders = Object.entries(data).map(([key, order]) => ({
-            ...order,
-            firebaseKey: key
-        }));
-        
-        orders.forEach(order => {
-            // Only process verified orders
-            if (order.paymentStatus !== 'verified') return;
+    container.innerHTML = customersArray.map(customer => renderCustomerCard(customer)).join('');
+}
+
+// ==================== RENDER CUSTOMER CARD (With Cancellation Reasons) ====================
+function renderCustomerCard(customer) {
+    // Get customer's cancelled orders with reasons
+    const cancelledOrders = customer.orders
+        .filter(o => o.status === 'cancelled')
+        .slice(0, 2); // Show last 2 cancelled orders
+    
+    const orderCountClass = customer.totalOrders >= 5 ? 'high' : 
+                           customer.totalOrders >= 2 ? 'medium' : 'low';
+    
+    const customerStatus = customer.totalOrders === 0 ? 'inactive' : 
+                          customer.totalOrders >= 5 ? 'vip' : 'active';
+    
+    return `
+        <div class="customer-card" data-phone="${customer.phone}">
+            ${customerStatus !== 'active' ? 
+                `<span class="customer-badge ${customerStatus}">${customerStatus.toUpperCase()}</span>` : ''}
             
-            // Skip if already ready or completed
-            if (order.status === 'ready' || order.status === 'completed') return;
+            <div class="customer-card-header">
+                <div class="customer-avatar-lg">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="customer-title">
+                    <h4>${customer.name}</h4>
+                    <p><i class="fas fa-phone-alt"></i> ${customer.phone}</p>
+                    <p><small><i class="fas fa-envelope"></i> ${customer.email}</small></p>
+                </div>
+            </div>
             
-            // =============================================
-            // STAGE 1: Preparing → Incubating (30 minutes)
-            // =============================================
-            if (order.status === 'preparing') {
-                const stageStartTime = new Date(order.preparingStarted || order.verifiedAt || order.updatedAt);
-                
-                // Skip if invalid date
-                if (isNaN(stageStartTime)) {
-                    console.warn(`Invalid date for order ${order.id}`);
-                    return;
-                }
-                
-                const timeElapsed = now - stageStartTime;
-                const elapsedMinutes = Math.floor(timeElapsed / (60 * 1000));
-                
-                console.log(`Order ${order.id.slice(-8)}: Preparing for ${elapsedMinutes} minutes`);
-                
-                if (timeElapsed >= 30 * 60 * 1000) { // 30 minutes
-                    console.log(`⏩ Auto-progress: Order ${order.id} preparing → incubating`);
-                    
-                    const updateData = {
-                        status: 'incubating',
-                        incubatingStarted: now.toISOString(),
-                        updatedAt: now.toISOString()
-                    };
-                    
-                    // Update Firebase
-                    updates.push(
-                        database.ref(`orders/${order.firebaseKey}`).update(updateData)
-                            .then(() => {
-                                const message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (23hr countdown started)`;
-                                
-                                // Add to activity feed
-                                addActivityToFeed({
-                                    type: 'status_change',
-                                    message: message,
-                                    orderId: order.id,
-                                    customerName: order.customerName,
-                                    timestamp: now.toISOString(),
-                                    icon: 'fa-clock',
-                                    color: '#f39c12'
-                                });
-                                
-                                broadcastToOrderPage('status_change', message, order.id, order.customerName);
-                                console.log(`✅ Order ${order.id.slice(-8)} now incubating`);
-                            })
-                            .catch(err => console.error('Firebase error:', err))
-                    );
-                }
-            }
+            <div class="customer-stats-grid">
+                <div class="customer-stat-item">
+                    <div class="customer-stat-value">${customer.totalOrders}</div>
+                    <div class="customer-stat-label">
+                        Orders
+                        <span class="order-count-badge ${orderCountClass}">${customer.totalOrders}</span>
+                    </div>
+                </div>
+                <div class="customer-stat-item">
+                    <div class="customer-stat-value">₦${(customer.totalSpent / 1000).toFixed(1)}k</div>
+                    <div class="customer-stat-label">Spent</div>
+                </div>
+                <div class="customer-stat-item">
+                    <div class="customer-stat-value">${customer.orders.reduce((sum, o) => sum + (o.items || 0), 0)}</div>
+                    <div class="customer-stat-label">Items</div>
+                </div>
+            </div>
             
-            // =============================================
-            // STAGE 2: Incubating → Ready (23 hours)
-            // =============================================
-            else if (order.status === 'incubating') {
-                const stageStartTime = new Date(order.incubatingStarted || order.updatedAt);
-                
-                // Skip if invalid date
-                if (isNaN(stageStartTime)) {
-                    console.warn(`Invalid date for order ${order.id}`);
-                    return;
-                }
-                
-                const timeElapsed = now - stageStartTime;
-                const elapsedHours = Math.floor(timeElapsed / (60 * 60 * 1000));
-                
-                console.log(`Order ${order.id.slice(-8)}: Incubating for ${elapsedHours} hours`);
-                
-                if (timeElapsed >= 23 * 60 * 60 * 1000) { // 23 hours
-                    console.log(`⏩ Auto-progress: Order ${order.id} incubating → READY`);
-                    
-                    const updateData = {
-                        status: 'ready',
-                        readyAt: now.toISOString(),
-                        updatedAt: now.toISOString()
-                    };
-                    
-                    // Update Firebase
-                    updates.push(
-                        database.ref(`orders/${order.firebaseKey}`).update(updateData)
-                            .then(() => {
-                                const message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
-                                
-                                addActivityToFeed({
-                                    type: 'status_change',
-                                    message: message,
-                                    orderId: order.id,
-                                    customerName: order.customerName,
-                                    timestamp: now.toISOString(),
-                                    icon: 'fa-check-circle',
-                                    color: '#2ecc71'
-                                });
-                                
-                                broadcastToOrderPage('status_change', message, order.id, order.customerName);
-                                console.log(`✅ Order ${order.id.slice(-8)} is now READY`);
-                            })
-                            .catch(err => console.error('Firebase error:', err))
-                    );
-                }
-            }
-        });
-        
-        // Wait for all updates
-        Promise.all(updates).then(() => {
-            if (updates.length > 0) {
-                console.log(`✅ Completed ${updates.length} auto-progressions`);
-                
-                // Reload orders from Firebase to refresh dashboard
-                loadOrdersFromFirebase();
-            }
-        });
-        
-    }).catch(error => {
-        console.error('❌ Error checking progressions:', error);
+            <div class="customer-contact-info">
+                <div class="contact-row">
+                    <i class="fas fa-envelope"></i>
+                    <span>${customer.email}</span>
+                </div>
+                <div class="contact-row">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Last order: ${customer.lastOrder ? new Date(customer.lastOrder).toLocaleDateString() : 'N/A'}</span>
+                </div>
+                <div class="contact-row">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Preferred: ${customer.preferredPayment || 'N/A'}</span>
+                </div>
+            </div>
+            
+            <!-- Show cancellation reasons if any -->
+            ${cancelledOrders.length > 0 ? `
+                <div class="cancelled-reasons" style="margin-top: 10px;">
+                    <small style="color: var(--gray);"><i class="fas fa-exclamation-circle"></i> Recent cancellations:</small>
+                    ${cancelledOrders.map(order => `
+                        <div class="cancelled-reason" style="margin: 5px 0; padding: 6px; background: #fee2e2; border-left: 3px solid #ef4444; font-size: 0.7rem;">
+                            <i class="fas fa-times-circle"></i>
+                            ${order.id.slice(-8)}: ${order.rejectionReason || 'No reason provided'}
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+            
+            <div class="customer-orders-preview">
+                <div class="preview-header">
+                    <span>Recent Orders</span>
+                    <span>${customer.orders.length} total</span>
+                </div>
+                ${customer.orders.slice(0, 3).map(order => `
+                    <div class="preview-order-item">
+                        <span class="preview-order-id">${order.id.slice(-8)}</span>
+                        <span class="preview-order-status ${order.status}" 
+                              style="background: ${getStatusColor(order.status)}20; color: ${getStatusColor(order.status)};">
+                            ${order.status || 'pending'}
+                        </span>
+                        <span>₦${(order.amount || 0).toLocaleString()}</span>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <button class="view-customer-btn" onclick="viewCustomerDetails('${customer.phone}')">
+                <i class="fas fa-eye"></i> View Full History
+            </button>
+        </div>
+    `;
+}
+
+// ==================== CUSTOMER FILTER EVENT LISTENERS ====================
+function setupCustomerFilters() {
+    document.getElementById('applyCustomerFilter')?.addEventListener('click', () => {
+        customerFilters = {
+            search: document.getElementById('customerSearch').value,
+            status: document.getElementById('customerStatusFilter').value,
+            orders: document.getElementById('customerOrdersFilter').value
+        };
+        updateCustomersDisplay();
+    });
+    
+    document.getElementById('resetCustomerFilter')?.addEventListener('click', resetCustomerFilters);
+    
+    // Real-time search
+    document.getElementById('customerSearch')?.addEventListener('input', () => {
+        customerFilters.search = document.getElementById('customerSearch').value;
+        updateCustomersDisplay();
+    });
+    
+    // Cancelled orders filter
+    document.getElementById('applyCancelledFilter')?.addEventListener('click', () => {
+        cancelledMonthFilter = document.getElementById('cancelledMonthFilter').value;
+        updateCancelledOrders();
+    });
+    
+    document.getElementById('resetCancelledFilter')?.addEventListener('click', () => {
+        cancelledMonthFilter = 'all';
+        document.getElementById('cancelledMonthFilter').value = 'all';
+        updateCancelledOrders();
     });
 }
 
-// Start auto-progression checker (runs every minute)
-setInterval(checkOrderProgressions, 60 * 1000);
-
-    // ==================== MANUAL UPDATE STATUS (ADMIN CLICK) ====================
-    window.updateOrderStatus = function() {
-        console.log('🔍 Manual status update started');
-        
-        if (!currentStatusOrder) {
-            showNotification('No order selected', 'error');
-            return;
-        }
-        
-        const selectedStatus = document.querySelector('input[name="status"]:checked');
-        if (!selectedStatus) {
-            showNotification('Please select a status', 'warning');
-            return;
-        }
-        
-        const newStatus = selectedStatus.value;
-        const order = allOrders.find(o => o.id === currentStatusOrder);
-        
-        if (!order || !order.firebaseKey) {
-            showNotification('Order not found', 'error');
-            closeModal('statusModal');
-            return;
-        }
-        
-        const updateBtn = document.getElementById('confirmUpdate');
-        const originalText = updateBtn.innerHTML;
-        updateBtn.disabled = true;
-        updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
-        
-        // Prepare updates
-        const updates = {
-            status: newStatus,
-            updatedAt: new Date().toISOString()
-        };
-        
-        // Add stage-specific timestamps
-        if (newStatus === 'preparing' && !order.preparingStarted) {
-            updates.preparingStarted = new Date().toISOString();
-        }
-        if (newStatus === 'incubating' && !order.incubatingStarted) {
-            updates.incubatingStarted = new Date().toISOString();
-        }
-        if (newStatus === 'ready' && !order.readyAt) {
-            updates.readyAt = new Date().toISOString();
-        }
-        if (newStatus === 'completed') {
-            updates.completedAt = new Date().toISOString();
-            updates.completedBy = 'admin';
-        }
-        
-        // Timeout protection
-        const timeout = setTimeout(() => {
-            updateBtn.disabled = false;
-            updateBtn.innerHTML = originalText;
-            showNotification('Update timed out', 'warning');
-        }, 5000);
-        
-        // 🔥 UPDATE FIREBASE (triggers live sync to order page)
-        database.ref(`orders/${order.firebaseKey}`).update(updates)
-        .then(() => {
-            clearTimeout(timeout);
-            
-            // Update local array
-            Object.assign(order, updates);
-            
-            // Play sound
-            if (window.playApprovalSound) window.playApprovalSound();
-            
-            // Create message
-            let message = '';
-            if (newStatus === 'preparing') message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation (manual)`;
-            if (newStatus === 'incubating') message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (manual)`;
-            if (newStatus === 'ready') message = `✅ Order ${order.id.slice(-8)} is READY for pickup (manual)`;
-            if (newStatus === 'completed') message = `📦 Order ${order.id.slice(-8)} completed by admin`;
-            
-            if (message) {
-                // Add to admin activity feed
-                addActivityToFeed({
-                    type: 'status_change',
-                    message: message,
-                    orderId: order.id,
-                    customerName: order.customerName,
-                    timestamp: new Date().toISOString(),
-                    icon: 'fa-sync-alt',
-                    color: '#3498db'
-                });
-                
-                // 🔥 BROADCAST to order page
-                broadcastToOrderPage('status_change', message, order.id, order.customerName);
-            }
-            
-            showNotification(`Order manually updated to ${newStatus}`, 'success');
-            closeModal('statusModal');
-            currentStatusOrder = null;
-            
-            updateBtn.disabled = false;
-            updateBtn.innerHTML = originalText;
-            
-            // Refresh dashboard
-            loadDashboardData();
-        })
-        .catch(error => {
-            clearTimeout(timeout);
-            console.error('❌ Error:', error);
-            showNotification('Error updating status: ' + error.message, 'error');
-            updateBtn.disabled = false;
-            updateBtn.innerHTML = originalText;
-        });
-    };
+function resetCustomerFilters() {
+    customerFilters = { search: '', status: 'all', orders: 'all' };
+    document.getElementById('customerSearch').value = '';
+    document.getElementById('customerStatusFilter').value = 'all';
+    document.getElementById('customerOrdersFilter').value = 'all';
+    updateCustomersDisplay();
+}
 
     // ==================== MANUAL COMPLETE ORDER ====================
     window.completeOrderManually = function(orderId) {
@@ -3562,10 +3559,10 @@ setInterval(checkOrderProgressions, 60 * 1000);
                 <div class="verification-grid" id="verificationList"></div>
             </div>
 
-            <!-- Verified Orders -->
+                        <!-- Verified Orders (Active Only) -->
             <div class="verification-section" id="verifiedSection">
                 <div class="section-header">
-                    <h3><i class="fas fa-check-circle" style="color: var(--success);"></i> Verified Orders</h3>
+                    <h3><i class="fas fa-check-circle" style="color: var(--success);"></i> Active Orders</h3>
                     <div class="section-count" style="color: var(--success);">
                         <i class="fas fa-check"></i>
                         <span id="verifiedCount">0</span> Active
@@ -3573,7 +3570,7 @@ setInterval(checkOrderProgressions, 60 * 1000);
                 </div>
                 <div class="orders-grid" id="verifiedOrdersList"></div>
             </div>
-
+            
             <!-- Cancelled Orders -->
             <div class="verification-section" id="cancelledSection">
                 <div class="section-header">
@@ -3583,21 +3580,70 @@ setInterval(checkOrderProgressions, 60 * 1000);
                         <span id="cancelledCount">0</span> Total
                     </div>
                 </div>
+                
+                <!-- Cancelled Orders Filter -->
+                <div class="archive-filter-bar">
+                    <div class="filter-group">
+                        <span class="filter-label"><i class="fas fa-calendar"></i> Archive by Month:</span>
+                        <select class="filter-select" id="cancelledMonthFilter">
+                            <option value="all">All Time</option>
+                        </select>
+                        <button class="filter-btn small" id="applyCancelledFilter"><i class="fas fa-filter"></i> Filter</button>
+                        <button class="filter-btn small" id="resetCancelledFilter"><i class="fas fa-redo-alt"></i> Reset</button>
+                    </div>
+                </div>
+                
                 <div class="orders-grid" id="cancelledOrdersList"></div>
             </div>
-
-            <!-- Customer Database -->
+            
+            <!-- Customer Database with Full Features -->
             <div class="customer-section" id="customerSection">
                 <div class="section-header">
                     <h3><i class="fas fa-users" style="color: var(--purple);"></i> Customer Database</h3>
                     <div class="section-count">
                         <i class="fas fa-user"></i>
-                        <span id="customerCount">0</span> Customers
+                        <span id="customerCount">0</span> Total Customers
                     </div>
                 </div>
+                
+                <!-- Customer Filters -->
+                <div class="customer-filter-bar">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <span class="filter-label"><i class="fas fa-search"></i> Search:</span>
+                            <input type="text" id="customerSearch" placeholder="Name, phone, email..." class="filter-input">
+                        </div>
+                        <div class="filter-group">
+                            <span class="filter-label"><i class="fas fa-filter"></i> Status:</span>
+                            <select class="filter-select" id="customerStatusFilter">
+                                <option value="all">All Customers</option>
+                                <option value="active">Active (Has orders)</option>
+                                <option value="inactive">Inactive (No orders)</option>
+                                <option value="vip">VIP (5+ orders)</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <span class="filter-label"><i class="fas fa-calendar"></i> Orders:</span>
+                            <select class="filter-select" id="customerOrdersFilter">
+                                <option value="all">Any orders</option>
+                                <option value="1">1 order</option>
+                                <option value="2-3">2-3 orders</option>
+                                <option value="4+">4+ orders</option>
+                            </select>
+                        </div>
+                        <div class="filter-actions">
+                            <button class="filter-btn" id="applyCustomerFilter"><i class="fas fa-check"></i> Apply</button>
+                            <button class="filter-btn" id="resetCustomerFilter"><i class="fas fa-redo-alt"></i> Reset</button>
+                        </div>
+                    </div>
+                    <div class="results-count" id="customerResults">
+                        Showing <span id="customerShowing">0</span> of <span id="customerTotal">0</span> customers
+                    </div>
+                </div>
+                
                 <div class="customers-grid" id="customersList"></div>
             </div>
-
+        
             <!-- Activity Feed -->
             <div class="activity-section" id="activitySection">
                 <div class="section-header">
@@ -3703,6 +3749,7 @@ setInterval(checkOrderProgressions, 60 * 1000);
         loadDashboardContent();
         loadOrdersFromFirebase();
         setupTabSwitching();
+        setupCustomerFilters();
         
         // Modal close buttons
         document.getElementById('closeVerifyModal')?.addEventListener('click', () => closeModal('verifyModal'));
@@ -3736,3 +3783,4 @@ setInterval(checkOrderProgressions, 60 * 1000);
     
 </body>
 </html>
+
