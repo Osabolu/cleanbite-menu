@@ -1682,6 +1682,11 @@
                     <i class="fas fa-stream"></i>
                     <span>Activity Feed</span>
                 </a>
+                <a href="#" class="menu-item" id="completedOrdersTab">
+                    <i class="fas fa-archive"></i>
+                    <span>Completed Orders</span>
+                    <span class="badge" id="completedBadge" style="background: var(--cleanbite-gray); color: white;">0</span>
+                </a>
             </div>
             <div class="sidebar-footer">
                 <i class="fas fa-database"></i> Firebase Live Sync
@@ -3670,6 +3675,18 @@ setInterval(checkOrderProgressions, 60 * 1000);
                 <div class="orders-grid" id="cancelledOrdersList"></div>
             </div>
 
+            <!-- Completed Orders Archive -->
+            <div class="verification-section" id="completedSection" style="display: none;">
+                <div class="section-header">
+                    <h3><i class="fas fa-archive" style="color: var(--cleanbite-gray);"></i> Completed Orders Archive</h3>
+                    <div class="section-count" style="color: var(--cleanbite-gray); border-color: var(--cleanbite-gray);">
+                        <i class="fas fa-check-circle"></i>
+                        <span id="completedCount">0</span> Total
+                    </div>
+                </div>
+                <div class="orders-grid" id="completedOrdersList"></div>
+            </div>
+
             <!-- Customer Database -->
             <div class="customer-section" id="customerSection">
                 <div class="section-header">
@@ -3743,40 +3760,39 @@ setInterval(checkOrderProgressions, 60 * 1000);
     }
 
     // ==================== TAB SWITCHING ====================
-    function setupTabSwitching() {
-        const tabs = {
-            dashboardTab: ['verificationSection', 'verifiedSection', 'cancelledSection', 'customerSection', 'activitySection'],
-            verificationTab: ['verificationSection'],
-            verifiedOrdersTab: ['verifiedSection'],
-            cancelledOrdersTab: ['cancelledSection'],
-            customersTab: ['customerSection'],
-            activityTab: ['activitySection']
-        };
-        
-        Object.keys(tabs).forEach(tabId => {
-            document.getElementById(tabId)?.addEventListener('click', (e) => {
-                e.preventDefault();
-                
-                // Update active tab
-                document.querySelectorAll('.menu-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-                e.currentTarget.classList.add('active');
-                
-                // Show relevant sections
-                const allSections = ['verificationSection', 'verifiedSection', 'cancelledSection', 'customerSection', 'activitySection'];
-                allSections.forEach(section => {
-                    const el = document.getElementById(section);
-                    if (el) el.style.display = 'none';
-                });
-                
-                tabs[tabId].forEach(section => {
-                    const el = document.getElementById(section);
-                    if (el) el.style.display = 'block';
-                });
+function setupTabSwitching() {
+    const tabs = {
+        dashboardTab: ['verificationSection', 'verifiedSection', 'cancelledSection', 'completedSection', 'customerSection', 'activitySection'],
+        verificationTab: ['verificationSection'],
+        verifiedOrdersTab: ['verifiedSection'],
+        cancelledOrdersTab: ['cancelledSection'],
+        completedOrdersTab: ['completedSection'],
+        customersTab: ['customerSection'],
+        activityTab: ['activitySection']
+    };
+    
+    Object.keys(tabs).forEach(tabId => {
+        document.getElementById(tabId)?.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            e.currentTarget.classList.add('active');
+            
+            const allSections = ['verificationSection', 'verifiedSection', 'cancelledSection', 'completedSection', 'customerSection', 'activitySection'];
+            allSections.forEach(section => {
+                const el = document.getElementById(section);
+                if (el) el.style.display = 'none';
+            });
+            
+            tabs[tabId].forEach(section => {
+                const el = document.getElementById(section);
+                if (el) el.style.display = 'block';
             });
         });
-    }
+    });
+}
 
     // ==================== INITIALIZE ====================
     document.addEventListener('DOMContentLoaded', () => {
@@ -3820,6 +3836,7 @@ setInterval(checkOrderProgressions, 60 * 1000);
     
 </body>
 </html>
+
 
 
 
