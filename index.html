@@ -2419,13 +2419,6 @@ function saveOrderToLocalStorage(order) {
                 paymentStatus: 'pending',
                 status: 'pending-payment',
                 createdAt: new Date().toISOString()
-
-                customer: {
-                    name: name,
-                    phone: phone,
-                    email: customerEmail || '',
-                    firstOrder: new Date().toISOString()
-                }
             };
             
             // Save with timeout protection
@@ -2971,6 +2964,7 @@ if (typeof showNotification !== 'function') {
     </script>
 </body>
 </html>
+
 
 
 
