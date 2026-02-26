@@ -3957,7 +3957,6 @@ setInterval(checkOrderProgressions, 60 * 1000);
             e.preventDefault();
             closeModal('customerModal');
         });
-        document.getElementById('closeCustomerModal')?.addEventListener('click', () => closeModal('customerModal')); // ✅ THIS ONE
         document.getElementById('closeFilterModal')?.addEventListener('click', () => closeModal('filterModal'));
         
         // Also add these cancel buttons
@@ -3986,6 +3985,7 @@ setInterval(checkOrderProgressions, 60 * 1000);
     
 </body>
 </html>
+
 
 
 
