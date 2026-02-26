@@ -1961,147 +1961,231 @@
     }
 
     // ==================== PROCESS CUSTOMERS ====================
-    function processCustomers() {
-        allCustomers.clear();
-        
-        allOrders.forEach(order => {
-            if (!order.customerPhone) return;
-            
-            const key = `${order.customerPhone}`;
-            
-            if (!allCustomers.has(key)) {
-                allCustomers.set(key, {
-                    name: order.customerName || 'Unknown',
-                    phone: order.customerPhone,
-                    email: order.customerEmail || 'N/A',
-                    totalOrders: 0,
-                    totalSpent: 0,
-                    orders: [],
-                    lastOrder: null
-                });
-            }
-            
-            const customer = allCustomers.get(key);
-            customer.totalOrders++;
-            customer.totalSpent += order.total || order.totalAmount || 0;
-            customer.orders.push({
-                id: order.id,
-                date: order.createdAt || order.timestamp,
-                amount: order.total || order.totalAmount,
-                status: order.status,
-                paymentStatus: order.paymentStatus
+function processCustomers() {
+    allCustomers.clear();
+    
+    // First, try to load from customer-specific collection if it exists
+    database.ref('customers').once('value', (snapshot) => {
+        const customerData = snapshot.val();
+        if (customerData) {
+            // If we have a dedicated customers collection, use it
+            Object.values(customerData).forEach(customer => {
+                allCustomers.set(customer.phone, customer);
             });
-            
-            const orderDate = new Date(order.createdAt || order.timestamp || 0);
-            if (!customer.lastOrder || orderDate > new Date(customer.lastOrder)) {
-                customer.lastOrder = order.createdAt || order.timestamp;
-            }
+        }
+    }).catch(() => {
+        // If no customers collection, build from orders
+        buildCustomersFromOrders();
+    });
+    
+    // Always build from orders as backup
+    buildCustomersFromOrders();
+}
+
+function buildCustomersFromOrders() {
+    allOrders.forEach(order => {
+        if (!order.customerPhone) return;
+        
+        const phone = order.customerPhone;
+        const email = order.customerEmail || order.customer?.email || 'N/A';
+        const name = order.customerName || order.customer?.name || 'Unknown';
+        
+        if (!allCustomers.has(phone)) {
+            // New customer
+            allCustomers.set(phone, {
+                id: `CUST-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                name: name,
+                phone: phone,
+                email: email,
+                totalOrders: 0,
+                totalSpent: 0,
+                firstOrder: order.createdAt || order.timestamp,
+                lastOrder: order.createdAt || order.timestamp,
+                orders: [],
+                status: 'active',
+                preferredPayment: order.paymentMethod || 'Unknown'
+            });
+        }
+        
+        const customer = allCustomers.get(phone);
+        customer.totalOrders++;
+        customer.totalSpent += order.total || order.totalAmount || 0;
+        
+        // Update name/email if changed
+        if (name !== 'Unknown') customer.name = name;
+        if (email !== 'N/A') customer.email = email;
+        
+        // Add order to customer's history
+        customer.orders.push({
+            id: order.id,
+            date: order.createdAt || order.timestamp,
+            amount: order.total || order.totalAmount,
+            status: order.status,
+            paymentStatus: order.paymentStatus,
+            items: order.items?.length || 0
         });
         
-        console.log(`✅ Processed ${allCustomers.size} customers`);
-    }
-
-    // ==================== CHECK FOR NEW ORDERS ====================
-    let lastOrderCount = 0;
+        // Update last order date
+        const orderDate = new Date(order.createdAt || order.timestamp || 0);
+        const lastDate = new Date(customer.lastOrder || 0);
+        if (orderDate > lastDate) {
+            customer.lastOrder = order.createdAt || order.timestamp;
+        }
+    });
     
-    function checkForNewOrders() {
-        if (allOrders.length > lastOrderCount) {
-            const newOrders = allOrders.slice(lastOrderCount);
-            newOrders.forEach(order => {
-                if (order.paymentStatus === 'pending' && order.status === 'pending-payment') {
-                    playNotificationSound();
-                    showNotification(`💰 New order from ${order.customerName || 'Customer'}`, 'warning');
-                    
-                    addActivity({
-                        type: 'order_created',
-                        message: `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
-                        orderId: order.id,
-                        customerName: order.customerName,
-                        icon: 'fa-cart-plus',
-                        color: '#9b59b6'
-                    });
-                }
-            });
-        }
-        lastOrderCount = allOrders.length;
-    }
+    console.log(`✅ Processed ${allCustomers.size} unique customers`);
+}
 
-    // ==================== UPDATE ALL DISPLAYS ====================
-    function updateAllDisplays() {
-        // Add safety checks to prevent errors when elements don't exist yet
-        if (!document.getElementById('totalRevenue')) {
-            console.log('⏳ Dashboard elements not ready yet, skipping update');
-            return;
-        }
-        
-        updateStats();
-        updateVerificationQueue();
-        updateVerifiedOrders();
-        updateCancelledOrders();
-        updateCustomersDisplay();
-        updateActivityFeed();
-        updateSidebarBadges();
+// ==================== FIXED: UPDATE VERIFIED ORDERS (Only active/preparing/incubating/ready) ====================
+function updateVerifiedOrders() {
+    const container = document.getElementById('verifiedOrdersList');
+    if (!container) return;
+    
+    // ✅ Only show ACTIVE orders (not completed, not cancelled)
+    const activeOrders = allOrders.filter(o => 
+        o.paymentStatus === 'verified' && 
+        o.status !== 'cancelled' && 
+        o.status !== 'completed'
+    ).sort((a, b) => new Date(b.verifiedAt || b.createdAt) - new Date(a.verifiedAt || a.createdAt));
+    
+    if (activeOrders.length === 0) {
+        container.innerHTML = `
+            <div class="empty-queue">
+                <i class="fas fa-shopping-cart"></i>
+                <p>No active orders</p>
+                <span style="color: var(--gray);">All verified orders are completed or cancelled</span>
+            </div>
+        `;
+        return;
     }
+    
+    container.innerHTML = activeOrders.map(order => renderOrderCard(order, 'verified')).join('');
+    
+    // Update active count in header
+    const verifiedCount = document.getElementById('verifiedCount');
+    if (verifiedCount) verifiedCount.textContent = activeOrders.length;
+}
 
-    // ==================== UPDATE STATS ====================
-    function updateStats() {
-        // Safety check
-        if (!document.getElementById('totalRevenue')) return;
-        
-        const verifiedRevenue = allOrders
-            .filter(o => o.paymentStatus === 'verified')
-            .reduce((sum, o) => sum + (o.total || o.totalAmount || 0), 0);
-        
-        const pendingCount = allOrders.filter(o => 
-            o.paymentStatus === 'pending' && o.status !== 'cancelled'
-        ).length;
-        
-        const verifiedCount = allOrders.filter(o => 
-            o.paymentStatus === 'verified' && o.status !== 'cancelled'
-        ).length;
-        
-        const customersCount = allCustomers.size;
-        
-        document.getElementById('totalRevenue').textContent = `₦${verifiedRevenue.toLocaleString()}`;
-        document.getElementById('awaitingVerification').textContent = pendingCount;
-        document.getElementById('verifiedOrdersCount').textContent = verifiedCount;
-        document.getElementById('totalCustomers').textContent = customersCount;
+// ==================== FIXED: UPDATE CANCELLED ORDERS (Archive) ====================
+function updateCancelledOrders() {
+    const container = document.getElementById('cancelledOrdersList');
+    if (!container) return;
+    
+    // ✅ Show CANCELLED orders (archived)
+    const cancelledOrders = allOrders.filter(o => 
+        o.status === 'cancelled'
+    ).sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+    
+    if (cancelledOrders.length === 0) {
+        container.innerHTML = `
+            <div class="empty-queue">
+                <i class="fas fa-times-circle"></i>
+                <p>No cancelled orders</p>
+            </div>
+        `;
+        return;
     }
+    
+    container.innerHTML = cancelledOrders.map(order => renderOrderCard(order, 'cancelled')).join('');
+    
+    // Update cancelled count
+    const cancelledCount = document.getElementById('cancelledCount');
+    if (cancelledCount) cancelledCount.textContent = cancelledOrders.length;
+}
 
-    // ==================== UPDATE SIDEBAR BADGES ====================
-    function updateSidebarBadges() {
-        // Safety check
-        if (!document.getElementById('verificationBadge')) return;
-        
-        const pendingCount = allOrders.filter(o => 
-            o.paymentStatus === 'pending' && o.status !== 'cancelled'
-        ).length;
-        
-        const verifiedCount = allOrders.filter(o => 
-            o.paymentStatus === 'verified' && o.status !== 'cancelled'
-        ).length;
-        
-        const cancelledCount = allOrders.filter(o => 
-            o.status === 'cancelled'
-        ).length;
-        
-        document.getElementById('verificationBadge').textContent = pendingCount;
-        document.getElementById('verifiedBadge').textContent = verifiedCount;
-        document.getElementById('cancelledBadge').textContent = cancelledCount;
-        
-        const paymentNotice = document.getElementById('paymentNotice');
-        if (paymentNotice) {
-            if (pendingCount > 0) {
-                paymentNotice.style.display = 'flex';
-                document.getElementById('paymentNoticeMessage').textContent = 
-                    `${pendingCount} order${pendingCount > 1 ? 's' : ''} pending verification`;
-                document.getElementById('paymentNoticeCount').innerHTML = 
-                    `<i class="fas fa-clock"></i> ${pendingCount} pending`;
-            } else {
-                paymentNotice.style.display = 'none';
-            }
+// ==================== NEW: COMPLETED ORDERS ARCHIVE ====================
+function updateCompletedOrders() {
+    const container = document.getElementById('completedOrdersList');
+    if (!container) return;
+    
+    // ✅ Show COMPLETED orders (archived)
+    const completedOrders = allOrders.filter(o => 
+        o.status === 'completed'
+    ).sort((a, b) => new Date(b.completedAt || b.updatedAt) - new Date(a.completedAt || a.updatedAt));
+    
+    if (completedOrders.length === 0) {
+        container.innerHTML = `
+            <div class="empty-queue">
+                <i class="fas fa-archive"></i>
+                <p>No completed orders in archive</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = completedOrders.map(order => renderOrderCard(order, 'completed')).join('');
+}
+
+// ==================== UPDATE STATS (Fixed counts) ====================
+function updateStats() {
+    if (!document.getElementById('totalRevenue')) return;
+    
+    const verifiedRevenue = allOrders
+        .filter(o => o.paymentStatus === 'verified' && o.status === 'completed')
+        .reduce((sum, o) => sum + (o.total || o.totalAmount || 0), 0);
+    
+    const pendingCount = allOrders.filter(o => 
+        o.paymentStatus === 'pending' && o.status !== 'cancelled'
+    ).length;
+    
+    // ✅ Active verified orders (excluding completed)
+    const activeCount = allOrders.filter(o => 
+        o.paymentStatus === 'verified' && 
+        o.status !== 'cancelled' && 
+        o.status !== 'completed'
+    ).length;
+    
+    const customersCount = allCustomers.size;
+    
+    document.getElementById('totalRevenue').textContent = `₦${verifiedRevenue.toLocaleString()}`;
+    document.getElementById('awaitingVerification').textContent = pendingCount;
+    document.getElementById('verifiedOrdersCount').textContent = activeCount;
+    document.getElementById('totalCustomers').textContent = customersCount;
+}
+
+// ==================== UPDATE SIDEBAR BADGES (Fixed) ====================
+function updateSidebarBadges() {
+    if (!document.getElementById('verificationBadge')) return;
+    
+    const pendingCount = allOrders.filter(o => 
+        o.paymentStatus === 'pending' && o.status !== 'cancelled'
+    ).length;
+    
+    const activeCount = allOrders.filter(o => 
+        o.paymentStatus === 'verified' && 
+        o.status !== 'cancelled' && 
+        o.status !== 'completed'
+    ).length;
+    
+    const cancelledCount = allOrders.filter(o => 
+        o.status === 'cancelled'
+    ).length;
+    
+    const completedCount = allOrders.filter(o => 
+        o.status === 'completed'
+    ).length;
+    
+    document.getElementById('verificationBadge').textContent = pendingCount;
+    document.getElementById('verifiedBadge').textContent = activeCount;
+    document.getElementById('cancelledBadge').textContent = cancelledCount;
+    
+    // Add completed badge if element exists
+    const completedBadge = document.getElementById('completedBadge');
+    if (completedBadge) completedBadge.textContent = completedCount;
+    
+    const paymentNotice = document.getElementById('paymentNotice');
+    if (paymentNotice) {
+        if (pendingCount > 0) {
+            paymentNotice.style.display = 'flex';
+            document.getElementById('paymentNoticeMessage').textContent = 
+                `${pendingCount} order${pendingCount > 1 ? 's' : ''} pending verification`;
+            document.getElementById('paymentNoticeCount').innerHTML = 
+                `<i class="fas fa-clock"></i> ${pendingCount} pending`;
+        } else {
+            paymentNotice.style.display = 'none';
         }
     }
+}
 
     // ==================== UPDATE VERIFICATION QUEUE ====================
     function updateVerificationQueue() {
@@ -3736,6 +3820,7 @@ setInterval(checkOrderProgressions, 60 * 1000);
     
 </body>
 </html>
+
 
 
 
