@@ -184,6 +184,18 @@
             gap: 12px;
         }
 
+        .nav-brand svg {
+            transition: transform 0.3s ease;
+        }
+        
+        .nav-brand:hover svg {
+            transform: scale(1.1);
+        }
+        
+        .nav-brand:hover svg path:not([stroke="#2F4F4F"]) {
+            stroke: #e5c87b; /* Lighter gold on hover */
+        }
+        
         .nav-brand i {
             font-size: 32px;
             color: var(--primary);
@@ -1536,6 +1548,11 @@
         
         /* ==================== TABLET STYLES ==================== */
         @media (min-width: 768px) {
+             .nav-brand svg {
+                width: 0.8cm;
+                height: 0.8cm;
+            }
+            
             .bank-row {
                 flex-direction: row;
                 align-items: center;
@@ -2076,19 +2093,27 @@
 <body>
    
     <!-- ==================== NAVIGATION ==================== -->
-    <nav class="main-nav">
+        <nav class="main-nav">
         <div class="nav-brand">
-            <div class="nav-brand">
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 1cm; height: 1cm;">
-                    <!-- Jar icon SVG here -->
-                </svg>
-                <h2>CLEAN<span>BITE</span></h2>
-        </div>
-        <div class="cleanbite-icon">
-            <svg width="1cm" height="1cm" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- Jar icon SVG here -->
+            <!-- CleanBite Jar Icon - Gold with Green Sprout -->
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 1cm; height: 1cm;">
+                <!-- Jar outline in gold -->
+                <path d="M12 14L10 22C10 24 12 28 20 28C28 28 30 24 30 22L28 14H12Z" stroke="#D4AF37" stroke-width="2" fill="none"/>
+                <path d="M10 22L10 24C10 26 12 30 20 30C28 30 30 26 30 24L30 22" stroke="#D4AF37" stroke-width="2" fill="none"/>
+                <!-- Jar base -->
+                <path d="M14 28L14 32L26 32L26 28" stroke="#D4AF37" stroke-width="2" fill="none"/>
+                <!-- Jar lid -->
+                <path d="M14 10L14 14L26 14L26 10" stroke="#D4AF37" stroke-width="2" fill="none"/>
+                <path d="M16 8L24 8" stroke="#D4AF37" stroke-width="2"/>
+                <!-- Tiny plant sprout in dark green -->
+                <path d="M20 8L20 12" stroke="#2F4F4F" stroke-width="2"/>
+                <path d="M18 10L20 8L22 10" stroke="#2F4F4F" stroke-width="2" fill="none"/>
+                <circle cx="20" cy="6" r="1.5" fill="#2F4F4F"/>
             </svg>
+            <h2>CLEAN<span>BITE</span></h2>
         </div>
+        
+        <!-- Cart Icon -->
         <div class="nav-cart" id="cartIcon">
             <i class="fas fa-shopping-cart"></i>
             <span class="cart-count" id="cartCount">0</span>
@@ -3422,6 +3447,7 @@ function setupMenuFilters() {
     </script>
 </body>
 </html>
+
 
 
 
