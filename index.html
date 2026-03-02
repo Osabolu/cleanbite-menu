@@ -1381,7 +1381,7 @@
         }
         
         .bank-label {
-            font-size: 0.9rem;
+            font-size: 0.7rem;
             color: var(--gray);
             margin-bottom: 5px;
             display: flex;
@@ -1398,7 +1398,7 @@
         .bank-value {
             font-weight: 600;
             color: var(--dark);
-            font-size: 1rem;
+            font-size: 0.65rem;
             word-break: break-word;
         }
         
@@ -1407,7 +1407,7 @@
             font-weight: 800;
             color: var(--success);
             letter-spacing: 1px;
-            text-align: center;
+            text-align: right;
             padding: 10px 0;
             background: white;
             border-radius: 12px;
@@ -1420,9 +1420,9 @@
             border: none;
             width: 40px;
             height: 40px;
-            border-radius: 12px;
+            border-radius: 10px;
             color: var(--dark);
-            font-size: 1rem;
+            font-size: 0.7rem;
             cursor: pointer;
             transition: var(--transition);
             display: flex;
@@ -2326,10 +2326,10 @@
                                 <div class="bank-row account-row">
                                     <span class="bank-label"><i class="fas fa-hashtag"></i> Account Number:</span>
                                     <div class="account-number-container">
-                                        <span class="bank-value account-number">3034457406</span>
+                                        <span class="bank-value account-number">3034457406
                                         <button class="copy-account-btn" onclick="copyAccountNumber()" title="Copy account number">
                                             <i class="fas fa-copy"></i>
-                                        </button>
+                                        </button></span>
                                     </div>
                                 </div>
                                 
@@ -3423,6 +3423,7 @@ function setupMenuFilters() {
     </script>
 </body>
 </html>
+
 
 
 
