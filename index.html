@@ -2059,6 +2059,18 @@
             justify-content: center;
         }
     }
+
+        .cleanbite-icon svg {
+            transition: transform 0.3s ease;
+        }
+        
+        .cleanbite-icon:hover svg {
+            transform: scale(1.1);
+        }
+        
+        .cleanbite-icon:hover path {
+            stroke: #e5c87b; /* Lighter gold on hover */
+        }
     </style>
 </head>
 <body>
@@ -2066,8 +2078,16 @@
     <!-- ==================== NAVIGATION ==================== -->
     <nav class="main-nav">
         <div class="nav-brand">
-            <i class="fas fa-crown"></i>
-            <h2>CLEAN<span>BITE</span></h2>
+            <div class="nav-brand">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 1cm; height: 1cm;">
+                    <!-- Jar icon SVG here -->
+                </svg>
+                <h2>CLEAN<span>BITE</span></h2>
+        </div>
+        <div class="cleanbite-icon">
+            <svg width="1cm" height="1cm" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Jar icon SVG here -->
+            </svg>
         </div>
         <div class="nav-cart" id="cartIcon">
             <i class="fas fa-shopping-cart"></i>
@@ -3402,6 +3422,7 @@ function setupMenuFilters() {
     </script>
 </body>
 </html>
+
 
 
 
