@@ -1275,13 +1275,14 @@
         }
 
         .bank-details {
-            background: var(--primary-light);
-            border: 2px solid var(--primary);
+            background: var(--cleanbite-gold-light);
+            border: 2px solid var(--cleanbite-gold);
             border-radius: 24px;
-            padding: 25px;
+            padding: 20px;
             margin-top: 20px;
+            transition: all 0.3s ease;
         }
-
+        
         .bank-details h4 {
             color: var(--cleanbite-dark);
             font-size: 1.2rem;
@@ -1296,14 +1297,13 @@
             color: var(--cleanbite-gold);
             font-size: 1.3rem;
         }
-
+        
         .bank-info {
             background: white;
             border-radius: 20px;
-            padding: 25px;
+            padding: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.02);
         }
-
         .bank-info p {
             margin-bottom: 15px;
             display: flex;
@@ -1338,6 +1338,23 @@
             margin-bottom: 0;
             padding-bottom: 0;
         }
+
+        /* Special styling for account row */
+        .bank-row.account-row {
+            background: rgba(212, 175, 55, 0.05);
+            padding: 15px;
+            border-radius: 16px;
+            border-bottom: none;
+            margin: 15px 0;
+        }
+        
+        /* Account number container - FIXED for mobile */
+        .account-number-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
         
         .bank-row.highlight {
             background: rgba(255, 215, 0, 0.05);
@@ -1363,6 +1380,7 @@
         .bank-label i {
             color: var(--primary);
             font-size: 0.9rem;
+            width: 18px;
         }
         
         .bank-value {
@@ -1377,7 +1395,11 @@
             font-weight: 800;
             color: var(--success);
             letter-spacing: 1px;
-            flex: 1;
+            text-align: center;
+            padding: 10px 0;
+            background: white;
+            border-radius: 12px;
+            border: 1px dashed var(--gold);
             font-family: monospace;
         }
         
@@ -1398,7 +1420,8 @@
         
         .copy-account-btn:hover {
             background: var(--primary-dark);
-            transform: scale(1.05);
+            transform: scale(-2px);
+            box-shadow: var(--shadow-sm);
         }
         
         .copy-account-btn:active {
@@ -1570,12 +1593,7 @@
             .bank-value {
                font-size: 0.5rem; 
             }
-        
-            .account-number {
-                font-size: 0.5rem;
-                display: flex;
-            }
-            
+                    
             .copy-account-btn {
                 width: 100%;
                 margin-top: 10px;
@@ -1590,8 +1608,22 @@
                 flex-direction: column;
                 text-align: center;
             }
-        }
-        
+
+            .account-number {
+                font-size: 1.2rem;
+                padding: 8px 5px;
+            }
+            
+            .whatsapp-btn {
+                font-size: 0.9rem;
+                padding: 12px 15px;
+            }
+            
+            .delivery-truck {
+                font-size: 2rem !important;
+            }
+    }
+            
         /* ==================== COPY BUTTON ANIMATION ==================== */
         @keyframes copySuccess {
             0% { transform: scale(1); }
@@ -2257,34 +2289,41 @@
                         <div class="bank-details" id="bankDetails">
                             <h4><i class="fas fa-university"></i> Bank Transfer Details</h4>
                             <div class="bank-info">
+                                <!-- Bank Row -->
                                 <div class="bank-row">
                                     <span class="bank-label"><i class="fas fa-university"></i> Bank:</span>
                                     <span class="bank-value">CARBON MICRO FINANCE BANK</span>
                                 </div>
                                 
+                                <!-- Account Name Row -->
                                 <div class="bank-row">
                                     <span class="bank-label"><i class="fas fa-user"></i> Account Name:</span>
                                     <span class="bank-value">Emmanuel Osabolu Okpere</span>
                                 </div>
                                 
-                                <div class="bank-row highlight">
+                                <!-- Account Number Row - FIXED FOR MOBILE -->
+                                <div class="bank-row account-row">
                                     <span class="bank-label"><i class="fas fa-hashtag"></i> Account Number:</span>
-                                    <span class="bank-value account-number">3034457406</span>
-                                    <button class="copy-account-btn" onclick="copyAccountNumber()" title="Copy account number">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
+                                    <div class="account-number-container">
+                                        <span class="bank-value account-number">3034457406</span>
+                                        <button class="copy-account-btn" onclick="copyAccountNumber()" title="Copy account number">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 
+                                <!-- Note -->
                                 <div class="bank-note">
                                     <i class="fas fa-exclamation-circle"></i>
-                                    <span>Please use your <strong>Order ID</strong> as payment reference and send proof to our WhatsApp</span>
+                                    <p>Please use your <strong>Order ID</strong> as payment reference and send proof to our WhatsApp</p>
                                 </div>
                                 
+                                <!-- Delivery Options -->
                                 <div class="delivery-options">
                                     <div class="whatsapp-section">
                                         <img class="whatsapp-icon" src="images/whatsapp-order.png" alt="WhatsApp">
                                         <a href="https://wa.me/2349026673033" class="whatsapp-btn" target="_blank">
-                                            <i class="fab fa-whatsapp"></i> Send Proof on WhatsApp
+                                            <i class="fab fa-whatsapp"></i> Send Proof
                                         </a>
                                     </div>
                                     
@@ -2292,7 +2331,7 @@
                                         <i class="fas fa-truck delivery-truck"></i>
                                         <div class="delivery-text">
                                             <strong>Delivery on request</strong>
-                                            <span>Available within Ibadan</span>
+                                            <span>Ibadan & Lagos</span>
                                         </div>
                                     </div>
                                 </div>
@@ -3364,6 +3403,7 @@ function setupMenuFilters() {
     </script>
 </body>
 </html>
+
 
 
 
