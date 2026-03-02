@@ -2076,26 +2076,6 @@
             justify-content: center;
         }
     }
-
-       .nav-brand svg {
-            transition: transform 0.3s ease;
-        }
-        
-        .nav-brand:hover svg {
-            transform: scale(1.1);
-        }
-        
-        .nav-brand:hover svg path[stroke="#D4AF37"],
-        .nav-brand:hover svg line[stroke="#D4AF37"] {
-            stroke: #e5c87b; /* Lighter gold on hover */
-        }
-        
-        .nav-brand:hover svg path[stroke="#006400"],
-        .nav-brand:hover svg line[stroke="#006400"],
-        .nav-brand:hover svg circle[fill="#006400"] {
-            stroke: #3CB371; /* Lighter green on hover */
-            fill: #3CB371;
-        }
     
     </style>
 </head>
@@ -2104,23 +2084,8 @@
     <!-- ==================== NAVIGATION ==================== -->
         <nav class="main-nav">
             <div class="nav-brand">
-                        <!-- CleanBite Jar Icon -->
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 1cm; height: 1cm;">
-                    <!-- Jar outline -->
-                    <path d="M12 14 L10 22 C10 26 14 30 20 30 C26 30 30 26 30 22 L28 14 L12 14 Z" stroke="#D4AF37" stroke-width="2" fill="none"/>
-                    <path d="M14 28 L14 32 L26 32 L26 28" stroke="#D4AF37" stroke-width="2" fill="none"/>
-                    <path d="M14 10 L14 14 L26 14 L26 10" stroke="#D4AF37" stroke-width="2" fill="none"/>
-                    <path d="M16 8 L24 8" stroke="#D4AF37" stroke-width="2"/>
-                    
-                    <!-- Plant sprout -->
-                    <line x1="20" y1="8" x2="20" y2="4" stroke="#006400" stroke-width="2.5"/>
-                    <path d="M20 6 L16 4" stroke="#006400" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M16 4 L18 3" stroke="#006400" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M20 6 L24 4" stroke="#006400" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M24 4 L22 3" stroke="#006400" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M20 4 L20 2" stroke="#006400" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="20" cy="2" r="1.5" fill="#006400"/>
-                </svg>
+                <i class="fas fa-jar" style="color: #D4AF37; font-size: 1.5rem; position: relative;"></i>
+                <i class="fas fa-seedling" style="color: #2E8B57; font-size: 1rem; position: relative; left: -15px; top: -8px;"></i>
             <h2>CLEAN<span>BITE</span></h2>
         </div>
         
@@ -3458,6 +3423,7 @@ function setupMenuFilters() {
     </script>
 </body>
 </html>
+
 
 
 
