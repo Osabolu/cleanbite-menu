@@ -1363,7 +1363,8 @@
         /* Account number container - FIXED for mobile */
         .account-number-container {
             display: flex;
-            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
             gap: 12px;
             width: 100%;
         }
@@ -1381,7 +1382,7 @@
         }
         
         .bank-label {
-            font-size: 0.9rem;
+            font-size: 1rem;
             color: var(--gray);
             margin-bottom: 5px;
             display: flex;
@@ -1398,7 +1399,7 @@
         .bank-value {
             font-weight: 600;
             color: var(--dark);
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             word-break: break-word;
         }
         
@@ -1407,7 +1408,7 @@
             font-weight: 800;
             color: var(--success);
             letter-spacing: 1px;
-            text-align: left;
+            text-align: center;
             padding: 10px 0;
             background: white;
             border-radius: 12px;
@@ -2085,7 +2086,7 @@
         <nav class="main-nav">
             <div class="nav-brand">
                 <i class="fas fa-jar" style="color: #D4AF37; font-size: 1.4rem; position: relative;"></i>
-                <i class="fas fa-seedling" style="color: #2E8B57; font-size: 0.7rem; position: relative; left: -25px; top: -13px;"></i>
+                <i class="fas fa-seedling" style="color: #2E8B57; font-size: 0.7rem; position: relative; left: -25px; top: -14px;"></i>
             <h2>CLEAN<span>BITE</span></h2>
         </div>
         
@@ -2327,9 +2328,10 @@
                                     <span class="bank-label"><i class="fas fa-hashtag"></i> Account Number:</span>
                                     <div class="account-number-container">
                                         <span class="bank-value account-number">3034457406
-                                        <button class="copy-account-btn" onclick="copyAccountNumber()" title="Copy account number">
-                                            <i class="fas fa-copy"></i>
-                                        </button></span>
+                                            <button class="copy-account-btn" onclick="copyAccountNumber()" title="Copy account number">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        </span>
                                     </div>
                                 </div>
                                 
@@ -3423,6 +3425,7 @@ function setupMenuFilters() {
     </script>
 </body>
 </html>
+
 
 
 
