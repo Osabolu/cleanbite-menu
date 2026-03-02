@@ -2077,17 +2077,26 @@
         }
     }
 
-        .cleanbite-icon svg {
+        .cleanbite-jar-icon {
+            width: 1cm;
+            height: 1cm;
             transition: transform 0.3s ease;
         }
         
-        .cleanbite-icon:hover svg {
+        .cleanbite-jar-icon:hover {
             transform: scale(1.1);
         }
         
-        .cleanbite-icon:hover path {
+        .cleanbite-jar-icon:hover path[stroke="#D4AF37"] {
             stroke: #e5c87b; /* Lighter gold on hover */
         }
+        
+        .cleanbite-jar-icon:hover path[stroke="#2F4F4F"],
+        .cleanbite-jar-icon:hover circle[fill="#2F4F4F"] {
+            stroke: #3CB371; /* Lighter green on hover */
+            fill: #3CB371;
+        }
+    
     </style>
 </head>
 <body>
@@ -2095,53 +2104,33 @@
     <!-- ==================== NAVIGATION ==================== -->
         <nav class="main-nav">
             <div class="nav-brand">
-            <!-- CleanBite Jar Icon - Gold with Green Sprout -->
-            <!-- ==================== ENHANCED CLEANBITE JAR ICON ==================== -->
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 1cm; height: 1cm;">
-                <!-- Main jar body - more realistic shape -->
-                <path d="M12 10L10 18C10 22 14 28 20 28C26 28 30 22 30 18L28 10H12Z" stroke="#D4AF37" stroke-width="2" fill="none"/>
-                
-                <!-- Jar curves - more natural jar shape -->
-                <path d="M10 18C10 22 14 26 20 26C26 26 30 22 30 18" stroke="#D4AF37" stroke-width="2" fill="none"/>
-                
-                <!-- Jar base with subtle curve -->
-                <path d="M14 26L14 30L26 30L26 26" stroke="#D4AF37" stroke-width="2" fill="none"/>
-                <path d="M16 30L24 30" stroke="#D4AF37" stroke-width="2"/>
-                
-                <!-- Jar lid with more detail -->
-                <path d="M12 8L12 12L28 12L28 8" stroke="#D4AF37" stroke-width="2" fill="none"/>
-                <path d="M14 6L26 6" stroke="#D4AF37" stroke-width="2"/>
-                <path d="M16 4L24 4" stroke="#D4AF37" stroke-width="1.5" opacity="0.7"/>
-                
-                <!-- Jar shoulder highlight -->
-                <path d="M14 12L14 14" stroke="#D4AF37" stroke-width="1.5" opacity="0.5"/>
-                <path d="M26 12L26 14" stroke="#D4AF37" stroke-width="1.5" opacity="0.5"/>
-                
-                <!-- Main plant stem - dark green -->
-                <path d="M20 4L20 10" stroke="#2F4F4F" stroke-width="2.5"/>
-                
-                <!-- First leaf - left side -->
-                <path d="M20 6L16 9" stroke="#2F4F4F" stroke-width="2" stroke-linecap="round"/>
-                <path d="M16 9L18 10" stroke="#2F4F4F" stroke-width="2" stroke-linecap="round"/>
-                
-                <!-- Second leaf - right side -->
-                <path d="M20 6L24 9" stroke="#2F4F4F" stroke-width="2" stroke-linecap="round"/>
-                <path d="M24 9L22 10" stroke="#2F4F4F" stroke-width="2" stroke-linecap="round"/>
-                
-                <!-- Third leaf - center sprouting -->
-                <path d="M20 4L18 7" stroke="#2F4F4F" stroke-width="2" stroke-linecap="round"/>
-                <path d="M20 4L22 7" stroke="#2F4F4F" stroke-width="2" stroke-linecap="round"/>
-                
-                <!-- Small buds at leaf tips -->
-                <circle cx="16" cy="9" r="1" fill="#2F4F4F" opacity="0.8"/>
-                <circle cx="24" cy="9" r="1" fill="#2F4F4F" opacity="0.8"/>
-                <circle cx="18" cy="7" r="1" fill="#2F4F4F" opacity="0.8"/>
-                <circle cx="22" cy="7" r="1" fill="#2F4F4F" opacity="0.8"/>
-                
-                <!-- Tiny highlights on jar (optional) -->
-                <circle cx="16" cy="18" r="1" fill="#D4AF37" opacity="0.3"/>
-                <circle cx="24" cy="22" r="1" fill="#D4AF37" opacity="0.3"/>
-            </svg>
+                <!-- ==================== SIMPLER CLEANBITE JAR ICON ==================== -->
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 1cm; height: 1cm;">
+                    <!-- Jar body -->
+                    <path d="M12 12L10 20C10 24 14 28 20 28C26 28 30 24 30 20L28 12H12Z" stroke="#D4AF37" stroke-width="2" fill="none"/>
+                    
+                    <!-- Jar base -->
+                    <path d="M14 26L14 30L26 30L26 26" stroke="#D4AF37" stroke-width="2" fill="none"/>
+                    
+                    <!-- Jar lid -->
+                    <path d="M14 8L14 12L26 12L26 8" stroke="#D4AF37" stroke-width="2" fill="none"/>
+                    <path d="M16 6L24 6" stroke="#D4AF37" stroke-width="2"/>
+                    
+                    <!-- Plant sprout - dark green -->
+                    <path d="M20 6L20 12" stroke="#2F4F4F" stroke-width="2.5"/>
+                    
+                    <!-- Leaves -->
+                    <path d="M20 8L16 10" stroke="#2F4F4F" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M20 8L24 10" stroke="#2F4F4F" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M20 10L18 12" stroke="#2F4F4F" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M20 10L22 12" stroke="#2F4F4F" stroke-width="2" stroke-linecap="round"/>
+                    
+                    <!-- Leaf buds -->
+                    <circle cx="16" cy="10" r="1.2" fill="#2F4F4F"/>
+                    <circle cx="24" cy="10" r="1.2" fill="#2F4F4F"/>
+                    <circle cx="18" cy="12" r="1" fill="#2F4F4F"/>
+                    <circle cx="22" cy="12" r="1" fill="#2F4F4F"/>
+                </svg>
             <h2>CLEAN<span>BITE</span></h2>
         </div>
         
@@ -3479,6 +3468,7 @@ function setupMenuFilters() {
     </script>
 </body>
 </html>
+
 
 
 
