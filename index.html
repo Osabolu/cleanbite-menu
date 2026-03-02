@@ -936,10 +936,9 @@
 
         .footer-sections {
             display: flex;
-            justify-content: center;
             align-items: center;
-            gap: 60px;
-            margin-bottom: 60px;
+            gap: 10px;
+            top: 60px;
         }
 
         .footer-sections h3 {
@@ -949,6 +948,34 @@
             display: flex;
             align-items: center;
         }
+
+        .footer-sections h3 i {
+            color: var(--primary);
+        }
+
+        .footer-sections p {
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            line-height: 1.7;
+        }
+
+        .footer-sections a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .footer-sections a:hover {
+            color: var(--primary);
+            transform: translateX(5px);
+        } 
 
         .footer-social {
             display: flex;
@@ -2208,7 +2235,7 @@
          </div>
         
         <div class="footer-content">
-            <div class="footer-section">
+            <div class="footer-sections">
                 <p>Premium Nigerian yoghurt crafted with passion and 24-hour traditional incubation. Since 2024, serving smiles across Ibadan.</p>
                 <div class="footer-social">
                     <a href="https://www.instagram.com/cleanbite.1/"><i class="fab fa-instagram"></i></a>
@@ -3447,6 +3474,7 @@ function setupMenuFilters() {
     </script>
 </body>
 </html>
+
 
 
 
