@@ -2116,6 +2116,30 @@
                 text-align: center;
             }
         }
+
+        /* Holiday message styling */
+            .message-preview-box.holiday {
+                background: linear-gradient(135deg, #fef3c7, #fde68a) !important;
+                border-left: 6px solid #f59e0b !important;
+                animation: holidayPulse 2s infinite;
+            }
+            
+            @keyframes holidayPulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.02); }
+                100% { transform: scale(1); }
+            }
+            
+            .holiday-badge {
+                background: #f59e0b;
+                color: white;
+                padding: 4px 12px;
+                border-radius: 30px;
+                font-size: 0.7rem;
+                font-weight: 700;
+                display: inline-block;
+                margin-left: 10px;
+            }
         </style>
 </head>
 <body>
@@ -4783,20 +4807,266 @@ document.addEventListener('DOMContentLoaded', function() {
     window.closeModal = closeModal;
 
     // ==================== REAL-TIME SMS PREVIEW ====================
+    // ==================== REAL-TIME SMS PREVIEW WITH HOLIDAYS ====================
 function updateSMSPreview() {
-    const weeklyMessages = [
-        { message: "🍶 CleanBite: Your gut contains 100+ trillion bacteria! Our 24hr fermentation delivers billions of probiotics per jar. Feed your microbiome daily. cleanbite.ng Reply STOP to opt out", category: "gut health" },
-        { message: "🌱 Clean eating starts from within. Our yoghurt is made with fresh cow milk, zero preservatives & 24hr traditional incubation. Your body deserves real food. cleanbite.ng Reply STOP to opt out", category: "nutrition" },
-        { message: "🛡️ 70% of your immune system lives in your gut! Regular probiotic intake strengthens natural defenses. Grab CleanBite this week. cleanbite.ng Reply STOP to opt out", category: "immunity" },
-        { message: "🔄 Struggling with digestion? Our live active cultures help break down food naturally. Thousands of customers report better gut health. cleanbite.ng Reply STOP to opt out", category: "digestion" },
-        { message: "🥣 Morning ritual: CleanBite plain yoghurt + fresh fruits + honey + granola = the perfect gut-healthy breakfast. cleanbite.ng Reply STOP to opt out", category: "recipes" },
-        { message: "🔬 24 hours. That's how long we ferment each batch for maximum probiotic potency. Most commercial yoghurts ferment for just 4-6 hours. Choose quality. cleanbite.ng Reply STOP to opt out", category: "quality" },
-        { message: "🧠 Your gut is your second brain! The gut-brain connection affects mood, focus, and mental clarity. Nourish both with CleanBite. cleanbite.ng Reply STOP to opt out", category: "mental health" },
-        { message: "⭐ 'Since switching to CleanBite, my bloating disappeared and I have more energy.' — Sarah, Lagos. Join hundreds of happy customers. cleanbite.ng Reply STOP to opt out", category: "testimonial" },
-        { message: "☔ Rainy season alert! Cold weather can weaken digestion. Warm up with our probiotic-rich yoghurt to maintain gut health year-round. cleanbite.ng Reply STOP to opt out", category: "seasonal" },
-        { message: "🍯 No refined sugar. Ever. Our sweetness comes from real dates and honey. Clean eating means clean ingredients. Taste the difference. cleanbite.ng Reply STOP to opt out", category: "ingredients" },
-        { message: "📅 Gut health isn't a one-time fix—it's a lifestyle. Make CleanBite part of your weekly routine and feel the difference consistently. cleanbite.ng Reply STOP to opt out", category: "motivation" },
-        { message: "👥 Know someone who could benefit from better gut health? Share CleanBite with them! Real food, real results, real simple. cleanbite.ng Reply STOP to opt out", category: "referral" }
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1; // JavaScript months are 0-indexed
+    const currentDay = today.getDate();
+    
+    // Check if today is a holiday
+    let holidayMessage = null;
+    
+    // Check fixed-date holidays
+    const fixedHolidays = smsMessages.filter(msg => msg.type === 'holiday' && msg.month && msg.day);
+    
+    for (let holiday of fixedHolidays) {
+        if (holiday.month === currentMonth && holiday.day === currentDay) {
+            holidayMessage = holiday;
+            break;
+        }
+    }
+    
+    // Check for week-based holidays (like Easter - simplified)
+    // You can expand this with actual Easter date calculation
+    
+    // Check for Islamic holidays (simplified - you'd need actual Hijri calendar)
+    // For now, we'll use approximate dates
+    
+    // If today is a holiday, show holiday message
+    if (holidayMessage) {
+        document.getElementById('previewMessage').textContent = holidayMessage.message;
+        document.getElementById('messageCategory').textContent = `🎉 ${holidayMessage.holiday}`;
+        document.getElementById('messageWeek').textContent = "🎊 SPECIAL";
+        
+        // Add holiday styling
+        document.querySelector('.message-preview-box').style.background = 'linear-gradient(135deg, #fef3c7, #fde68a)';
+        document.querySelector('.message-preview-box').style.borderLeft = '6px solid #f59e0b';
+        return;
+    }
+    
+    // If not a holiday, show regular weekly message
+    const regularMessages = smsMessages.filter(msg => msg.type === 'regular');
+    
+    // Calculate current week based on campaign start date
+    const startDate = new Date('2026-01-01'); // Set your campaign start date
+    const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+    let weekNumber = Math.floor(daysSinceStart / 7) % regularMessages.length;
+    
+    const currentMessage = regularMessages[weekNumber];
+    
+    document.getElementById('previewMessage').textContent = currentMessage.message;
+    document.getElementById('messageCategory').textContent = currentMessage.category;
+    document.getElementById('messageWeek').textContent = weekNumber + 1;
+    
+    // Reset styling
+    document.querySelector('.message-preview-box').style.background = 'var(--cleanbite-gold-light)';
+    document.querySelector('.message-preview-box').style.borderLeft = '4px solid var(--cleanbite-gold)';
+}
+
+// Call it when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    updateSMSPreview();
+    
+    // Check for holidays daily
+    setInterval(updateSMSPreview, 24 * 60 * 60 * 1000); // Once per day
+});
+        // ==================== SMS MESSAGES WITH HOLIDAYS ====================
+    const smsMessages = [
+        // Regular weekly messages (Weeks 1-12)
+        { 
+            week: 1,
+            message: "🍶 CleanBite: Your gut contains 100+ trillion bacteria! Our 24hr fermentation delivers billions of probiotics per jar. Feed your microbiome daily. cleanbite.ng Reply STOP", 
+            category: "gut health",
+            type: "regular"
+        },
+        { 
+            week: 2,
+            message: "🌱 Clean eating starts from within. Our yoghurt is made with fresh cow milk, zero preservatives & 24hr traditional incubation. Your body deserves real food. cleanbite.ng Reply STOP", 
+            category: "nutrition",
+            type: "regular"
+        },
+        { 
+            week: 3,
+            message: "🛡️ 70% of your immune system lives in your gut! Regular probiotic intake strengthens natural defenses. Grab CleanBite this week. cleanbite.ng Reply STOP", 
+            category: "immunity",
+            type: "regular"
+        },
+        { 
+            week: 4,
+            message: "🔄 Struggling with digestion? Our live active cultures help break down food naturally. Thousands of customers report better gut health. cleanbite.ng Reply STOP", 
+            category: "digestion",
+            type: "regular"
+        },
+        { 
+            week: 5,
+            message: "🥣 Morning ritual: CleanBite plain yoghurt + fresh fruits + honey + granola = the perfect gut-healthy breakfast. cleanbite.ng Reply STOP", 
+            category: "recipes",
+            type: "regular"
+        },
+        { 
+            week: 6,
+            message: "🔬 24 hours. That's how long we ferment each batch for maximum probiotic potency. Most commercial yoghurts ferment for just 4-6 hours. Choose quality. cleanbite.ng Reply STOP", 
+            category: "quality",
+            type: "regular"
+        },
+        { 
+            week: 7,
+            message: "🧠 Your gut is your second brain! The gut-brain connection affects mood, focus, and mental clarity. Nourish both with CleanBite. cleanbite.ng Reply STOP", 
+            category: "mental health",
+            type: "regular"
+        },
+        { 
+            week: 8,
+            message: "⭐ 'Since switching to CleanBite, my bloating disappeared and I have more energy.' — Sarah, Lagos. Join hundreds of happy customers. cleanbite.ng Reply STOP", 
+            category: "testimonial",
+            type: "regular"
+        },
+        { 
+            week: 9,
+            message: "☔ Rainy season alert! Cold weather can weaken digestion. Warm up with our probiotic-rich yoghurt to maintain gut health year-round. cleanbite.ng Reply STOP", 
+            category: "seasonal",
+            type: "regular"
+        },
+        { 
+            week: 10,
+            message: "🍯 No refined sugar. Ever. Our sweetness comes from real dates and honey. Clean eating means clean ingredients. Taste the difference. cleanbite.ng Reply STOP", 
+            category: "ingredients",
+            type: "regular"
+        },
+        { 
+            week: 11,
+            message: "📅 Gut health isn't a one-time fix—it's a lifestyle. Make CleanBite part of your weekly routine and feel the difference consistently. cleanbite.ng Reply STOP", 
+            category: "motivation",
+            type: "regular"
+        },
+        { 
+            week: 12,
+            message: "👥 Know someone who could benefit from better gut health? Share CleanBite with them! Real food, real results, real simple. cleanbite.ng Reply STOP", 
+            category: "referral",
+            type: "regular"
+        },
+        
+        // ==================== 🎉 HOLIDAY MESSAGES ====================
+        
+        // New Year
+        {
+            holiday: "New Year",
+            month: 1,
+            day: 1,
+            message: "🎉 Happy New Year from CleanBite! Start 2026 with a healthier gut. Use code NEWYEAR10 for 10% off your first order. Here's to your sovereignty! cleanbite.ng Reply STOP",
+            category: "holiday",
+            type: "holiday"
+        },
+        
+        // Valentine's Day
+        {
+            holiday: "Valentine's Day",
+            month: 2,
+            day: 14,
+            message: "❤️ Love your gut this Valentine's! Our probiotic yoghurt is the perfect way to show your digestive system some love. Treat yourself today. cleanbite.ng Reply STOP",
+            category: "holiday",
+            type: "holiday"
+        },
+        
+        // International Women's Day
+        {
+            holiday: "Women's Day",
+            month: 3,
+            day: 8,
+            message: "👩‍🦱 Happy International Women's Day! Strong women, strong guts. Celebrate with CleanBite's probiotic-rich yoghurt. You deserve the best. cleanbite.ng Reply STOP",
+            category: "holiday",
+            type: "holiday"
+        },
+        
+        // Easter
+        {
+            holiday: "Easter",
+            month: 4,
+            day: null, // Will be calculated dynamically
+            message: "🐣 Easter blessings from CleanBite! As you celebrate, remember that true wellness starts from within. Enjoy our traditionally fermented yoghurt this season. cleanbite.ng Reply STOP",
+            category: "holiday",
+            type: "holiday"
+        },
+        
+        // Workers' Day (May 1)
+        {
+            holiday: "Workers' Day",
+            month: 5,
+            day: 1,
+            message: "💪 Happy Workers' Day! Fuel your hard work with clean energy. Our 24hr fermented yoghurt gives you the probiotics you need to keep going strong. cleanbite.ng Reply STOP",
+            category: "holiday",
+            type: "holiday"
+        },
+        
+        // Children's Day (May 27)
+        {
+            holiday: "Children's Day",
+            month: 5,
+            day: 27,
+            message: "🧒 Happy Children's Day! Give your little ones a healthy start with CleanBite's natural, preservative-free yoghurt. Great for growing guts! cleanbite.ng Reply STOP",
+            category: "holiday",
+            type: "holiday"
+        },
+        
+        // Democracy Day (June 12)
+        {
+            holiday: "Democracy Day",
+            month: 6,
+            day: 12,
+            message: "🇳🇬 Happy Democracy Day! Celebrate freedom with CleanBite. Your gut deserves the freedom to thrive with real, probiotic-rich food. cleanbite.ng Reply STOP",
+            category: "holiday",
+            type: "holiday"
+        },
+        
+        // Eid al-Adha (varies)
+        {
+            holiday: "Eid al-Adha",
+            month: null, // Islamic calendar - needs special handling
+            day: null,
+            message: "🕋 Eid Mubarak! May your celebrations be blessed. Enjoy CleanBite's naturally fermented yoghurt as part of your feast. Gut health is a blessing. cleanbite.ng Reply STOP",
+            category: "holiday",
+            type: "holiday"
+        },
+        
+        // Independence Day (October 1)
+        {
+            holiday: "Independence Day",
+            month: 10,
+            day: 1,
+            message: "🇳🇬 Happy Independence Day! Proudly Nigerian, proudly CleanBite. Celebrate our nation's sovereignty by taking control of your health. cleanbite.ng Reply STOP",
+            category: "holiday",
+            type: "holiday"
+        },
+        
+        // Christmas
+        {
+            holiday: "Christmas",
+            month: 12,
+            day: 25,
+            message: "🎄 Merry Christmas from CleanBite! Give the gift of gut health to your loved ones. Our probiotic yoghurt is the present that keeps on giving. cleanbite.ng Reply STOP",
+            category: "holiday",
+            type: "holiday"
+        },
+        
+        // Boxing Day (December 26)
+        {
+            holiday: "Boxing Day",
+            month: 12,
+            day: 26,
+            message: "🎁 Happy Boxing Day! After all the feasting, give your gut some love with CleanBite's digestive-friendly probiotics. You deserve it! cleanbite.ng Reply STOP",
+            category: "holiday",
+            type: "holiday"
+        },
+        
+        // New Year's Eve
+        {
+            holiday: "New Year's Eve",
+            month: 12,
+            day: 31,
+            message: "✨ Happy New Year's Eve! As you count down to 2027, make a resolution to prioritize your gut health. CleanBite is here for your journey. cleanbite.ng Reply STOP",
+            category: "holiday",
+            type: "holiday"
+        }
     ];
     
     // Calculate current week based on actual date
@@ -4825,6 +5095,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
 </body>
 </html>
+
 
 
 
