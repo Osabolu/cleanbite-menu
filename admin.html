@@ -3463,9 +3463,9 @@ setInterval(checkOrderProgressions, 60 * 1000);
 
 // ==================== SMS CAMPAIGN WITH EBULKSMS ====================
 class EBulkSmsService {
-    constructor(username, password, sender);  
-        this.username = username;  // Your eBulksms username
-        this.password = password;  // Your eBulksms password
+    constructor(username, password, sender) {
+        this.username = username;   // Your eBulksms username
+        this.password = password;   // Your eBulksms password
         this.sender = sender;       // e.g., "CleanBite"
         this.baseUrl = 'https://api.ebulksms.com'; // Confirm with eBulksms docs
     }
@@ -3502,12 +3502,6 @@ class EBulkSmsService {
 }
 
 const smsService = new EBulkSmsService('your_username', 'your_password', 'CleanBite');
-
-const smsService = new EBulkSmsService(
-    'cleanbitekitchen.official@gmail.com',
-    'Vision0014real!',
-    'CLEANBITE'
-);
 
 class WeeklyMessageScheduler {
     constructor(service) {
@@ -3547,68 +3541,47 @@ class WeeklyMessageScheduler {
         document.getElementById('smsStatus').classList.remove('active');
         showNotification('Weekly SMS campaign stopped', 'info');
     }
-
     async sendThisWeeksMessage() {
-    const today = new Date();
-    const holiday = this.getHolidayMessage(today);
-    let messageData;
-
-    if (holiday) {
-        messageData = { message: holiday.message, category: 'holiday' };
-        // 🔥 Add holiday announcement to feed
-        addActivityToFeed({
-            type: 'holiday_sms',
-            message: `🎉 Today is ${holiday.name || 'a holiday'}! Sending holiday SMS.`,
-            icon: 'fa-calendar-alt',
-            color: '#f39c12'
-        });
-    } else {
-        const startDate = new Date('2026-01-01');
-        const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
-        let weekNumber = Math.floor(daysSinceStart / 7) % this.weeklyMessages.length;
-        if (weekNumber < 0) weekNumber = 0;
-        this.currentWeek = weekNumber;
-        messageData = this.weeklyMessages[weekNumber];
+        const today = new Date();
+        // Check for holiday message
+        const holiday = this.getHolidayMessage(today);
+        let messageData;
+        if (holiday) {
+            messageData = { message: holiday.message, category: 'holiday' };
+        } else {
+            const startDate = new Date('2026-01-01');
+            const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+            let weekNumber = Math.floor(daysSinceStart / 7) % this.weeklyMessages.length;
+            if (weekNumber < 0) weekNumber = 0;
+            this.currentWeek = weekNumber;
+            messageData = this.weeklyMessages[weekNumber];
+        }
+        const customers = this.service.getSubscribedCustomers();
+        const phoneNumbers = customers.map(c => c.phone);
+        if (phoneNumbers.length === 0) {
+            console.log('No subscribers to message');
+            return;
+        }
+        console.log(`📱 Sending message to ${phoneNumbers.length} customers`);
+        const result = await this.service.sendBulkSMS(phoneNumbers, messageData.message);
+        this.logToFirebase(phoneNumbers.length, messageData.message, result);
+        this.loadHistory();
     }
-
-    const customers = this.service.getSubscribedCustomers();
-    const phoneNumbers = customers.map(c => c.phone);
-    if (phoneNumbers.length === 0) {
-        console.log('No subscribers to message');
-        return;
-    }
-
-    console.log(`📱 Sending message to ${phoneNumbers.length} customers`);
-    const result = await this.service.sendBulkSMS(phoneNumbers, messageData.message);
-
-    // 🔥 Add campaign summary to feed
-    addActivityToFeed({
-        type: 'sms_campaign',
-        message: `📱 Sent ${messageData.category} SMS to ${phoneNumbers.length} customers.`,
-        icon: 'fa-sms',
-        color: '#3498db'
-    });
-
-    this.logToFirebase(phoneNumbers.length, messageData.message, result);
-    this.loadHistory();
-}
-
     getHolidayMessage(date) {
-    const holidays = [
-        { month: 1, day: 1, name: "New Year", message: "🎉 Happy New Year from CleanBite! ..." },
-        { month: 2, day: 14, name: "Valentine's Day", message: "❤️ Love your gut this Valentine's! ..." },
-        { month: 3, day: 8, name: "Women's Day", message: "👩‍🦱 Happy International Women's Day! ..." },
-        { month: 5, day: 1, name: "Workers' Day", message: "💪 Happy Workers' Day! ..." },
-        { month: 5, day: 27, name: "Children's Day", message: "🧒 Happy Children's Day! ..." },
-        { month: 6, day: 12, name: "Democracy Day", message: "🇳🇬 Happy Democracy Day! ..." },
-        { month: 10, day: 1, name: "Independence Day", message: "🇳🇬 Happy Independence Day! ..." },
-        { month: 12, day: 25, name: "Christmas", message: "🎄 Merry Christmas from CleanBite! ..." },
-        { month: 12, day: 26, name: "Boxing Day", message: "🎁 Happy Boxing Day! ..." },
-        { month: 12, day: 31, name: "New Year's Eve", message: "✨ Happy New Year's Eve! ..." }
-    ];
-    return holidays.find(h => h.month === date.getMonth() + 1 && h.day === date.getDate());
-}
-    
+        const holidays = [
+            { month: 1, day: 1, message: "🎉 Happy New Year from CleanBite! Start the year with a healthier gut. cleanbite.ng" },
+            { month: 2, day: 14, message: "❤️ Love your gut this Valentine's! Our probiotic yoghurt is the perfect way to show your digestive system some love. cleanbite.ng" },
+            { month: 3, day: 8, message: "👩‍🦱 Happy International Women's Day! Strong women, strong guts. Celebrate with CleanBite. cleanbite.ng" },
+            { month: 5, day: 1, message: "💪 Happy Workers' Day! Fuel your hard work with clean energy. Our probiotic yoghurt gives you the probiotics you need. cleanbite.ng" },
+            { month: 5, day: 27, message: "🧒 Happy Children's Day! Give your little ones a healthy start with CleanBite's natural, preservative-free yoghurt. cleanbite.ng" },
+            { month: 6, day: 12, message: "🇳🇬 Happy Democracy Day! Celebrate freedom with CleanBite. Your gut deserves the freedom to thrive. cleanbite.ng" },
+            { month: 10, day: 1, message: "🇳🇬 Happy Independence Day! Proudly Nigerian, proudly CleanBite. cleanbite.ng" },
+            { month: 12, day: 25, message: "🎄 Merry Christmas from CleanBite! Give the gift of gut health. cleanbite.ng" },
+            { month: 12, day: 26, message: "🎁 Happy Boxing Day! After the feasting, give your gut some love with CleanBite. cleanbite.ng" },
+            { month: 12, day: 31, message: "✨ Happy New Year's Eve! Make a resolution to prioritize your gut health with CleanBite. cleanbite.ng" }
+        ];
+        return holidays.find(h => h.month === date.getMonth() + 1 && h.day === date.getDate());
+    }
     async logToFirebase(recipientCount, message, result) {
         if (!database) return;
         await database.ref('sms_campaigns').push({
@@ -3719,284 +3692,12 @@ function setupTabSwitching() {
     });
 }
 
-// ==================== LOAD DASHBOARD CONTENT (from original HTML) ====================
-function loadDashboardContent() {
-    const mainContent = document.getElementById('mainContent');
-    mainContent.innerHTML = `
-        <!-- Payment Notice -->
-        <div class="payment-notice" id="paymentNotice">
-            <i class="fas fa-exclamation-triangle"></i>
-            <div class="payment-notice-content">
-                <h4><i class="fas fa-bell"></i> Payment Verification Required</h4>
-                <p id="paymentNoticeMessage">New orders require payment verification</p>
-            </div>
-            <span class="badge" id="paymentNoticeCount"><i class="fas fa-clock"></i> 0 pending</span>
-        </div>
-
-        <!-- Stats Cards -->
-        <div class="stats-grid">
-            <div class="stat-card revenue">
-                <div class="stat-header">
-                    <div class="stat-icon"><i class="fas fa-naira-sign"></i></div>
-                    <div class="stat-trend positive"><i class="fas fa-arrow-up"></i> Live</div>
-                </div>
-                <div class="stat-value" id="totalRevenue">₦0</div>
-                <div class="stat-label"><i class="fas fa-circle-check"></i> Verified Revenue</div>
-            </div>
-            
-            <div class="stat-card pending">
-                <div class="stat-header">
-                    <div class="stat-icon"><i class="fas fa-hourglass-half"></i></div>
-                    <div class="stat-trend" id="pendingTrend"><i class="fas fa-clock"></i> 0</div>
-                </div>
-                <div class="stat-value" id="awaitingVerification">0</div>
-                <div class="stat-label"><i class="fas fa-hourglass"></i> Pending Verification</div>
-            </div>
-            
-            <div class="stat-card verified">
-                <div class="stat-header">
-                    <div class="stat-icon"><i class="fas fa-check-double"></i></div>
-                    <div class="stat-trend positive"><i class="fas fa-check"></i> Active</div>
-                </div>
-                <div class="stat-value" id="verifiedOrdersCount">0</div>
-                <div class="stat-label"><i class="fas fa-check-circle"></i> Verified Orders</div>
-            </div>
-            
-            <div class="stat-card customers">
-                <div class="stat-header">
-                    <div class="stat-icon"><i class="fas fa-users"></i></div>
-                    <div class="stat-trend positive"><i class="fas fa-arrow-up"></i> Total</div>
-                </div>
-                <div class="stat-value" id="totalCustomers">0</div>
-                <div class="stat-label"><i class="fas fa-user-plus"></i> Active Customers</div>
-            </div>
-        </div>
-
-        <!-- Filter Bar -->
-        <div class="filter-bar">
-            <div class="filter-group">
-                <span class="filter-label"><i class="fas fa-filter"></i> Filter:</span>
-                <select class="filter-select" id="mainFilter">
-                    <option value="all">All Orders</option>
-                    <option value="pending">Pending Payment</option>
-                    <option value="verified">Verified Only</option>
-                    <option value="preparing">Preparing</option>
-                    <option value="incubating">Incubating</option>
-                    <option value="ready">Ready</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                </select>
-                
-                <select class="filter-select" id="dateFilter">
-                    <option value="all">All Time</option>
-                    <option value="today">Today</option>
-                    <option value="week">This Week</option>
-                    <option value="month">This Month</option>
-                </select>
-            </div>
-            
-            <div class="filter-search">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Search orders, customers...">
-            </div>
-            
-            <div class="filter-actions">
-                <button class="filter-btn" id="applyFilter"><i class="fas fa-check"></i> Apply</button>
-                <button class="filter-btn" id="resetFilter"><i class="fas fa-redo-alt"></i> Reset</button>
-            </div>
-        </div>
-
-        <!-- Payment Verification Queue -->
-        <div class="verification-section" id="verificationSection">
-            <div class="section-header">
-                <h3><i class="fas fa-clock"></i> Payment Verification Queue</h3>
-                <div class="section-count">
-                    <i class="fas fa-hourglass-half"></i>
-                    <span id="verificationCount">0</span> Pending
-                </div>
-            </div>
-            <div class="verification-grid" id="verificationList"></div>
-        </div>
-
-        <!-- Verified Orders (Active Only) -->
-        <div class="verification-section" id="verifiedSection">
-            <div class="section-header">
-                <h3><i class="fas fa-check-circle" style="color: var(--success);"></i> Active Orders</h3>
-                <div class="section-count" style="color: var(--success);">
-                    <i class="fas fa-check"></i>
-                    <span id="verifiedCount">0</span> Active
-                </div>
-            </div>
-            <div class="orders-grid" id="verifiedOrdersList"></div>
-        </div>
-        
-        <!-- Cancelled Orders -->
-        <div class="verification-section" id="cancelledSection">
-            <div class="section-header">
-                <h3><i class="fas fa-times-circle" style="color: var(--danger);"></i> Cancelled Orders</h3>
-                <div class="section-count" style="color: var(--danger);">
-                    <i class="fas fa-ban"></i>
-                    <span id="cancelledCount">0</span> Total
-                </div>
-            </div>
-            
-            <!-- Cancelled Orders Filter -->
-            <div class="archive-filter-bar">
-                <div class="filter-group">
-                    <span class="filter-label"><i class="fas fa-calendar"></i> Archive by Month:</span>
-                    <select class="filter-select" id="cancelledMonthFilter">
-                        <option value="all">All Time</option>
-                    </select>
-                    <button class="filter-btn small" id="applyCancelledFilter"><i class="fas fa-filter"></i> Filter</button>
-                    <button class="filter-btn small" id="resetCancelledFilter"><i class="fas fa-redo-alt"></i> Reset</button>
-                </div>
-            </div>
-            
-            <div class="orders-grid" id="cancelledOrdersList"></div>
-        </div>
-
-        <!-- Completed Orders Archive -->
-        <div class="verification-section" id="completedSection" style="display: none;">
-            <div class="section-header">
-                <h3><i class="fas fa-archive" style="color: var(--cleanbite-gray);"></i> Completed Orders Archive</h3>
-                <div class="section-count" style="color: var(--cleanbite-gray); border-color: var(--cleanbite-gray);">
-                    <i class="fas fa-check-circle"></i>
-                    <span id="completedCount">0</span> Total
-                </div>
-            </div>
-            
-            <!-- Month Filter for Completed Orders -->
-            <div class="archive-filter-bar">
-                <div class="filter-group">
-                    <span class="filter-label"><i class="fas fa-calendar"></i> Archive by Month:</span>
-                    <select class="filter-select" id="completedMonthFilter">
-                        <option value="all">All Time</option>
-                    </select>
-                    <button class="filter-btn small" id="applyCompletedFilter"><i class="fas fa-filter"></i> Filter</button>
-                    <button class="filter-btn small" id="resetCompletedFilter"><i class="fas fa-redo-alt"></i> Reset</button>
-                </div>
-            </div>
-            
-            <div class="orders-grid" id="completedOrdersList"></div>
-        </div>
-        
-        <!-- Customer Database with Full Features -->
-        <div class="customer-section" id="customerSection">
-            <div class="section-header">
-                <h3><i class="fas fa-users" style="color: var(--purple);"></i> Customer Database</h3>
-                <div class="section-count">
-                    <i class="fas fa-user"></i>
-                    <span id="customerCount">0</span> Total Customers
-                </div>
-            </div>
-            
-            <!-- Customer Filters -->
-            <div class="customer-filter-bar">
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <span class="filter-label"><i class="fas fa-search"></i> Search:</span>
-                        <input type="text" id="customerSearch" placeholder="Name, phone, email..." class="filter-input">
-                    </div>
-                    <div class="filter-group">
-                        <span class="filter-label"><i class="fas fa-filter"></i> Status:</span>
-                        <select class="filter-select" id="customerStatusFilter">
-                            <option value="all">All Customers</option>
-                            <option value="active">Active (Has orders)</option>
-                            <option value="inactive">Inactive (No orders)</option>
-                            <option value="vip">VIP (5+ orders)</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <span class="filter-label"><i class="fas fa-calendar"></i> Orders:</span>
-                        <select class="filter-select" id="customerOrdersFilter">
-                            <option value="all">Any orders</option>
-                            <option value="1">1 order</option>
-                            <option value="2-3">2-3 orders</option>
-                            <option value="4+">4+ orders</option>
-                        </select>
-                    </div>
-                    <div class="filter-actions">
-                        <button class="filter-btn" id="applyCustomerFilter"><i class="fas fa-check"></i> Apply</button>
-                        <button class="filter-btn" id="resetCustomerFilter"><i class="fas fa-redo-alt"></i> Reset</button>
-                    </div>
-                </div>
-                <div class="results-count" id="customerResults">
-                    Showing <span id="customerShowing">0</span> of <span id="customerTotal">0</span> customers
-                </div>
-            </div>
-            
-            <div class="customers-grid" id="customersList"></div>
-        </div>
-    
-        <!-- Activity Feed -->
-        <div class="activity-section" id="activitySection">
-            <div class="section-header">
-                <h3><i class="fas fa-stream"></i> Live Activity Feed</h3>
-                <button class="filter-btn" id="refreshActivity"><i class="fas fa-sync-alt"></i> Refresh</button>
-            </div>
-            <div class="activity-feed" id="activityFeed"></div>
-        </div>
-
-        <!-- 🔥 SMS Campaign Panel - FULLY FUNCTIONAL -->
-        <div class="verification-section" id="smsCampaignSection">
-            <div class="section-header">
-                <h3><i class="fas fa-sms" style="color: var(--cleanbite-gold);"></i> Weekly Gut Health SMS</h3>
-                <div class="section-count">
-                    <i class="fas fa-users"></i>
-                    <span id="subscriberCount">0</span> Subscribers
-                </div>
-            </div>
-            
-            <div class="sms-controls">
-                <div class="sms-status">
-                    <div class="status-indicator" id="smsStatus">● Inactive</div>
-                    <div class="current-message" id="currentWeekMessage">
-                        Loading current message...
-                    </div>
-                </div>
-                
-                <div class="sms-actions">
-                    <button class="btn-action" id="startSMSCampaign" style="background: var(--cleanbite-success); color: white;">
-                        <i class="fas fa-play"></i> Start Weekly Messages
-                    </button>
-                    <button class="btn-action" id="stopSMSCampaign" style="background: var(--cleanbite-danger); color: white;">
-                        <i class="fas fa-stop"></i> Stop
-                    </button>
-                    <button class="btn-action" id="testSMSButton" style="background: var(--cleanbite-info); color: white;">
-                        <i class="fas fa-paper-plane"></i> Send Test
-                    </button>
-                </div>
-                
-                <div class="sms-preview">
-                    <h4>Preview This Week's Message</h4>
-                    <div class="message-preview-box">
-                        <i class="fas fa-quote-left" style="color: var(--cleanbite-gold);"></i>
-                        <span id="previewMessage">Loading...</span>
-                        <i class="fas fa-quote-right" style="color: var(--cleanbite-gold);"></i>
-                    </div>
-                    <div class="message-meta">
-                        <span>Category: <span id="messageCategory">-</span></span>
-                        <span>Week <span id="messageWeek">-</span>/12</span>
-                    </div>
-                </div>
-                
-                <div class="sms-history">
-                    <h4>Recent Campaigns</h4>
-                    <div class="history-list" id="smsHistoryList">
-                        <div style="text-align: center; padding: 20px; color: var(--gray);">No campaigns yet</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
 // ==================== INITIALIZE ====================
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Admin Dashboard initializing...');
     initAudio();
     initBroadcastSystem();
-    loadDashboardContent(); // This populates the main content
+    loadDashboardContent(); // defined in HTML (already there)
     loadOrdersFromFirebase();
     setupTabSwitching();
     initSMS();
@@ -4055,6 +3756,7 @@ window.closeModal = closeModal;
     
 </body>
 </html>
+
 
 
 
