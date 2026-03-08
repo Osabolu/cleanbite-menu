@@ -3315,9 +3315,22 @@ class EBulkSmsService {
         return this.sendBulkSMS([phoneNumber], message);
     }
     getSubscribedCustomers() {
-        return Array.from(allCustomers.values()).filter(c => c.phone && c.smsConsent !== false);
-    }
+    return Array.from(allCustomers.values())
+        .filter(c => c.phone && c.smsConsent !== false)
+        .map(c => {
+            let phone = c.phone.replace(/\D/g, '');          // remove any non-digits
+            if (phone.startsWith('0')) {
+                phone = '234' + phone.slice(1);              // 080... → 23480...
+            }
+            // Optional: ensure it's exactly 13 digits (234 + 10 digits)
+            if (phone.length === 13) {
+                return { ...c, phone };
+            }
+            return null;                                      // skip invalid numbers
+        })
+        .filter(c => c !== null);                             // remove invalid ones
 }
+     
 
 const smsService = new EBulkSmsService(
     'cleanbitekitchen.official@gmail.com',
@@ -3829,6 +3842,7 @@ window.closeModal = closeModal;
     
 </body>
 </html>
+
 
 
 
