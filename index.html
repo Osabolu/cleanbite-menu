@@ -2778,102 +2778,127 @@ function saveOrderToLocalStorage(order) {
 }
 
     // ==================== FIXED: SUBMIT ORDER BUTTON ====================
-    function setupSubmitButton() {
-        const submitBtn = document.getElementById('submitOrderBtn');
-        if (!submitBtn) return;
+   // ==================== UPDATED SETUP SUBMIT BUTTON WITH SMS OPT-IN ====================
+function setupSubmitButton() {
+    const submitBtn = document.getElementById('submitOrderBtn');
+    if (!submitBtn) return;
+    
+    const newBtn = submitBtn.cloneNode(true);
+    submitBtn.parentNode.replaceChild(newBtn, submitBtn);
+    
+    newBtn.addEventListener('click', function(e) {
+        e.preventDefault();
         
-        const newBtn = submitBtn.cloneNode(true);
-        submitBtn.parentNode.replaceChild(newBtn, submitBtn);
+        const name = document.getElementById('customerName')?.value.trim();
+        const phone = document.getElementById('customerPhone')?.value.trim();
         
-        newBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('customerName')?.value.trim();
-            const phone = document.getElementById('customerPhone')?.value.trim();
-            
-            if (!name || name.length < 2) {
-                showNotification('Please enter your full name', 'warning');
-                return;
-            }
-            
-            if (!phone || phone.length < 10) {
-                showNotification('Please enter a valid phone number', 'warning');
-                return;
-            }
-            
-            const currentCart = JSON.parse(localStorage.getItem('cleanbite_cart') || '[]');
-            if (currentCart.length === 0) {
-                showNotification('Your cart is empty', 'warning');
-                return;
-            }
-            
-            const originalText = newBtn.innerHTML;
-            newBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            newBtn.disabled = true;
-            
-            // 🔥 FIXED: Generate Order ID in the correct format for track page
-            const orderId = generateOrderId();
-            console.log('📦 Generated Order ID:', orderId); // Should be like: CB-688184-7296
-            
-            const subtotal = currentCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const total = subtotal + (subtotal * 0.075);
-            
-            const order = {
-                id: orderId,
-                customerName: name,
-                customerPhone: phone,
-                customerEmail: document.getElementById('customerEmail')?.value.trim() || '',
-                deliveryNotes: document.getElementById('deliveryNotes')?.value.trim() || '',
-                items: currentCart,
-                subtotal: subtotal,
-                total: total,
-                paymentMethod: document.querySelector('input[name="payment"]:checked')?.value || 'transfer',
-                paymentStatus: 'pending',
-                status: 'pending-payment',
-                createdAt: new Date().toISOString()
-            };
-            
-            // Save with timeout protection
-            const savePromise = saveOrderToFirebase(order);
-            const timeoutPromise = new Promise(resolve => {
-                setTimeout(() => resolve({ success: false, timeout: true, order }), 5000);
-            });
-            
-            Promise.race([savePromise, timeoutPromise])
-                .then(result => {
-                    // Clear cart
-                    localStorage.removeItem('cleanbite_cart');
-                    cart = [];
-                    updateCartDisplay();
-                    closeModal('checkoutModal');
-                    
-                    // 🔥 FIXED: Show confirmation with correct order ID
-                    showOrderConfirmation(order);
-                    
-                    // Reset button
-                    newBtn.innerHTML = originalText;
-                    newBtn.disabled = false;
-                    
-                    showNotification('Order placed successfully!', 'success');
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    
-                    // Even on error, show confirmation
-                    localStorage.removeItem('cleanbite_cart');
-                    cart = [];
-                    updateCartDisplay();
-                    closeModal('checkoutModal');
-                    showOrderConfirmation(order);
-                    
-                    newBtn.innerHTML = originalText;
-                    newBtn.disabled = false;
-                    
-                    showNotification('Order saved locally!', 'info');
-                });
+        if (!name || name.length < 2) {
+            showNotification('Please enter your full name', 'warning');
+            return;
+        }
+        
+        if (!phone || phone.length < 10) {
+            showNotification('Please enter a valid phone number', 'warning');
+            return;
+        }
+        
+        const currentCart = JSON.parse(localStorage.getItem('cleanbite_cart') || '[]');
+        if (currentCart.length === 0) {
+            showNotification('Your cart is empty', 'warning');
+            return;
+        }
+        
+        const originalText = newBtn.innerHTML;
+        newBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        newBtn.disabled = true;
+        
+        // Generate Order ID in correct format
+        const orderId = generateOrderId();
+        console.log('📦 Generated Order ID:', orderId);
+        
+        const subtotal = currentCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const total = subtotal + (subtotal * 0.075);
+        
+        // 🔥 NEW: Get SMS consent
+        const smsOptIn = document.getElementById('smsOptIn')?.checked || false;
+        
+        // Create order object with SMS fields
+        const order = {
+            id: orderId,
+            customerName: name,
+            customerPhone: phone,
+            customerEmail: document.getElementById('customerEmail')?.value.trim() || '',
+            deliveryNotes: document.getElementById('deliveryNotes')?.value.trim() || '',
+            items: currentCart,
+            subtotal: subtotal,
+            total: total,
+            paymentMethod: document.querySelector('input[name="payment"]:checked')?.value || 'transfer',
+            paymentStatus: 'pending',
+            status: 'pending-payment',
+            createdAt: new Date().toISOString(),
+            timestamp: new Date().toISOString(),
+            // 🔥 NEW: SMS Marketing Fields
+            smsConsent: smsOptIn,
+            smsOptInDate: smsOptIn ? new Date().toISOString() : null
+        };
+        
+        console.log('📱 SMS Consent:', smsOptIn ? 'YES' : 'NO');
+        
+        // Save to localStorage as backup
+        try {
+            localStorage.setItem(`order_${order.id}`, JSON.stringify(order));
+            const orders = JSON.parse(localStorage.getItem('cleanbite_orders') || '[]');
+            orders.push(order);
+            localStorage.setItem('cleanbite_orders', JSON.stringify(orders));
+        } catch (e) {
+            console.warn('Could not save to localStorage:', e);
+        }
+        
+        // Save with timeout protection
+        const savePromise = saveOrderToFirebase(order);
+        const timeoutPromise = new Promise(resolve => {
+            setTimeout(() => resolve({ success: false, timeout: true, order }), 5000);
         });
-    }
-
+        
+        Promise.race([savePromise, timeoutPromise])
+            .then(result => {
+                // Clear cart
+                localStorage.removeItem('cleanbite_cart');
+                cart = [];
+                updateCartDisplay();
+                closeModal('checkoutModal');
+                
+                // Show confirmation with correct order ID
+                showOrderConfirmation(order);
+                
+                // Reset button
+                newBtn.innerHTML = originalText;
+                newBtn.disabled = false;
+                
+                // Show success message with SMS note if opted in
+                if (smsOptIn) {
+                    showNotification('Order placed! You\'ll receive gut health tips via SMS', 'success');
+                } else {
+                    showNotification('Order placed successfully!', 'success');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                // Even on error, show confirmation
+                localStorage.removeItem('cleanbite_cart');
+                cart = [];
+                updateCartDisplay();
+                closeModal('checkoutModal');
+                showOrderConfirmation(order);
+                
+                newBtn.innerHTML = originalText;
+                newBtn.disabled = false;
+                
+                showNotification('Order saved locally!', 'info');
+            });
+    });
+}
   // ==================== FIXED: Track Order Button ====================
 function showOrderConfirmation(order) {
     const modal = document.getElementById('confirmationModal');
@@ -3493,6 +3518,7 @@ function setupMenuFilters() {
     </script>
 </body>
 </html>
+
 
 
 
