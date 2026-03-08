@@ -3464,9 +3464,9 @@ setInterval(checkOrderProgressions, 60 * 1000);
 // ==================== SMS CAMPAIGN WITH EBULKSMS ====================
 class EBulkSmsService {
     constructor(username, password, sender);  
-        this.username = cleanbitekitchen.official@gmail.com;  // Your eBulksms username
-        this.password =  Vision0014real!;  // Your eBulksms password
-        this.sender = CLEANBITE;       // e.g., "CleanBite"
+        this.username = username;  // Your eBulksms username
+        this.password = password;  // Your eBulksms password
+        this.sender = sender;       // e.g., "CleanBite"
         this.baseUrl = 'https://api.ebulksms.com'; // Confirm with eBulksms docs
     }
     async sendBulkSMS(phoneNumbers, message) {
@@ -3502,6 +3502,12 @@ class EBulkSmsService {
 }
 
 const smsService = new EBulkSmsService('your_username', 'your_password', 'CleanBite');
+
+const smsService = new EBulkSmsService(
+    'cleanbitekitchen.official@gmail.com',
+    'Vision0014real!',
+    'CLEANBITE'
+);
 
 class WeeklyMessageScheduler {
     constructor(service) {
@@ -4049,6 +4055,7 @@ window.closeModal = closeModal;
     
 </body>
 </html>
+
 
 
 
