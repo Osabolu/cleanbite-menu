@@ -1346,49 +1346,62 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(10, 26, 43, 0.5);
-            backdrop-filter: blur(4px);
-            z-index: 1000;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
             align-items: center;
             justify-content: center;
         }
-
+        
         .modal.active {
             display: flex;
         }
-
+        
         .modal-content {
             background: var(--cleanbite-white);
-            border-radius: 24px;
+            border-radius: 20px;
             width: 90%;
-            max-width: 550px;
-            max-height: 90vh;
+            max-width: 600px;
+            max-height: 85vh;
             overflow-y: auto;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--cleanbite-gold-light);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.3s ease;
         }
-
+        
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
         .modal-header {
-            padding: 24px 28px;
+            padding: 20px 25px;
             border-bottom: 1px solid var(--cleanbite-light-gray);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: linear-gradient(135deg, var(--cleanbite-gold-light), white);
+            border-radius: 20px 20px 0 0;
         }
-
+        
         .modal-header h3 {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             font-weight: 700;
             color: var(--cleanbite-dark);
             display: flex;
             align-items: center;
             gap: 10px;
         }
-
+        
         .modal-header h3 i {
             color: var(--cleanbite-gold);
         }
-
+        
         .modal-close {
             background: none;
             border: none;
@@ -1398,49 +1411,273 @@
             transition: all 0.2s ease;
             width: 40px;
             height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .modal-close:hover {
+            background: var(--cleanbite-gold-light);
+            color: var(--cleanbite-gold);
+            transform: rotate(90deg);
+        }
+        
+        .modal-body {
+            padding: 25px;
+        }
+        
+        .customer-profile {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .customer-avatar-large {
+            width: 80px;
+            height: 80px;
+            background: var(--cleanbite-gold-light);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .modal-close:hover {
-            background: var(--cleanbite-gold-light);
+            margin: 0 auto 15px;
+            font-size: 40px;
             color: var(--cleanbite-gold);
+            border: 3px solid var(--cleanbite-gold);
         }
-
-        .modal-body {
-            padding: 28px;
-        }
-
-        .order-info {
-            background: var(--cleanbite-offwhite);
-            border-radius: 18px;
-            padding: 20px;
-            margin-bottom: 24px;
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px dashed var(--cleanbite-light-gray);
-        }
-
-        .info-row:last-child {
-            border-bottom: none;
-        }
-
-        .info-label {
-            font-weight: 600;
-            color: var(--cleanbite-gray);
-        }
-
-        .info-value {
+        
+        .customer-name-large {
+            font-size: 1.5rem;
             font-weight: 700;
             color: var(--cleanbite-dark);
+            margin-bottom: 5px;
         }
-
+        
+        .customer-phone-large {
+            color: var(--cleanbite-gray);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .customer-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+            background: var(--cleanbite-offwhite);
+            padding: 15px;
+            border-radius: 16px;
+        }
+        
+        .stat-box {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--cleanbite-gold);
+            line-height: 1.2;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--cleanbite-gray);
+        }
+        
+        .customer-contact-details {
+            background: var(--cleanbite-offwhite);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--cleanbite-light-gray);
+        }
+        
+        .contact-item:last-child {
+            border-bottom: none;
+        }
+        
+        .contact-item i {
+            width: 20px;
+            color: var(--cleanbite-gold);
+        }
+        
+        /* Order History with Items */
+        .order-history-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--cleanbite-dark);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .order-history-title i {
+            color: var(--cleanbite-gold);
+        }
+        
+        .order-history-list {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .order-history-item {
+            background: var(--cleanbite-offwhite);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--cleanbite-gold);
+            transition: all 0.2s ease;
+        }
+        
+        .order-history-item:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .order-id {
+            font-weight: 700;
+            color: var(--cleanbite-dark);
+            font-size: 0.9rem;
+            background: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--cleanbite-gold-light);
+        }
+        
+        .order-status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .order-status-badge.pending-payment { background: #fef3c7; color: #d97706; }
+        .order-status-badge.preparing { background: #dbeafe; color: #2563eb; }
+        .order-status-badge.incubating { background: #f3e8ff; color: #7c3aed; }
+        .order-status-badge.ready { background: #d1fae5; color: #059669; }
+        .order-status-badge.completed { background: #e5e7eb; color: #4b5563; }
+        .order-status-badge.cancelled { background: #fee2e2; color: #dc2626; }
+        
+        .order-date {
+            color: var(--cleanbite-gray);
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .order-items-preview {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px dashed var(--cleanbite-light-gray);
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px dashed var(--cleanbite-light-gray);
+            font-size: 0.9rem;
+        }
+        
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        
+        .item-name {
+            font-weight: 500;
+            color: var(--cleanbite-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .item-quantity {
+            background: var(--cleanbite-gold-light);
+            color: var(--cleanbite-gold);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        
+        .item-price {
+            font-weight: 600;
+            color: var(--cleanbite-success);
+        }
+        
+        .order-total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid var(--cleanbite-light-gray);
+            font-weight: 700;
+        }
+        
+        .order-total-label {
+            color: var(--cleanbite-dark);
+        }
+        
+        .order-total-amount {
+            color: var(--cleanbite-success);
+            font-size: 1.1rem;
+        }
+        
+        .cancelled-reason-badge {
+            margin-top: 10px;
+            padding: 10px;
+            background: #fee2e2;
+            border-radius: 10px;
+            color: #dc2626;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-left: 4px solid #dc2626;
+        }
+        
+        .no-orders {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--cleanbite-gray);
+            background: var(--cleanbite-offwhite);
+            border-radius: 16px;
+        }
+        
+        .no-orders i {
+            font-size: 40px;
+            color: var(--cleanbite-gold);
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+        
         .form-group {
             margin-bottom: 24px;
         }
@@ -1953,8 +2190,8 @@
             </div>
         </div>
     </div>
-
-    <!-- Filter Modal -->
+    
+    <!-- Filter Modal - FIXED -->
     <div class="modal" id="filterModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -3544,71 +3781,166 @@ setInterval(checkOrderProgressions, 60 * 1000);
     };
 
     // ==================== VIEW CUSTOMER DETAILS ====================
-    window.viewCustomerDetails = function(phone) {
-        const customer = allCustomers.get(phone);
-        if (!customer) return;
+    // ==================== FIXED: VIEW CUSTOMER DETAILS WITH ITEMS ====================
+window.viewCustomerDetails = function(phone) {
+    const customer = allCustomers.get(phone);
+    if (!customer) return;
+    
+    // Sort orders by date (newest first)
+    const sortedOrders = [...customer.orders].sort((a, b) => 
+        new Date(b.date) - new Date(a.date)
+    );
+    
+    // Find the full order details from allOrders to get items
+    const customerOrdersWithItems = sortedOrders.map(orderSummary => {
+        const fullOrder = allOrders.find(o => o.id === orderSummary.id);
+        return fullOrder || orderSummary;
+    });
+    
+    const modalBody = document.getElementById('customerModalBody');
+    
+    modalBody.innerHTML = `
+        <div class="customer-profile">
+            <div class="customer-avatar-large">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="customer-name-large">${customer.name}</div>
+            <div class="customer-phone-large">
+                <i class="fas fa-phone-alt"></i> ${customer.phone}
+            </div>
+        </div>
         
-        const modalBody = document.getElementById('customerModalBody');
-        modalBody.innerHTML = `
-            <div style="text-align: center; margin-bottom: 25px;">
-                <div style="width: 80px; height: 80px; background: var(--primary-light); border-radius: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
-                    <i class="fas fa-user-circle" style="font-size: 40px; color: var(--primary);"></i>
-                </div>
-                <h3 style="font-size: 1.5rem; margin-bottom: 5px;">${customer.name}</h3>
-                <p style="color: var(--gray);">${customer.phone}</p>
+        <div class="customer-stats-grid">
+            <div class="stat-box">
+                <div class="stat-value">${customer.totalOrders}</div>
+                <div class="stat-label">Total Orders</div>
             </div>
-            
-            <div class="customer-stats-grid" style="margin-bottom: 25px;">
-                <div class="customer-stat-item">
-                    <div class="customer-stat-value">${customer.totalOrders}</div>
-                    <div class="customer-stat-label">Total Orders</div>
-                </div>
-                <div class="customer-stat-item">
-                    <div class="customer-stat-value">₦${(customer.totalSpent / 1000).toFixed(1)}k</div>
-                    <div class="customer-stat-label">Total Spent</div>
-                </div>
-                <div class="customer-stat-item">
-                    <div class="customer-stat-value">${customer.orders.length}</div>
-                    <div class="customer-stat-label">Items</div>
-                </div>
+            <div class="stat-box">
+                <div class="stat-value">₦${(customer.totalSpent / 1000).toFixed(1)}k</div>
+                <div class="stat-label">Total Spent</div>
             </div>
-            
-            <div class="customer-contact-info" style="margin-bottom: 25px;">
-                <div class="contact-row">
-                    <i class="fas fa-envelope"></i>
-                    <span>${customer.email}</span>
-                </div>
-                <div class="contact-row">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>Customer since: ${customer.orders.length > 0 ? new Date(customer.orders[customer.orders.length-1].date).toLocaleDateString() : 'N/A'}</span>
-                </div>
-                <div class="contact-row">
-                    <i class="fas fa-clock"></i>
-                    <span>Last order: ${customer.lastOrder ? new Date(customer.lastOrder).toLocaleString() : 'N/A'}</span>
-                </div>
+            <div class="stat-box">
+                <div class="stat-value">${customer.orders.reduce((sum, o) => sum + (o.items || 0), 0)}</div>
+                <div class="stat-label">Items</div>
             </div>
-            
-            <h4 style="margin-bottom: 15px;">Order History</h4>
-            <div style="max-height: 300px; overflow-y: auto;">
-                ${customer.orders.sort((a, b) => new Date(b.date) - new Date(a.date)).map(order => `
-                    <div style="background: #f8f9fa; border-radius: 16px; padding: 15px; margin-bottom: 10px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="font-weight: 700;">${order.id}</span>
-                            <span class="status-badge ${order.status}" style="background: ${getStatusColor(order.status)}20; color: ${getStatusColor(order.status)};">
-                                ${order.status || 'pending'}
+        </div>
+        
+        <div class="customer-contact-details">
+            <div class="contact-item">
+                <i class="fas fa-envelope"></i>
+                <span>${customer.email}</span>
+            </div>
+            <div class="contact-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>First order: ${customer.firstOrder ? new Date(customer.firstOrder).toLocaleDateString() : 'N/A'}</span>
+            </div>
+            <div class="contact-item">
+                <i class="fas fa-clock"></i>
+                <span>Last order: ${customer.lastOrder ? new Date(customer.lastOrder).toLocaleDateString() : 'N/A'}</span>
+            </div>
+            <div class="contact-item">
+                <i class="fas fa-credit-card"></i>
+                <span>Preferred payment: ${customer.preferredPayment || 'N/A'}</span>
+            </div>
+        </div>
+        
+        <div class="order-history-title">
+            <i class="fas fa-history"></i> Order History (${customer.orders.length})
+        </div>
+        
+        <div class="order-history-list">
+            ${customerOrdersWithItems.length > 0 ? 
+                customerOrdersWithItems.map(order => `
+                    <div class="order-history-item">
+                        <div class="order-header">
+                            <span class="order-id">${order.id}</span>
+                            <span class="order-status-badge ${order.status || 'pending'}">
+                                ${(order.status || 'pending').replace('-', ' ')}
+                            </span>
+                            <span class="order-date">
+                                <i class="far fa-calendar"></i> ${new Date(order.date || order.createdAt).toLocaleDateString()}
                             </span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; color: var(--gray); font-size: 13px;">
-                            <span>${new Date(order.date).toLocaleDateString()}</span>
-                            <span style="font-weight: 700; color: var(--success);">₦${(order.amount || 0).toLocaleString()}</span>
+                        
+                        ${order.items ? `
+                            <div class="order-items-preview">
+                                ${order.items.map(item => `
+                                    <div class="order-item">
+                                        <span class="item-name">
+                                            <span class="item-quantity">${item.quantity}x</span>
+                                            ${item.name}
+                                        </span>
+                                        <span class="item-price">₦${(item.price * item.quantity).toLocaleString()}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        <div class="order-total-row">
+                            <span class="order-total-label">Total:</span>
+                            <span class="order-total-amount">₦${(order.amount || order.total || 0).toLocaleString()}</span>
                         </div>
+                        
+                        ${order.status === 'cancelled' && order.rejectionReason ? `
+                            <div class="cancelled-reason-badge">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Cancelled: ${order.rejectionReason}
+                            </div>
+                        ` : ''}
                     </div>
-                `).join('')}
-            </div>
-        `;
-        
-        document.getElementById('customerModal').classList.add('active');
-    };
+                `).join('') 
+            : `
+                <div class="no-orders">
+                    <i class="fas fa-shopping-cart"></i>
+                    <p>No orders found</p>
+                </div>
+            `}
+        </div>
+    `;
+    
+    document.getElementById('customerModal').classList.add('active');
+}
+
+    // ==================== MODAL CLOSE FUNCTIONALITY - FIXED ====================
+document.addEventListener('DOMContentLoaded', function() {
+    // Close modal when clicking the close button
+    document.getElementById('closeCustomerModal')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        document.getElementById('customerModal').classList.remove('active');
+    });
+    
+    document.getElementById('closeFilterModal')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        document.getElementById('filterModal').classList.remove('active');
+    });
+    
+    // Close modal when clicking outside the modal content
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+            }
+        });
+    });
+    
+    // Filter modal buttons
+    document.getElementById('clearFilters')?.addEventListener('click', function() {
+        document.getElementById('filterStatus').value = 'all';
+        document.getElementById('filterDate').value = 'all';
+        // Trigger your filter function here
+        if (typeof applyFilters === 'function') applyFilters();
+        document.getElementById('filterModal').classList.remove('active');
+    });
+    
+    document.getElementById('applyFilters')?.addEventListener('click', function() {
+        // Trigger your filter function here
+        if (typeof applyFilters === 'function') applyFilters();
+        document.getElementById('filterModal').classList.remove('active');
+    });
+});
 
     // ==================== NOTIFICATION ====================
     function showNotification(message, type = 'success') {
@@ -3985,6 +4317,7 @@ setInterval(checkOrderProgressions, 60 * 1000);
     
 </body>
 </html>
+
 
 
 
