@@ -2385,2371 +2385,1305 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
     <script>
-    // ==================== FIREBASE CONFIG ====================
-    const firebaseConfig = {
-        apiKey: "AIzaSyC1WaO1WE-LFayAqLeql0BP5vD8bddgUuE",
-        authDomain: "cleanbite-empire.firebaseapp.com",
-        databaseURL: "https://cleanbite-empire-default-rtdb.firebaseio.com",
-        projectId: "cleanbite-empire",
-        storageBucket: "cleanbite-empire.firebasestorage.app",
-        messagingSenderId: "733995841314",
-        appId: "1:733995841314:web:d82f5452f1fff0fdfad77b"
+       // ==================== FIREBASE CONFIG ====================
+const firebaseConfig = {
+    apiKey: "AIzaSyC1WaO1WE-LFayAqLeql0BP5vD8bddgUuE",
+    authDomain: "cleanbite-empire.firebaseapp.com",
+    databaseURL: "https://cleanbite-empire-default-rtdb.firebaseio.com",
+    projectId: "cleanbite-empire",
+    storageBucket: "cleanbite-empire.firebasestorage.app",
+    messagingSenderId: "733995841314",
+    appId: "1:733995841314:web:d82f5452f1fff0fdfad77b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// ==================== GLOBAL VARIABLES ====================
+let allOrders = [];
+let allCustomers = new Map(); // key: phone
+let currentVerificationOrder = null;
+let currentStatusOrder = null;
+let currentCustomerView = null;
+let broadcastChannel = null;
+let audioCtx = null;
+let activeTab = 'dashboard'; // track current tab for filtering
+
+// ==================== HELPER FUNCTIONS ====================
+function timeAgo(timestamp) {
+    if (!timestamp) return 'Just now';
+    const diff = Math.floor((new Date() - new Date(timestamp)) / 60000);
+    if (diff < 1) return 'Just now';
+    if (diff < 60) return `${diff}m ago`;
+    if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
+    return `${Math.floor(diff / 1440)}d ago`;
+}
+
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notification-toast ${type}`;
+    notification.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}" 
+           style="font-size: 24px; color: ${type === 'success' ? '#2ecc71' : type === 'warning' ? '#f39c12' : '#3498db'};"></i>
+        <div style="flex: 1;">
+            <div style="font-weight: 700; margin-bottom: 5px;">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+            <div style="color: #64748b;">${message}</div>
+        </div>
+        <button onclick="this.parentElement.remove()" style="background: none; border: none; color: #64748b; cursor: pointer; font-size: 20px;">&times;</button>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 5000);
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.remove('active');
+}
+
+function getStatusColor(status) {
+    const colors = {
+        'pending-payment': '#f39c12',
+        'preparing': '#3498db',
+        'incubating': '#9b59b6',
+        'ready': '#2ecc71',
+        'completed': '#95a5a6',
+        'cancelled': '#e74c3c'
     };
+    return colors[status] || '#95a5a6';
+}
 
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    window.database = firebase.database();
-    const database = window.database;
+function getStatusIcon(status) {
+    const icons = {
+        'pending-payment': 'fa-clock',
+        'preparing': 'fa-utensils',
+        'incubating': 'fa-clock',
+        'ready': 'fa-check-circle',
+        'completed': 'fa-flag-checkered',
+        'cancelled': 'fa-ban'
+    };
+    return icons[status] || 'fa-circle';
+}
 
-    // ==================== GLOBAL VARIABLES ====================
-    let allOrders = [];
-    let allCustomers = new Map();
-    let currentVerificationOrder = null;
-    let currentStatusOrder = null;
-    let currentCustomerView = null;
-    let broadcastChannel = null;
-    let activityChannel = null;
-    let audioCtx = null;
+// ==================== AUDIO ====================
+function initAudio() {
+    try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+        console.log('Audio not supported');
+    }
+}
 
-    // ==================== INITIALIZE AUDIO ====================
-    function initAudio() {
-        try {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        } catch (e) {
-            console.log('Audio not supported');
+function playNotificationSound() {
+    if (!audioCtx) return;
+    try {
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 600;
+        gainNode.gain.value = 0.2;
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.2);
+    } catch (e) {}
+}
+
+function playApprovalSound() {
+    if (!audioCtx) return;
+    try {
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 800;
+        gainNode.gain.value = 0.3;
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+        setTimeout(() => {
+            oscillator.frequency.value = 1000;
+        }, 150);
+        oscillator.stop(audioCtx.currentTime + 0.3);
+    } catch (e) {}
+}
+
+// ==================== BROADCAST CHANNEL ====================
+function initBroadcastSystem() {
+    try {
+        if (typeof BroadcastChannel !== 'undefined') {
+            broadcastChannel = new BroadcastChannel('cleanbite_activities');
         }
-    }
+    } catch (e) {}
+}
 
-    function playNotificationSound() {
-        if (!audioCtx) return;
+function broadcastToOrderPage(type, message, orderId, customerName) {
+    const activity = {
+        id: Date.now() + Math.random(),
+        type: type,
+        message: message,
+        orderId: orderId,
+        customerName: customerName,
+        timestamp: new Date().toISOString(),
+        icon: getBroadcastIcon(type),
+        color: getBroadcastColor(type)
+    };
+    if (broadcastChannel) {
         try {
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.type = 'sine';
-            oscillator.frequency.value = 600;
-            gainNode.gain.value = 0.2;
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.2);
+            broadcastChannel.postMessage({ type: 'NEW_ACTIVITY', activity });
         } catch (e) {}
     }
+    // localStorage fallback
+    try {
+        localStorage.setItem('cleanbite_broadcast', JSON.stringify({
+            type: 'ACTIVITY',
+            activity: activity,
+            timestamp: Date.now()
+        }));
+        setTimeout(() => localStorage.removeItem('cleanbite_broadcast'), 100);
+    } catch (e) {}
+}
 
-    function playApprovalSound() {
-        if (!audioCtx) return;
-        try {
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.type = 'sine';
-            oscillator.frequency.value = 800;
-            gainNode.gain.value = 0.3;
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.start();
-            setTimeout(() => {
-                oscillator.frequency.value = 1000;
-            }, 150);
-            oscillator.stop(audioCtx.currentTime + 0.3);
-        } catch (e) {}
-    }
+function getBroadcastIcon(type) {
+    const icons = {
+        'payment_verified': 'fa-check-circle',
+        'payment_rejected': 'fa-times-circle',
+        'order_created': 'fa-cart-plus',
+        'status_change': 'fa-sync-alt',
+        'order_completed': 'fa-flag-checkered'
+    };
+    return icons[type] || 'fa-bell';
+}
 
-    // ==================== LOAD ORDERS FROM FIREBASE ====================
-    function loadOrdersFromFirebase() {
-        console.log('📡 Loading orders from Firebase...');
-        
-        database.ref('orders').on('value', (snapshot) => {
-            const data = snapshot.val();
-            
-            if (!data) {
-                allOrders = [];
-                updateAllDisplays();
-                return;
-            }
-            
+function getBroadcastColor(type) {
+    const colors = {
+        'payment_verified': '#2ecc71',
+        'payment_rejected': '#e74c3c',
+        'order_created': '#9b59b6',
+        'status_change': '#3498db',
+        'order_completed': '#3498db'
+    };
+    return colors[type] || '#95a5a6';
+}
+
+// ==================== FIREBASE DATA LOADING ====================
+function loadOrdersFromFirebase() {
+    console.log('📡 Loading orders from Firebase...');
+    database.ref('orders').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+            allOrders = [];
+        } else {
             allOrders = Object.keys(data).map(key => ({
                 ...data[key],
                 firebaseKey: key
             }));
-            
-            console.log(`✅ Loaded ${allOrders.length} orders`);
-            processCustomers();
-            updateAllDisplays();
-            checkForNewOrders();
-        });
-    }
+        }
+        processCustomers();
+        updateAllDisplays();
+        checkForNewOrders();
+    });
+}
 
-    // ==================== PROCESS CUSTOMERS ====================
-    function processCustomers() {
-        allCustomers.clear();
-        
-        allOrders.forEach(order => {
-            if (!order.customerPhone) return;
-            
-            const key = `${order.customerPhone}`;
-            
-            if (!allCustomers.has(key)) {
-                allCustomers.set(key, {
-                    name: order.customerName || 'Unknown',
-                    phone: order.customerPhone,
-                    email: order.customerEmail || 'N/A',
-                    totalOrders: 0,
-                    totalSpent: 0,
-                    orders: [],
-                    lastOrder: null
-                });
-            }
-            
-            const customer = allCustomers.get(key);
-            customer.totalOrders++;
-            customer.totalSpent += order.total || order.totalAmount || 0;
-            customer.orders.push({
-                id: order.id,
-                date: order.createdAt || order.timestamp,
-                amount: order.total || order.totalAmount,
-                status: order.status,
-                paymentStatus: order.paymentStatus
-            });
-            
-            const orderDate = new Date(order.createdAt || order.timestamp || 0);
-            if (!customer.lastOrder || orderDate > new Date(customer.lastOrder)) {
-                customer.lastOrder = order.createdAt || order.timestamp;
-            }
-        });
-        
-        console.log(`✅ Processed ${allCustomers.size} customers`);
-    }
-
-    // ==================== CHECK FOR NEW ORDERS ====================
-    let lastOrderCount = 0;
-    
-    function checkForNewOrders() {
-        if (allOrders.length > lastOrderCount) {
-            const newOrders = allOrders.slice(lastOrderCount);
-            newOrders.forEach(order => {
-                if (order.paymentStatus === 'pending' && order.status === 'pending-payment') {
-                    playNotificationSound();
-                    showNotification(`💰 New order from ${order.customerName || 'Customer'}`, 'warning');
-                    
-                    addActivity({
-                        type: 'order_created',
-                        message: `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
-                        orderId: order.id,
-                        customerName: order.customerName,
-                        icon: 'fa-cart-plus',
-                        color: '#9b59b6'
-                    });
-                }
+function processCustomers() {
+    allCustomers.clear();
+    allOrders.forEach(order => {
+        if (!order.customerPhone) return;
+        const key = order.customerPhone;
+        if (!allCustomers.has(key)) {
+            allCustomers.set(key, {
+                name: order.customerName || 'Unknown',
+                phone: order.customerPhone,
+                email: order.customerEmail || 'N/A',
+                totalOrders: 0,
+                totalSpent: 0,
+                orders: [],
+                lastOrder: null,
+                firstOrder: null,
+                smsConsent: order.smsConsent !== false // default true if not set
             });
         }
-        lastOrderCount = allOrders.length;
-    }
+        const customer = allCustomers.get(key);
+        customer.totalOrders++;
+        customer.totalSpent += order.total || order.totalAmount || 0;
+        customer.orders.push({
+            id: order.id,
+            date: order.createdAt || order.timestamp,
+            amount: order.total || order.totalAmount,
+            status: order.status,
+            paymentStatus: order.paymentStatus,
+            items: order.items || []
+        });
+        const orderDate = new Date(order.createdAt || order.timestamp || 0);
+        if (!customer.firstOrder || orderDate < new Date(customer.firstOrder)) {
+            customer.firstOrder = order.createdAt || order.timestamp;
+        }
+        if (!customer.lastOrder || orderDate > new Date(customer.lastOrder)) {
+            customer.lastOrder = order.createdAt || order.timestamp;
+        }
+    });
+}
 
-    // ==================== UPDATE ALL DISPLAYS ====================
-// ==================== UPDATE ALL DISPLAYS ====================
+let lastOrderCount = 0;
+function checkForNewOrders() {
+    if (allOrders.length > lastOrderCount) {
+        const newOrders = allOrders.slice(lastOrderCount);
+        newOrders.forEach(order => {
+            if (order.paymentStatus === 'pending' && order.status === 'pending-payment') {
+                playNotificationSound();
+                showNotification(`💰 New order from ${order.customerName || 'Customer'}`, 'warning');
+                addActivityToFeed({
+                    type: 'order_created',
+                    message: `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
+                    orderId: order.id,
+                    customerName: order.customerName,
+                    icon: 'fa-cart-plus',
+                    color: '#9b59b6'
+                });
+            }
+        });
+    }
+    lastOrderCount = allOrders.length;
+}
+
+function addActivityToFeed(activity) {
+    const feed = document.getElementById('activityFeed');
+    if (!feed) return;
+    const el = document.createElement('div');
+    el.className = 'activity-item';
+    el.style.borderLeftColor = activity.color || '#3498db';
+    el.innerHTML = `
+        <div class="activity-icon" style="color: ${activity.color || '#3498db'};">
+            <i class="fas ${activity.icon || 'fa-bell'}"></i>
+        </div>
+        <div class="activity-content">
+            <div class="activity-message">${activity.message}</div>
+            <div class="activity-time">
+                <i class="far fa-clock"></i> Just now
+                ${activity.customerName ? `
+                    <span class="activity-customer">
+                        <i class="fas fa-user"></i> ${activity.customerName}
+                    </span>
+                ` : ''}
+                ${activity.orderId ? `
+                    <span class="activity-order">
+                        <i class="fas fa-hashtag"></i> ${activity.orderId.slice(-8)}
+                    </span>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    if (feed.firstChild) {
+        feed.insertBefore(el, feed.firstChild);
+    } else {
+        feed.appendChild(el);
+    }
+    while (feed.children.length > 30) {
+        feed.removeChild(feed.lastChild);
+    }
+}
+
+// ==================== UI UPDATE FUNCTIONS ====================
 function updateAllDisplays() {
     if (!document.getElementById('totalRevenue')) {
         console.log('⏳ Dashboard elements not ready yet, skipping update');
         return;
     }
-    
     updateStats();
     updateVerificationQueue();
-    updateVerifiedOrders();     // ✅ Shows only active (preparing, incubating, ready)
-    updateCancelledOrders();    // ✅ Shows cancelled archive
-    updateCompletedOrders();    // ✅ NEW - Shows completed archive
+    updateVerifiedOrders();
+    updateCancelledOrders();
+    updateCompletedOrders();
     updateCustomersDisplay();
     updateActivityFeed();
     updateSidebarBadges();
+    updateMonthFilters();
 }
 
-  // ==================== UPDATE STATS (Accurate Counts) ====================
 function updateStats() {
-    if (!document.getElementById('totalRevenue')) return;
-    
     const verifiedRevenue = allOrders
         .filter(o => o.paymentStatus === 'verified' && o.status === 'completed')
         .reduce((sum, o) => sum + (o.total || o.totalAmount || 0), 0);
-    
-    // ✅ Pending payment count
-    const pendingCount = allOrders.filter(o => 
-        o.paymentStatus === 'pending' && o.status !== 'cancelled'
-    ).length;
-    
-    // ✅ ACTIVE verified orders (preparing, incubating, ready) - NOT completed
-    const activeCount = allOrders.filter(o => 
-        o.paymentStatus === 'verified' && 
-        ['preparing', 'incubating', 'ready'].includes(o.status)
-    ).length;
-    
-    // ✅ Customers with at least one order
-    const customersWithOrders = Array.from(allCustomers.values())
-        .filter(c => c.totalOrders > 0).length;
-    
+    const pendingCount = allOrders.filter(o => o.paymentStatus === 'pending' && o.status !== 'cancelled').length;
+    const activeCount = allOrders.filter(o => o.paymentStatus === 'verified' && ['preparing', 'incubating', 'ready'].includes(o.status)).length;
+    const customersWithOrders = Array.from(allCustomers.values()).filter(c => c.totalOrders > 0).length;
     document.getElementById('totalRevenue').textContent = `₦${verifiedRevenue.toLocaleString()}`;
     document.getElementById('awaitingVerification').textContent = pendingCount;
-    document.getElementById('verifiedOrdersCount').textContent = activeCount; // ✅ Active only
-    document.getElementById('totalCustomers').textContent = customersWithOrders; // ✅ Active customers
+    document.getElementById('verifiedOrdersCount').textContent = activeCount;
+    document.getElementById('totalCustomers').textContent = customersWithOrders;
 }
 
-    // ==================== UPDATE SIDEBAR BADGES (Accurate Counts) ====================
 function updateSidebarBadges() {
-    if (!document.getElementById('verificationBadge')) return;
-    
-    const pendingCount = allOrders.filter(o => 
-        o.paymentStatus === 'pending' && o.status !== 'cancelled'
-    ).length;
-    
-    const activeCount = allOrders.filter(o => 
-        o.paymentStatus === 'verified' && 
-        ['preparing', 'incubating', 'ready'].includes(o.status)
-    ).length;
-    
-    const cancelledCount = allOrders.filter(o => 
-        o.status === 'cancelled'
-    ).length;
-    
-    const completedCount = allOrders.filter(o => 
-        o.status === 'completed'
-    ).length;
-    
+    const pendingCount = allOrders.filter(o => o.paymentStatus === 'pending' && o.status !== 'cancelled').length;
+    const activeCount = allOrders.filter(o => o.paymentStatus === 'verified' && ['preparing', 'incubating', 'ready'].includes(o.status)).length;
+    const cancelledCount = allOrders.filter(o => o.status === 'cancelled').length;
+    const completedCount = allOrders.filter(o => o.status === 'completed').length;
     document.getElementById('verificationBadge').textContent = pendingCount;
-    document.getElementById('verifiedBadge').textContent = activeCount; // ✅ Active only
+    document.getElementById('verifiedBadge').textContent = activeCount;
     document.getElementById('cancelledBadge').textContent = cancelledCount;
-    
-    // Update completed badge if exists
     const completedBadge = document.getElementById('completedBadge');
     if (completedBadge) completedBadge.textContent = completedCount;
-    
     const paymentNotice = document.getElementById('paymentNotice');
     if (paymentNotice) {
         if (pendingCount > 0) {
             paymentNotice.style.display = 'flex';
-            document.getElementById('paymentNoticeMessage').textContent = 
-                `${pendingCount} order${pendingCount > 1 ? 's' : ''} pending verification`;
-            document.getElementById('paymentNoticeCount').innerHTML = 
-                `<i class="fas fa-clock"></i> ${pendingCount} pending`;
+            document.getElementById('paymentNoticeMessage').textContent = `${pendingCount} order${pendingCount > 1 ? 's' : ''} pending verification`;
+            document.getElementById('paymentNoticeCount').innerHTML = `<i class="fas fa-clock"></i> ${pendingCount} pending`;
         } else {
             paymentNotice.style.display = 'none';
         }
     }
 }
 
-    // ==================== UPDATE VERIFICATION QUEUE ====================
-    function updateVerificationQueue() {
-        const container = document.getElementById('verificationList');
-        if (!container) return;
-        
-        const pendingOrders = allOrders.filter(o => 
-            o.paymentStatus === 'pending' && 
-            o.status !== 'cancelled'
-        ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        
-        if (pendingOrders.length === 0) {
-            container.innerHTML = `
-                <div class="empty-queue">
-                    <i class="fas fa-check-circle"></i>
-                    <p>No payments pending verification</p>
-                    <span style="color: var(--gray);">All caught up!</span>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = pendingOrders.map(order => `
-            <div class="verification-card" data-order-id="${order.id}">
-                <div class="verification-card-header">
-                    <span class="verification-order-id">${order.id}</span>
-                    <span class="verification-time">
-                        <i class="far fa-clock"></i> ${timeAgo(order.createdAt)}
-                    </span>
-                </div>
-                
-                <div class="verification-customer">
-                    <div class="customer-avatar">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                    <div class="customer-details">
-                        <h4>${order.customerName || 'Customer'}</h4>
-                        <p><i class="fas fa-phone-alt"></i> ${order.customerPhone || 'N/A'}</p>
-                    </div>
-                </div>
-                
-                <div class="verification-items">
-                    ${order.items?.map(item => `
-                        <div class="verification-item-row">
-                            <span class="item-name">${item.name}</span>
-                            <span class="item-quantity">x${item.quantity}</span>
-                            <span class="item-price">₦${(item.price * item.quantity).toLocaleString()}</span>
-                        </div>
-                    `).join('') || '<div>No items</div>'}
-                </div>
-                
-                <div class="verification-footer">
-                    <span class="verification-amount">₦${(order.total || order.totalAmount || 0).toLocaleString()}</span>
-                    <div class="verification-actions">
-                        <button class="btn-verify" onclick="openVerifyModal('${order.id}')">
-                            <i class="fas fa-check"></i> Verify
-                        </button>
-                        <button class="btn-reject" onclick="openRejectModal('${order.id}')">
-                            <i class="fas fa-times"></i> Reject
-                        </button>
-                    </div>
+function updateVerificationQueue() {
+    const container = document.getElementById('verificationList');
+    if (!container) return;
+    const pendingOrders = allOrders.filter(o => o.paymentStatus === 'pending' && o.status !== 'cancelled')
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    if (pendingOrders.length === 0) {
+        container.innerHTML = `<div class="empty-queue"><i class="fas fa-check-circle"></i><p>No payments pending verification</p><span style="color: var(--gray);">All caught up!</span></div>`;
+        return;
+    }
+    document.getElementById('verificationCount').textContent = pendingOrders.length;
+    container.innerHTML = pendingOrders.map(order => `
+        <div class="verification-card" data-order-id="${order.id}">
+            <div class="verification-card-header">
+                <span class="verification-order-id">${order.id}</span>
+                <span class="verification-time"><i class="far fa-clock"></i> ${timeAgo(order.createdAt)}</span>
+            </div>
+            <div class="verification-customer">
+                <div class="customer-avatar"><i class="fas fa-user-circle"></i></div>
+                <div class="customer-details">
+                    <h4>${order.customerName || 'Customer'}</h4>
+                    <p><i class="fas fa-phone-alt"></i> ${order.customerPhone || 'N/A'}</p>
                 </div>
             </div>
-        `).join('');
-    }
+            <div class="verification-items">
+                ${order.items?.map(item => `
+                    <div class="verification-item-row">
+                        <span class="item-name">${item.name}</span>
+                        <span class="item-quantity">x${item.quantity}</span>
+                        <span class="item-price">₦${(item.price * item.quantity).toLocaleString()}</span>
+                    </div>
+                `).join('') || '<div>No items</div>'}
+            </div>
+            <div class="verification-footer">
+                <span class="verification-amount">₦${(order.total || order.totalAmount || 0).toLocaleString()}</span>
+                <div class="verification-actions">
+                    <button class="btn-verify" onclick="openVerifyModal('${order.id}')"><i class="fas fa-check"></i> Verify</button>
+                    <button class="btn-reject" onclick="openRejectModal('${order.id}')"><i class="fas fa-times"></i> Reject</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
 
-    // ==================== UPDATE VERIFIED ORDERS ====================
- // ==================== UPDATE VERIFIED ORDERS (Active Only - NO completed/cancelled) ====================
 function updateVerifiedOrders() {
     const container = document.getElementById('verifiedOrdersList');
     if (!container) return;
-    
-    // ✅ Only show ACTIVE orders (preparing, incubating, ready) - NO completed or cancelled
-    const activeOrders = allOrders.filter(o => 
-        o.paymentStatus === 'verified' && 
-        ['preparing', 'incubating', 'ready'].includes(o.status)
-    ).sort((a, b) => new Date(b.verifiedAt || b.createdAt) - new Date(a.verifiedAt || a.createdAt));
-    
+    const activeOrders = allOrders.filter(o => o.paymentStatus === 'verified' && ['preparing', 'incubating', 'ready'].includes(o.status))
+        .sort((a, b) => new Date(b.verifiedAt || b.createdAt) - new Date(a.verifiedAt || a.createdAt));
+    document.getElementById('verifiedCount').textContent = activeOrders.length;
     if (activeOrders.length === 0) {
-        container.innerHTML = `
-            <div class="empty-queue">
-                <i class="fas fa-shopping-cart"></i>
-                <p>No active orders</p>
-                <span style="color: var(--gray);">All orders are completed or cancelled</span>
-            </div>
-        `;
+        container.innerHTML = `<div class="empty-queue"><i class="fas fa-shopping-cart"></i><p>No active orders</p><span style="color: var(--gray);">All orders are completed or cancelled</span></div>`;
         return;
     }
-    
     container.innerHTML = activeOrders.map(order => renderOrderCard(order, 'verified')).join('');
 }
 
-
-    // ==================== UPDATE CANCELLED ORDERS ====================
-    function updateCancelledOrders() {
+function updateCancelledOrders() {
     const container = document.getElementById('cancelledOrdersList');
     if (!container) return;
-    
-    // ✅ Get all cancelled orders (archived)
-    const cancelledOrders = allOrders.filter(o => 
-        o.status === 'cancelled'
-    ).sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
-    
+    const filterMonth = document.getElementById('cancelledMonthFilter')?.value;
+    let cancelledOrders = allOrders.filter(o => o.status === 'cancelled');
+    if (filterMonth && filterMonth !== 'all') {
+        const [year, month] = filterMonth.split('-');
+        cancelledOrders = cancelledOrders.filter(o => {
+            const d = new Date(o.updatedAt || o.createdAt);
+            return d.getFullYear() == year && (d.getMonth() + 1) == month;
+        });
+    }
+    cancelledOrders.sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+    document.getElementById('cancelledCount').textContent = cancelledOrders.length;
     if (cancelledOrders.length === 0) {
-        container.innerHTML = `
-            <div class="empty-queue">
-                <i class="fas fa-times-circle"></i>
-                <p>No cancelled orders</p>
-            </div>
-        `;
+        container.innerHTML = `<div class="empty-queue"><i class="fas fa-times-circle"></i><p>No cancelled orders</p></div>`;
         return;
     }
-    
     container.innerHTML = cancelledOrders.map(order => renderOrderCard(order, 'cancelled')).join('');
 }
 
-        function updateCompletedOrders() {
+function updateCompletedOrders() {
     const container = document.getElementById('completedOrdersList');
     if (!container) return;
-    
-    // ✅ Get all completed orders (archived)
-    const completedOrders = allOrders.filter(o => 
-        o.status === 'completed'
-    ).sort((a, b) => new Date(b.completedAt || b.updatedAt) - new Date(a.completedAt || a.updatedAt));
-    
+    const filterMonth = document.getElementById('completedMonthFilter')?.value;
+    let completedOrders = allOrders.filter(o => o.status === 'completed');
+    if (filterMonth && filterMonth !== 'all') {
+        const [year, month] = filterMonth.split('-');
+        completedOrders = completedOrders.filter(o => {
+            const d = new Date(o.completedAt || o.updatedAt || o.createdAt);
+            return d.getFullYear() == year && (d.getMonth() + 1) == month;
+        });
+    }
+    completedOrders.sort((a, b) => new Date(b.completedAt || b.updatedAt) - new Date(a.completedAt || a.updatedAt));
+    document.getElementById('completedCount').textContent = completedOrders.length;
     if (completedOrders.length === 0) {
-        container.innerHTML = `
-            <div class="empty-queue">
-                <i class="fas fa-archive"></i>
-                <p>No completed orders</p>
-            </div>
-        `;
+        container.innerHTML = `<div class="empty-queue"><i class="fas fa-archive"></i><p>No completed orders</p></div>`;
         return;
     }
-    
     container.innerHTML = completedOrders.map(order => renderOrderCard(order, 'completed')).join('');
 }
 
-    // ==================== RENDER ORDER CARD ====================
-    function renderOrderCard(order, type) {
-        const cardClass = type === 'verified' ? 'verified-card' : 'cancelled-card';
-        const statusText = order.status?.replace('-', ' ') || 'pending';
-        
-        let progressHtml = '';
-        if (type === 'verified' && order.status !== 'cancelled' && order.status !== 'completed') {
-            progressHtml = renderTimeline(order);
-        }
-        
-        return `
-            <div class="order-card ${cardClass}" data-order-id="${order.id}">
-                <div class="order-card-header">
-                    <div class="order-badge">
-                        <span class="order-id-badge">${order.id}</span>
-                        <span class="status-badge ${order.status || 'pending'}">
-                            <i class="fas ${getStatusIcon(order.status)}"></i> ${statusText}
-                        </span>
-                    </div>
-                    <span class="order-time">
-                        <i class="far fa-clock"></i> ${timeAgo(order.createdAt)}
+function renderOrderCard(order, type) {
+    const cardClass = type === 'verified' ? 'verified-card' : (type === 'cancelled' ? 'cancelled-card' : '');
+    const statusText = order.status?.replace('-', ' ') || 'pending';
+    let progressHtml = '';
+    if (type === 'verified' && order.status !== 'cancelled' && order.status !== 'completed') {
+        progressHtml = renderTimeline(order);
+    }
+    return `
+        <div class="order-card ${cardClass}" data-order-id="${order.id}">
+            <div class="order-card-header">
+                <div class="order-badge">
+                    <span class="order-id-badge">${order.id}</span>
+                    <span class="status-badge ${order.status || 'pending'}">
+                        <i class="fas ${getStatusIcon(order.status)}"></i> ${statusText}
                     </span>
                 </div>
-
-                <div class="order-customer-row">
-                    <div class="customer-avatar-large">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                    <div class="customer-info-detailed">
-                        <h4>${order.customerName || 'Customer'}</h4>
-                        <div class="customer-contact">
-                            <span><i class="fas fa-phone-alt"></i> ${order.customerPhone || 'N/A'}</span>
-                            <span><i class="fas fa-envelope"></i> ${order.customerEmail || 'N/A'}</span>
-                        </div>
+                <span class="order-time"><i class="far fa-clock"></i> ${timeAgo(order.createdAt)}</span>
+            </div>
+            <div class="order-customer-row">
+                <div class="customer-avatar-large"><i class="fas fa-user-circle"></i></div>
+                <div class="customer-info-detailed">
+                    <h4>${order.customerName || 'Customer'}</h4>
+                    <div class="customer-contact">
+                        <span><i class="fas fa-phone-alt"></i> ${order.customerPhone || 'N/A'}</span>
+                        <span><i class="fas fa-envelope"></i> ${order.customerEmail || 'N/A'}</span>
                     </div>
                 </div>
-
-                <div class="order-items-list">
-                    ${order.items?.map(item => `
-                        <div class="order-item-row">
-                            <div class="item-info">
-                                <span class="item-quantity-badge">${item.quantity}x</span>
-                                <span class="item-name">${item.name}</span>
-                            </div>
-                            <span class="item-price">₦${(item.price * item.quantity).toLocaleString()}</span>
+            </div>
+            <div class="order-items-list">
+                ${order.items?.map(item => `
+                    <div class="order-item-row">
+                        <div class="item-info">
+                            <span class="item-quantity-badge">${item.quantity}x</span>
+                            <span class="item-name">${item.name}</span>
                         </div>
-                    `).join('') || '<div>No items</div>'}
-                </div>
-
-                ${progressHtml}
-
-                <div class="order-footer">
-                    <div class="order-total">
-                        <span class="total-label">Total Amount</span>
-                        <span class="total-amount">₦${(order.total || order.totalAmount || 0).toLocaleString()}</span>
+                        <span class="item-price">₦${(item.price * item.quantity).toLocaleString()}</span>
                     </div>
-                    <div class="order-actions">
-                        ${type === 'verified' ? `
-                            ${order.status === 'ready' ? `
-                                <button class="btn-action complete" onclick="completeOrderManually('${order.id}')">
-                                    <i class="fas fa-flag-checkered"></i> Complete
-                                </button>
-                            ` : ''}
-                            <button class="btn-action update" onclick="openStatusModal('${order.id}')">
-                                <i class="fas fa-edit"></i> Update
+                `).join('') || '<div>No items</div>'}
+            </div>
+            ${progressHtml}
+            <div class="order-footer">
+                <div class="order-total">
+                    <span class="total-label">Total Amount</span>
+                    <span class="total-amount">₦${(order.total || order.totalAmount || 0).toLocaleString()}</span>
+                </div>
+                <div class="order-actions">
+                    ${type === 'verified' ? `
+                        ${order.status === 'ready' ? `
+                            <button class="btn-action complete" onclick="completeOrderManually('${order.id}')">
+                                <i class="fas fa-flag-checkered"></i> Complete
                             </button>
-                        ` : `
-                            <span style="color: var(--gray); font-size: 12px;">No actions</span>
-                        `}
-                    </div>
+                        ` : ''}
+                        <button class="btn-action update" onclick="openStatusModal('${order.id}')">
+                            <i class="fas fa-edit"></i> Update
+                        </button>
+                    ` : type === 'cancelled' ? `
+                        <span style="color: var(--gray); font-size: 12px;">Cancelled</span>
+                    ` : `
+                        <span style="color: var(--gray); font-size: 12px;">Completed</span>
+                    `}
                 </div>
             </div>
-        `;
-    }
-
-    // ==================== RENDER TIMELINE ====================
-    function renderTimeline(order) {
-        const steps = ['verified', 'preparing', 'incubating', 'ready'];
-        const currentIndex = steps.indexOf(order.status);
-        
-        let incubationHtml = '';
-        if (order.status === 'incubating' && order.incubatingStarted) {
-            const start = new Date(order.incubatingStarted);
-            const now = new Date();
-            const elapsed = now - start;
-            const total = 24 * 60 * 60 * 1000;
-            const percent = Math.min(100, Math.round((elapsed / total) * 100));
-            const remaining = Math.max(0, Math.round((total - elapsed) / (60 * 60 * 1000)));
-            
-            incubationHtml = `
-                <div class="incubation-timer">
-                    <div class="timer-info">
-                        <i class="fas fa-hourglass-half"></i>
-                        <div class="timer-text">
-                            <span>Time remaining</span>
-                            <strong>${remaining}h</strong>
-                        </div>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${percent}%;"></div>
-                    </div>
-                </div>
-            `;
-        } else if (order.status === 'ready') {
-            incubationHtml = `
-                <div class="incubation-timer" style="background: var(--success-light);">
-                    <div class="timer-info">
-                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
-                        <div class="timer-text">
-                            <span>Ready for pickup</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        return `
-            <div class="order-timeline">
-                <div class="timeline-header">
-                    <span><i class="fas fa-clock"></i> Order Progress</span>
-                </div>
-                <div class="timeline-steps">
-                    ${steps.map((step, index) => `
-                        <div class="timeline-step">
-                            <div class="step-icon ${index < currentIndex ? 'completed' : index === currentIndex ? 'active' : ''}">
-                                <i class="fas ${getStepIcon(step)}"></i>
-                            </div>
-                            <span class="step-label ${index < currentIndex ? 'completed' : index === currentIndex ? 'active' : ''}">
-                                ${step.charAt(0).toUpperCase() + step.slice(1)}
-                            </span>
-                        </div>
-                    `).join('')}
-                </div>
-                ${incubationHtml}
-            </div>
-        `;
-    }
-
-    function getStepIcon(step) {
-        const icons = {
-            'verified': 'fa-check',
-            'preparing': 'fa-utensils',
-            'incubating': 'fa-fire',
-            'ready': 'fa-check-circle'
-        };
-        return icons[step] || 'fa-circle';
-    }
-
-    // ==================== UPDATE CUSTOMERS DISPLAY ====================
-    function updateCustomersDisplay() {
-        const container = document.getElementById('customersList');
-        if (!container) return;
-        
-        if (allCustomers.size === 0) {
-            container.innerHTML = `
-                <div class="empty-queue">
-                    <i class="fas fa-users"></i>
-                    <p>No customers yet</p>
-                </div>
-            `;
-            return;
-        }
-        
-        const customersArray = Array.from(allCustomers.values())
-            .sort((a, b) => b.totalOrders - a.totalOrders);
-        
-        container.innerHTML = customersArray.map(customer => `
-            <div class="customer-card" data-phone="${customer.phone}">
-                <div class="customer-card-header">
-                    <div class="customer-avatar-lg">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                    <div class="customer-title">
-                        <h4>${customer.name}</h4>
-                        <p><i class="fas fa-phone-alt"></i> ${customer.phone}</p>
-                    </div>
-                </div>
-                
-                <div class="customer-stats-grid">
-                    <div class="customer-stat-item">
-                        <div class="customer-stat-value">${customer.totalOrders}</div>
-                        <div class="customer-stat-label">Orders</div>
-                    </div>
-                    <div class="customer-stat-item">
-                        <div class="customer-stat-value">₦${(customer.totalSpent / 1000).toFixed(1)}k</div>
-                        <div class="customer-stat-label">Spent</div>
-                    </div>
-                    <div class="customer-stat-item">
-                        <div class="customer-stat-value">${customer.orders.length}</div>
-                        <div class="customer-stat-label">Items</div>
-                    </div>
-                </div>
-                
-                <div class="customer-contact-info">
-                    <div class="contact-row">
-                        <i class="fas fa-envelope"></i>
-                        <span>${customer.email}</span>
-                    </div>
-                    <div class="contact-row">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Last order: ${customer.lastOrder ? new Date(customer.lastOrder).toLocaleDateString() : 'N/A'}</span>
-                    </div>
-                </div>
-                
-                <div class="customer-orders-preview">
-                    <div class="preview-header">
-                        <span>Recent Orders</span>
-                        <span>${customer.orders.length} total</span>
-                    </div>
-                    ${customer.orders.slice(0, 3).map(order => `
-                        <div class="preview-order-item">
-                            <span class="preview-order-id">${order.id.slice(-8)}</span>
-                            <span class="preview-order-status ${order.status}" 
-                                  style="background: ${getStatusColor(order.status)}20; color: ${getStatusColor(order.status)};">
-                                ${order.status || 'pending'}
-                            </span>
-                            <span>₦${(order.amount || 0).toLocaleString()}</span>
-                        </div>
-                    `).join('')}
-                </div>
-                
-                <button class="view-customer-btn" onclick="viewCustomerDetails('${customer.phone}')">
-                    <i class="fas fa-eye"></i> View Full History
-                </button>
-            </div>
-        `).join('');
-    }
-
-// ==================== AUTO PROGRESS CHECKER (STOPS AT READY) ====================
-function checkOrderProgressions() {
-    console.log('⏰ Checking order progressions in Firebase...');
-    
-    // Get orders DIRECTLY from Firebase (not localStorage)
-    database.ref('orders').once('value', (snapshot) => {
-        const data = snapshot.val();
-        if (!data) {
-            console.log('No orders found');
-            return;
-        }
-        
-        const now = new Date();
-        let updates = [];
-        
-        // Convert Firebase object to array
-        const orders = Object.entries(data).map(([key, order]) => ({
-            ...order,
-            firebaseKey: key
-        }));
-        
-        orders.forEach(order => {
-            // Only process verified orders
-            if (order.paymentStatus !== 'verified') return;
-            
-            // Skip if already ready or completed
-            if (order.status === 'ready' || order.status === 'completed') return;
-            
-            // =============================================
-            // STAGE 1: Preparing → Incubating (30 minutes)
-            // =============================================
-            if (order.status === 'preparing') {
-                const stageStartTime = new Date(order.preparingStarted || order.verifiedAt || order.updatedAt);
-                
-                // Skip if invalid date
-                if (isNaN(stageStartTime)) {
-                    console.warn(`Invalid date for order ${order.id}`);
-                    return;
-                }
-                
-                const timeElapsed = now - stageStartTime;
-                const elapsedMinutes = Math.floor(timeElapsed / (60 * 1000));
-                
-                console.log(`Order ${order.id.slice(-8)}: Preparing for ${elapsedMinutes} minutes`);
-                
-                if (timeElapsed >= 30 * 60 * 1000) { // 30 minutes
-                    console.log(`⏩ Auto-progress: Order ${order.id} preparing → incubating`);
-                    
-                    const updateData = {
-                        status: 'incubating',
-                        incubatingStarted: now.toISOString(),
-                        updatedAt: now.toISOString()
-                    };
-                    
-                    // Update Firebase
-                    updates.push(
-                        database.ref(`orders/${order.firebaseKey}`).update(updateData)
-                            .then(() => {
-                                const message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (23hr countdown started)`;
-                                
-                                // Add to activity feed
-                                addActivityToFeed({
-                                    type: 'status_change',
-                                    message: message,
-                                    orderId: order.id,
-                                    customerName: order.customerName,
-                                    timestamp: now.toISOString(),
-                                    icon: 'fa-clock',
-                                    color: '#f39c12'
-                                });
-                                
-                                broadcastToOrderPage('status_change', message, order.id, order.customerName);
-                                console.log(`✅ Order ${order.id.slice(-8)} now incubating`);
-                            })
-                            .catch(err => console.error('Firebase error:', err))
-                    );
-                }
-            }
-            
-            // =============================================
-            // STAGE 2: Incubating → Ready (23 hours)
-            // =============================================
-            else if (order.status === 'incubating') {
-                const stageStartTime = new Date(order.incubatingStarted || order.updatedAt);
-                
-                // Skip if invalid date
-                if (isNaN(stageStartTime)) {
-                    console.warn(`Invalid date for order ${order.id}`);
-                    return;
-                }
-                
-                const timeElapsed = now - stageStartTime;
-                const elapsedHours = Math.floor(timeElapsed / (60 * 60 * 1000));
-                
-                console.log(`Order ${order.id.slice(-8)}: Incubating for ${elapsedHours} hours`);
-                
-                if (timeElapsed >= 23 * 60 * 60 * 1000) { // 23 hours
-                    console.log(`⏩ Auto-progress: Order ${order.id} incubating → READY`);
-                    
-                    const updateData = {
-                        status: 'ready',
-                        readyAt: now.toISOString(),
-                        updatedAt: now.toISOString()
-                    };
-                    
-                    // Update Firebase
-                    updates.push(
-                        database.ref(`orders/${order.firebaseKey}`).update(updateData)
-                            .then(() => {
-                                const message = `✅ Order ${order.id.slice(-8)} is READY for pickup`;
-                                
-                                addActivityToFeed({
-                                    type: 'status_change',
-                                    message: message,
-                                    orderId: order.id,
-                                    customerName: order.customerName,
-                                    timestamp: now.toISOString(),
-                                    icon: 'fa-check-circle',
-                                    color: '#2ecc71'
-                                });
-                                
-                                broadcastToOrderPage('status_change', message, order.id, order.customerName);
-                                console.log(`✅ Order ${order.id.slice(-8)} is now READY`);
-                            })
-                            .catch(err => console.error('Firebase error:', err))
-                    );
-                }
-            }
-        });
-        
-        // Wait for all updates
-        Promise.all(updates).then(() => {
-            if (updates.length > 0) {
-                console.log(`✅ Completed ${updates.length} auto-progressions`);
-                
-                // Reload orders from Firebase to refresh dashboard
-                loadOrdersFromFirebase();
-            }
-        });
-        
-    }).catch(error => {
-        console.error('❌ Error checking progressions:', error);
-    });
+        </div>
+    `;
 }
 
-// Start auto-progression checker (runs every minute)
-setInterval(checkOrderProgressions, 60 * 1000);
+function renderTimeline(order) {
+    const steps = ['verified', 'preparing', 'incubating', 'ready'];
+    const currentIndex = steps.indexOf(order.status);
+    let incubationHtml = '';
+    if (order.status === 'incubating' && order.incubatingStarted) {
+        const start = new Date(order.incubatingStarted);
+        const now = new Date();
+        const elapsed = now - start;
+        const total = 23 * 60 * 60 * 1000;
+        const percent = Math.min(100, Math.round((elapsed / total) * 100));
+        const remaining = Math.max(0, Math.round((total - elapsed) / (60 * 60 * 1000)));
+        incubationHtml = `
+            <div class="incubation-timer">
+                <div class="timer-info">
+                    <i class="fas fa-hourglass-half"></i>
+                    <div class="timer-text">
+                        <span>Time remaining</span>
+                        <strong>${remaining}h</strong>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${percent}%;"></div>
+                </div>
+            </div>
+        `;
+    } else if (order.status === 'ready') {
+        incubationHtml = `
+            <div class="incubation-timer ready">
+                <div class="timer-info">
+                    <i class="fas fa-check-circle"></i>
+                    <div class="timer-text">
+                        <span>Ready for pickup</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    return `
+        <div class="order-timeline">
+            <div class="timeline-header"><span><i class="fas fa-clock"></i> Order Progress</span></div>
+            <div class="timeline-steps">
+                ${steps.map((step, index) => `
+                    <div class="timeline-step">
+                        <div class="step-icon ${index < currentIndex ? 'completed' : index === currentIndex ? 'active' : ''}">
+                            <i class="fas ${getStepIcon(step)}"></i>
+                        </div>
+                        <span class="step-label ${index < currentIndex ? 'completed' : index === currentIndex ? 'active' : ''}">
+                            ${step.charAt(0).toUpperCase() + step.slice(1)}
+                        </span>
+                    </div>
+                `).join('')}
+            </div>
+            ${incubationHtml}
+        </div>
+    `;
+}
 
-    // ==================== MANUAL UPDATE STATUS (ADMIN CLICK) ====================
-    window.updateOrderStatus = function() {
-        console.log('🔍 Manual status update started');
-        
-        if (!currentStatusOrder) {
-            showNotification('No order selected', 'error');
-            return;
+function getStepIcon(step) {
+    const icons = { 'verified': 'fa-check', 'preparing': 'fa-utensils', 'incubating': 'fa-fire', 'ready': 'fa-check-circle' };
+    return icons[step] || 'fa-circle';
+}
+
+function updateCustomersDisplay() {
+    const container = document.getElementById('customersList');
+    if (!container) return;
+    if (allCustomers.size === 0) {
+        container.innerHTML = `<div class="empty-queue"><i class="fas fa-users"></i><p>No customers yet</p></div>`;
+        return;
+    }
+    let customersArray = Array.from(allCustomers.values()).sort((a, b) => b.totalOrders - a.totalOrders);
+    // Apply filters if any
+    const search = document.getElementById('customerSearch')?.value.toLowerCase();
+    const statusFilter = document.getElementById('customerStatusFilter')?.value;
+    const ordersFilter = document.getElementById('customerOrdersFilter')?.value;
+    if (search) {
+        customersArray = customersArray.filter(c => 
+            c.name.toLowerCase().includes(search) || 
+            c.phone.includes(search) || 
+            c.email.toLowerCase().includes(search)
+        );
+    }
+    if (statusFilter === 'active') {
+        customersArray = customersArray.filter(c => c.totalOrders > 0);
+    } else if (statusFilter === 'inactive') {
+        customersArray = customersArray.filter(c => c.totalOrders === 0);
+    } else if (statusFilter === 'vip') {
+        customersArray = customersArray.filter(c => c.totalOrders >= 5);
+    }
+    if (ordersFilter === '1') {
+        customersArray = customersArray.filter(c => c.totalOrders === 1);
+    } else if (ordersFilter === '2-3') {
+        customersArray = customersArray.filter(c => c.totalOrders >= 2 && c.totalOrders <= 3);
+    } else if (ordersFilter === '4+') {
+        customersArray = customersArray.filter(c => c.totalOrders >= 4);
+    }
+    document.getElementById('customerShowing').textContent = customersArray.length;
+    document.getElementById('customerTotal').textContent = allCustomers.size;
+    container.innerHTML = customersArray.map(customer => `
+        <div class="customer-card" data-phone="${customer.phone}">
+            <div class="customer-card-header">
+                <div class="customer-avatar-lg"><i class="fas fa-user-circle"></i></div>
+                <div class="customer-title">
+                    <h4>${customer.name}</h4>
+                    <p><i class="fas fa-phone-alt"></i> ${customer.phone}</p>
+                </div>
+            </div>
+            <div class="customer-stats-grid">
+                <div class="customer-stat-item"><div class="customer-stat-value">${customer.totalOrders}</div><div class="customer-stat-label">Orders</div></div>
+                <div class="customer-stat-item"><div class="customer-stat-value">₦${(customer.totalSpent / 1000).toFixed(1)}k</div><div class="customer-stat-label">Spent</div></div>
+                <div class="customer-stat-item"><div class="customer-stat-value">${customer.orders.length}</div><div class="customer-stat-label">Items</div></div>
+            </div>
+            <div class="customer-contact-info">
+                <div class="contact-row"><i class="fas fa-envelope"></i><span>${customer.email}</span></div>
+                <div class="contact-row"><i class="fas fa-calendar-alt"></i><span>Last order: ${customer.lastOrder ? new Date(customer.lastOrder).toLocaleDateString() : 'N/A'}</span></div>
+            </div>
+            <div class="customer-orders-preview">
+                <div class="preview-header"><span>Recent Orders</span><span>${customer.orders.length} total</span></div>
+                ${customer.orders.slice(0, 3).map(order => `
+                    <div class="preview-order-item">
+                        <span class="preview-order-id">${order.id.slice(-8)}</span>
+                        <span class="preview-order-status ${order.status}" style="background: ${getStatusColor(order.status)}20; color: ${getStatusColor(order.status)};">${order.status || 'pending'}</span>
+                        <span>₦${(order.amount || 0).toLocaleString()}</span>
+                    </div>
+                `).join('')}
+            </div>
+            <button class="view-customer-btn" onclick="viewCustomerDetails('${customer.phone}')"><i class="fas fa-eye"></i> View Full History</button>
+        </div>
+    `).join('');
+}
+
+function updateActivityFeed() {
+    const feed = document.getElementById('activityFeed');
+    if (!feed) return;
+    const activities = allOrders.flatMap(order => {
+        const acts = [];
+        if (order.verifiedAt) {
+            acts.push({
+                type: 'payment_verified',
+                message: `💰 Payment verified for order ${order.id.slice(-8)}`,
+                orderId: order.id,
+                customerName: order.customerName,
+                timestamp: order.verifiedAt,
+                icon: 'fa-check-circle',
+                color: '#2ecc71'
+            });
         }
-        
-        const selectedStatus = document.querySelector('input[name="status"]:checked');
-        if (!selectedStatus) {
-            showNotification('Please select a status', 'warning');
-            return;
-        }
-        
-        const newStatus = selectedStatus.value;
-        const order = allOrders.find(o => o.id === currentStatusOrder);
-        
-        if (!order || !order.firebaseKey) {
-            showNotification('Order not found', 'error');
-            closeModal('statusModal');
-            return;
-        }
-        
-        const updateBtn = document.getElementById('confirmUpdate');
-        const originalText = updateBtn.innerHTML;
-        updateBtn.disabled = true;
-        updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
-        
-        // Prepare updates
-        const updates = {
-            status: newStatus,
-            updatedAt: new Date().toISOString()
-        };
-        
-        // Add stage-specific timestamps
-        if (newStatus === 'preparing' && !order.preparingStarted) {
-            updates.preparingStarted = new Date().toISOString();
-        }
-        if (newStatus === 'incubating' && !order.incubatingStarted) {
-            updates.incubatingStarted = new Date().toISOString();
-        }
-        if (newStatus === 'ready' && !order.readyAt) {
-            updates.readyAt = new Date().toISOString();
-        }
-        if (newStatus === 'completed') {
-            updates.completedAt = new Date().toISOString();
-            updates.completedBy = 'admin';
-        }
-        
-        // Timeout protection
-        const timeout = setTimeout(() => {
-            updateBtn.disabled = false;
-            updateBtn.innerHTML = originalText;
-            showNotification('Update timed out', 'warning');
-        }, 5000);
-        
-        // 🔥 UPDATE FIREBASE (triggers live sync to order page)
-        database.ref(`orders/${order.firebaseKey}`).update(updates)
-        .then(() => {
-            clearTimeout(timeout);
-            
-            // Update local array
-            Object.assign(order, updates);
-            
-            // Play sound
-            if (window.playApprovalSound) window.playApprovalSound();
-            
-            // Create message
+        if (order.updatedAt && order.status) {
             let message = '';
-            if (newStatus === 'preparing') message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation (manual)`;
-            if (newStatus === 'incubating') message = `⏱️ Order ${order.id.slice(-8)} moved to incubating (manual)`;
-            if (newStatus === 'ready') message = `✅ Order ${order.id.slice(-8)} is READY for pickup (manual)`;
-            if (newStatus === 'completed') message = `📦 Order ${order.id.slice(-8)} completed by admin`;
-            
+            if (order.status === 'preparing') message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
+            if (order.status === 'incubating') message = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
+            if (order.status === 'ready') message = `✅ Order ${order.id.slice(-8)} is READY`;
+            if (order.status === 'completed') message = `📦 Order ${order.id.slice(-8)} completed`;
             if (message) {
-                // Add to admin activity feed
-                addActivityToFeed({
+                acts.push({
                     type: 'status_change',
                     message: message,
                     orderId: order.id,
                     customerName: order.customerName,
-                    timestamp: new Date().toISOString(),
+                    timestamp: order.updatedAt,
                     icon: 'fa-sync-alt',
                     color: '#3498db'
                 });
-                
-                // 🔥 BROADCAST to order page
-                broadcastToOrderPage('status_change', message, order.id, order.customerName);
             }
-            
-            showNotification(`Order manually updated to ${newStatus}`, 'success');
-            closeModal('statusModal');
-            currentStatusOrder = null;
-            
-            updateBtn.disabled = false;
-            updateBtn.innerHTML = originalText;
-            
-            // Refresh dashboard
-            loadDashboardData();
-        })
-        .catch(error => {
-            clearTimeout(timeout);
-            console.error('❌ Error:', error);
-            showNotification('Error updating status: ' + error.message, 'error');
-            updateBtn.disabled = false;
-            updateBtn.innerHTML = originalText;
-        });
-    };
-
-    // ==================== MANUAL COMPLETE ORDER ====================
-    window.completeOrderManually = function(orderId) {
-        console.log('🏁 Admin manually completing order:', orderId);
-        
-        const order = allOrders.find(o => o.id === orderId);
-        if (!order || !order.firebaseKey) {
-            showNotification('Order not found', 'error');
-            return;
         }
-        
-        // Confirm with admin
-        if (!confirm(`Mark order ${orderId.slice(-8)} as COMPLETED?`)) {
-            return;
-        }
-        
-        const completeBtn = event?.target;
-        const originalText = completeBtn?.innerHTML;
-        if (completeBtn) {
-            completeBtn.disabled = true;
-            completeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        }
-        
-        const timeout = setTimeout(() => {
-            if (completeBtn) {
-                completeBtn.disabled = false;
-                completeBtn.innerHTML = originalText;
-            }
-            showNotification('Completion timed out', 'warning');
-        }, 5000);
-        
-        // 🔥 UPDATE FIREBASE
-        database.ref(`orders/${order.firebaseKey}`).update({
-            status: 'completed',
-            completedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            completedBy: 'admin'
-        })
-        .then(() => {
-            clearTimeout(timeout);
-            
-            // Update local array
-            order.status = 'completed';
-            order.completedAt = new Date().toISOString();
-            
-            if (window.playApprovalSound) window.playApprovalSound();
-            
-            const message = `📦 Order ${orderId.slice(-8)} completed by admin`;
-            
-            // Add to admin feed
-            addActivityToFeed({
-                type: 'order_completed',
-                message: message,
+        if (order.createdAt && !order.verifiedAt && order.status !== 'cancelled') {
+            acts.push({
+                type: 'order_created',
+                message: `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
                 orderId: order.id,
                 customerName: order.customerName,
-                timestamp: new Date().toISOString(),
-                icon: 'fa-flag-checkered',
-                color: '#3498db'
+                timestamp: order.createdAt,
+                icon: 'fa-cart-plus',
+                color: '#9b59b6'
             });
-            
-            // 🔥 BROADCAST to order page
-            broadcastToOrderPage('order_completed', message, order.id, order.customerName);
-            
-            showNotification(`✅ Order completed`, 'success');
-            
-            if (completeBtn) {
-                completeBtn.disabled = false;
-                completeBtn.innerHTML = originalText;
-            }
-            
-            // Refresh dashboard
-            loadDashboardData();
-        })
-        .catch(error => {
-            clearTimeout(timeout);
-            console.error('❌ Error:', error);
-            showNotification('Error completing order: ' + error.message, 'error');
-            if (completeBtn) {
-                completeBtn.disabled = false;
-                completeBtn.innerHTML = originalText;
-            }
-        });
-    };
-
-    // ==================== BROADCAST TO ORDER PAGE ====================
-    function broadcastToOrderPage(type, message, orderId, customerName) {
-        const activity = {
-            id: Date.now() + Math.random(),
-            type: type,
-            message: message,
-            orderId: orderId,
-            customerName: customerName,
-            timestamp: new Date().toISOString(),
-            icon: getBroadcastIcon(type),
-            color: getBroadcastColor(type)
-        };
-        
-        console.log('📢 BROADCASTING to Order Page:', message);
-        
-        // Method 1: BroadcastChannel
-        if (window.broadcastChannel) {
-            try {
-                window.broadcastChannel.postMessage({
-                    type: 'NEW_ACTIVITY',
-                    activity: activity
-                });
-            } catch (e) {}
         }
-        
-        // Method 2: Create new channel if needed
-        if (typeof BroadcastChannel !== 'undefined') {
-            try {
-                const channel = new BroadcastChannel('cleanbite_activities');
-                channel.postMessage({
-                    type: 'NEW_ACTIVITY',
-                    activity: activity
-                });
-                setTimeout(() => channel.close(), 100);
-            } catch (e) {}
-        }
-        
-        // Method 3: localStorage fallback
-        try {
-            localStorage.setItem('cleanbite_broadcast', JSON.stringify({
-                type: 'ACTIVITY',
-                activity: activity,
-                timestamp: Date.now()
-            }));
-            setTimeout(() => localStorage.removeItem('cleanbite_broadcast'), 100);
-        } catch (e) {}
+        return acts;
+    }).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 30);
+    if (activities.length === 0) {
+        feed.innerHTML = `<div class="empty-queue"><i class="fas fa-stream"></i><p>No recent activity</p></div>`;
+        return;
     }
+    feed.innerHTML = activities.map(act => `
+        <div class="activity-item" style="border-left-color: ${act.color};">
+            <div class="activity-icon" style="color: ${act.color};"><i class="fas ${act.icon}"></i></div>
+            <div class="activity-content">
+                <div class="activity-message">${act.message}</div>
+                <div class="activity-time">
+                    <i class="far fa-clock"></i> ${timeAgo(act.timestamp)}
+                    ${act.customerName ? `<span class="activity-customer"><i class="fas fa-user"></i> ${act.customerName}</span>` : ''}
+                    ${act.orderId ? `<span class="activity-order"><i class="fas fa-hashtag"></i> ${act.orderId.slice(-8)}</span>` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
 
-    // Initialize broadcast channel
-    if (typeof BroadcastChannel !== 'undefined') {
-        try {
-            window.broadcastChannel = new BroadcastChannel('cleanbite_activities');
-            console.log('✅ Broadcast channel initialized');
-        } catch (e) {
-            console.error('❌ Broadcast channel error:', e);
+function updateMonthFilters() {
+    const months = new Set();
+    allOrders.forEach(o => {
+        const d = new Date(o.completedAt || o.updatedAt || o.createdAt);
+        if (!isNaN(d)) {
+            months.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
         }
+    });
+    const sortedMonths = Array.from(months).sort().reverse();
+    const cancelledFilter = document.getElementById('cancelledMonthFilter');
+    const completedFilter = document.getElementById('completedMonthFilter');
+    if (cancelledFilter) {
+        cancelledFilter.innerHTML = '<option value="all">All Time</option>' + sortedMonths.map(m => `<option value="${m}">${m}</option>`).join('');
     }
-
-    // ==================== WEEKLY SMS MESSAGES LIBRARY - ADD THIS ====================
-const weeklySMSMessages = [
-    {
-        message: "🍶 Did you know? Your gut contains over 100 trillion bacteria! CleanBite's 24-hour fermentation delivers 5+ billion probiotics per jar. Feed your microbiome today. cleanbite.ng",
-        category: "education"
-    },
-    {
-        message: "🌱 Clean eating starts from within. Our yoghurt is made with fresh cow milk, zero preservatives, and 24hr traditional incubation. Your body deserves real food. cleanbite.ng",
-        category: "motivation"
-    },
-    {
-        message: "🛡️ 70% of your immune system lives in your gut! Regular probiotic intake strengthens natural defenses. Grab CleanBite this week. cleanbite.ng",
-        category: "health"
-    },
-    {
-        message: "🔄 Struggling with digestion? Our live active cultures help break down food naturally. Thousands of customers report better gut health within weeks. cleanbite.ng",
-        category: "benefit"
-    },
-    {
-        message: "🥣 Morning ritual: CleanBite plain yoghurt + fresh fruits + honey + granola = the perfect gut-healthy breakfast. Start your day right! cleanbite.ng",
-        category: "lifestyle"
-    },
-    {
-        message: "🔬 24 hours. That's how long we ferment each batch for maximum probiotic potency. Most commercial yoghurts ferment for just 4-6 hours. Choose quality. cleanbite.ng",
-        category: "education"
-    },
-    {
-        message: "🧠 Your gut is your second brain! The gut-brain connection affects mood, focus, and mental clarity. Nourish both with CleanBite. cleanbite.ng",
-        category: "wellness"
-    },
-    {
-        message: "⭐ 'Since switching to CleanBite, my bloating disappeared and I have more energy.' — Sarah, Lagos. Join hundreds of happy customers. cleanbite.ng",
-        category: "testimonial"
-    },
-    {
-        message: "☔ Rainy season alert! Cold weather can weaken digestion. Warm up with our probiotic-rich yoghurt to maintain gut health year-round. cleanbite.ng",
-        category: "seasonal"
-    },
-    {
-        message: "🍯 No refined sugar. Ever. Our sweetness comes from real dates and honey. Clean eating means clean ingredients. Taste the difference. cleanbite.ng",
-        category: "product"
-    },
-    {
-        message: "📅 Gut health isn't a one-time fix—it's a lifestyle. Make CleanBite part of your weekly routine and feel the difference consistently. cleanbite.ng",
-        category: "motivation"
-    },
-    {
-        message: "👥 Know someone who could benefit from better gut health? Share CleanBite with them! Real food, real results, real simple. cleanbite.ng",
-        category: "referral"
-    }
-];
-
-// ==================== SMS SERVICE CLASS - ADD THIS ====================
-class CleanBiteSMSService {
-    constructor(apiKey, senderId) {
-        this.apiKey = apiKey;
-        this.senderId = senderId;
-        this.baseUrl = "https://api.bulksmsnigeria.com/v1"; // You'll replace with actual provider
-    }
-    
-    async sendBulkSMS(phoneNumbers, message) {
-        // Group into batches of 100
-        const batches = this.chunkArray(phoneNumbers, 100);
-        const results = [];
-        
-        console.log(`📱 Would send to ${phoneNumbers.length} numbers: "${message.substring(0, 30)}..."`);
-        
-        // For now, just log - replace with actual API call when you have provider
-        return { success: true, count: phoneNumbers.length, message: 'DEMO MODE - No actual SMS sent' };
-    }
-    
-    async sendSingleSMS(phoneNumber, message) {
-        console.log(`📱 Test SMS to ${phoneNumber}: "${message}"`);
-        alert(`DEMO: SMS would be sent to ${phoneNumber}\n\nMessage: ${message}`);
-        return { success: true };
-    }
-    
-    chunkArray(array, size) {
-        const chunks = [];
-        for (let i = 0; i < array.length; i += size) {
-            chunks.push(array.slice(i, i + size));
-        }
-        return chunks;
-    }
-    
-    getCustomerPhoneNumbers() {
-        const customers = Array.from(allCustomers.values());
-        return customers
-            .filter(c => c.phone && c.phone.length >= 11)
-            .map(c => c.phone);
-    }
-    
-    getSubscribedCustomers() {
-        const customers = Array.from(allCustomers.values());
-        return customers.filter(c => 
-            c.phone && 
-            c.phone.length >= 11 && 
-            c.smsConsent !== false // If they haven't opted out
-        );
+    if (completedFilter) {
+        completedFilter.innerHTML = '<option value="all">All Time</option>' + sortedMonths.map(m => `<option value="${m}">${m}</option>`).join('');
     }
 }
 
-// ==================== WEEKLY SCHEDULER CLASS - ADD THIS ====================
+// ==================== FILTER FUNCTIONS ====================
+function applyFilters() {
+    const filter = document.getElementById('mainFilter')?.value;
+    const search = document.getElementById('searchInput')?.value.toLowerCase();
+    // We don't actually filter allOrders globally; instead we re-render based on active tab
+    // But we can filter the lists inside each update function if needed.
+    // For simplicity, we just refresh all displays and let the individual update functions handle filtering based on the filter selects.
+    // The search will be applied in customer filter already.
+    // We'll also apply mainFilter to the active tab if it's orders.
+    if (activeTab === 'verification') {
+        // verification list is already pending only, but we could add search
+    } else if (activeTab === 'verified') {
+        // active orders list could be filtered by status if we add logic
+    } else if (activeTab === 'cancelled') {
+        // maybe filter by month already handled
+    } else if (activeTab === 'completed') {
+        // month filter
+    }
+    updateAllDisplays();
+}
+
+function resetFilters() {
+    document.getElementById('mainFilter').value = 'all';
+    document.getElementById('dateFilter').value = 'all';
+    document.getElementById('searchInput').value = '';
+    document.getElementById('customerSearch').value = '';
+    document.getElementById('customerStatusFilter').value = 'all';
+    document.getElementById('customerOrdersFilter').value = 'all';
+    updateAllDisplays();
+}
+
+// ==================== MODAL HANDLERS ====================
+window.openVerifyModal = function(orderId) {
+    const order = allOrders.find(o => o.id === orderId);
+    if (!order) return;
+    currentVerificationOrder = orderId;
+    document.getElementById('verifyOrderId').textContent = order.id;
+    document.getElementById('verifyCustomerName').textContent = order.customerName || 'Customer';
+    document.getElementById('verifyAmount').textContent = `₦${(order.total || order.totalAmount || 0).toLocaleString()}`;
+    document.getElementById('verifyMethod').textContent = order.paymentMethod || 'Bank Transfer';
+    document.getElementById('verificationNotes').value = '';
+    document.getElementById('verifyModal').classList.add('active');
+};
+
+document.getElementById('confirmVerification')?.addEventListener('click', function() {
+    const btn = this;
+    if (!currentVerificationOrder) return;
+    const order = allOrders.find(o => o.id === currentVerificationOrder);
+    if (!order || !order.firebaseKey) {
+        showNotification('Order not found', 'error');
+        closeModal('verifyModal');
+        return;
+    }
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+    const timeout = setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        showNotification('Verification timed out', 'warning');
+    }, 5000);
+    database.ref(`orders/${order.firebaseKey}`).update({
+        paymentStatus: 'verified',
+        status: 'preparing',
+        verifiedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        preparingStarted: new Date().toISOString()
+    }).then(() => {
+        clearTimeout(timeout);
+        playApprovalSound();
+        const message = `💰 Payment verified for order ${order.id.slice(-8)}`;
+        addActivityToFeed({ type: 'payment_verified', message, orderId: order.id, customerName: order.customerName, icon: 'fa-check-circle', color: '#2ecc71' });
+        broadcastToOrderPage('payment_verified', message, order.id, order.customerName);
+        showNotification('Payment verified successfully', 'success');
+        closeModal('verifyModal');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }).catch(error => {
+        clearTimeout(timeout);
+        console.error(error);
+        showNotification('Error verifying payment', 'error');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+});
+
+window.openRejectModal = function(orderId) {
+    const order = allOrders.find(o => o.id === orderId);
+    if (!order) return;
+    currentVerificationOrder = orderId;
+    document.getElementById('rejectOrderId').textContent = order.id;
+    document.getElementById('rejectCustomerName').textContent = order.customerName || 'Customer';
+    document.getElementById('rejectAmount').textContent = `₦${(order.total || order.totalAmount || 0).toLocaleString()}`;
+    document.getElementById('rejectionReason').value = '';
+    document.getElementById('rejectModal').classList.add('active');
+};
+
+document.getElementById('confirmRejection')?.addEventListener('click', function() {
+    const btn = this;
+    if (!currentVerificationOrder) return;
+    const reason = document.getElementById('rejectionReason').value.trim();
+    if (!reason) {
+        showNotification('Please provide a rejection reason', 'warning');
+        return;
+    }
+    const order = allOrders.find(o => o.id === currentVerificationOrder);
+    if (!order || !order.firebaseKey) {
+        showNotification('Order not found', 'error');
+        closeModal('rejectModal');
+        return;
+    }
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejecting...';
+    const timeout = setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        showNotification('Rejection timed out', 'warning');
+    }, 5000);
+    database.ref(`orders/${order.firebaseKey}`).update({
+        paymentStatus: 'rejected',
+        status: 'cancelled',
+        rejectionReason: reason,
+        rejectedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    }).then(() => {
+        clearTimeout(timeout);
+        const message = `❌ Payment rejected for order ${order.id.slice(-8)}`;
+        addActivityToFeed({ type: 'payment_rejected', message, orderId: order.id, customerName: order.customerName, icon: 'fa-times-circle', color: '#e74c3c' });
+        broadcastToOrderPage('payment_rejected', message, order.id, order.customerName);
+        showNotification('Payment rejected', 'warning');
+        closeModal('rejectModal');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }).catch(error => {
+        clearTimeout(timeout);
+        console.error(error);
+        showNotification('Error rejecting payment', 'error');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+});
+
+window.openStatusModal = function(orderId) {
+    const order = allOrders.find(o => o.id === orderId);
+    if (!order) return;
+    currentStatusOrder = orderId;
+    document.getElementById('statusOrderId').textContent = order.id;
+    document.getElementById('statusCustomerName').textContent = order.customerName || 'Customer';
+    document.getElementById('currentStatus').innerHTML = `<span class="status-badge ${order.status}" style="background: ${getStatusColor(order.status)}20; color: ${getStatusColor(order.status)};">${order.status?.replace('-', ' ') || 'pending'}</span>`;
+    const statuses = ['preparing', 'incubating', 'ready', 'completed'];
+    const options = document.getElementById('statusOptions');
+    options.innerHTML = statuses.map(status => `
+        <label class="status-option" style="background: ${order.status === status ? 'var(--primary-light)' : 'white'};">
+            <input type="radio" name="status" value="${status}" ${order.status === status ? 'checked' : ''}>
+            <span class="status-badge ${status}" style="background: ${getStatusColor(status)}20; color: ${getStatusColor(status)};">
+                <i class="fas ${getStatusIcon(status)}"></i> ${status}
+            </span>
+            ${order.status === status ? '<span style="margin-left: auto; color: var(--primary);"><i class="fas fa-check-circle"></i> Current</span>' : ''}
+        </label>
+    `).join('');
+    document.getElementById('statusModal').classList.add('active');
+};
+
+document.getElementById('confirmUpdate')?.addEventListener('click', function() {
+    const btn = this;
+    if (!currentStatusOrder) return;
+    const selected = document.querySelector('input[name="status"]:checked');
+    if (!selected) {
+        showNotification('Please select a status', 'warning');
+        return;
+    }
+    const newStatus = selected.value;
+    const order = allOrders.find(o => o.id === currentStatusOrder);
+    if (!order || !order.firebaseKey) {
+        showNotification('Order not found', 'error');
+        closeModal('statusModal');
+        return;
+    }
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+    const updates = { status: newStatus, updatedAt: new Date().toISOString() };
+    if (newStatus === 'preparing' && !order.preparingStarted) updates.preparingStarted = new Date().toISOString();
+    if (newStatus === 'incubating' && !order.incubatingStarted) updates.incubatingStarted = new Date().toISOString();
+    if (newStatus === 'ready' && !order.readyAt) updates.readyAt = new Date().toISOString();
+    if (newStatus === 'completed') updates.completedAt = new Date().toISOString();
+    const timeout = setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        showNotification('Update timed out', 'warning');
+    }, 5000);
+    database.ref(`orders/${order.firebaseKey}`).update(updates).then(() => {
+        clearTimeout(timeout);
+        playApprovalSound();
+        let message = '';
+        if (newStatus === 'preparing') message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
+        if (newStatus === 'incubating') message = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
+        if (newStatus === 'ready') message = `✅ Order ${order.id.slice(-8)} is READY`;
+        if (newStatus === 'completed') message = `📦 Order ${order.id.slice(-8)} completed`;
+        if (message) {
+            addActivityToFeed({ type: 'status_change', message, orderId: order.id, customerName: order.customerName, icon: 'fa-sync-alt', color: '#3498db' });
+            broadcastToOrderPage('status_change', message, order.id, order.customerName);
+        }
+        showNotification(`Order updated to ${newStatus}`, 'success');
+        closeModal('statusModal');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }).catch(error => {
+        clearTimeout(timeout);
+        console.error(error);
+        showNotification('Error updating status', 'error');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+});
+
+window.completeOrderManually = function(orderId) {
+    const order = allOrders.find(o => o.id === orderId);
+    if (!order || !order.firebaseKey) {
+        showNotification('Order not found', 'error');
+        return;
+    }
+    if (!confirm(`Mark order ${orderId.slice(-8)} as COMPLETED?`)) return;
+    const btn = event?.target;
+    const originalText = btn?.innerHTML;
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
+    const timeout = setTimeout(() => {
+        if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+        showNotification('Completion timed out', 'warning');
+    }, 5000);
+    database.ref(`orders/${order.firebaseKey}`).update({
+        status: 'completed',
+        completedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    }).then(() => {
+        clearTimeout(timeout);
+        playApprovalSound();
+        const message = `🏁 Order ${orderId.slice(-8)} completed`;
+        addActivityToFeed({ type: 'order_completed', message, orderId: order.id, customerName: order.customerName, icon: 'fa-flag-checkered', color: '#3498db' });
+        broadcastToOrderPage('order_completed', message, order.id, order.customerName);
+        showNotification('Order completed', 'success');
+        if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+    }).catch(error => {
+        clearTimeout(timeout);
+        console.error(error);
+        showNotification('Error completing order', 'error');
+        if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+    });
+};
+
+window.viewCustomerDetails = function(phone) {
+    const customer = allCustomers.get(phone);
+    if (!customer) return;
+    const sortedOrders = [...customer.orders].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const customerOrdersWithItems = sortedOrders.map(orderSummary => {
+        const fullOrder = allOrders.find(o => o.id === orderSummary.id);
+        return fullOrder || orderSummary;
+    });
+    const modalBody = document.getElementById('customerModalBody');
+    modalBody.innerHTML = `
+        <div class="customer-profile">
+            <div class="customer-avatar-large"><i class="fas fa-user-circle"></i></div>
+            <div class="customer-name-large">${customer.name}</div>
+            <div class="customer-phone-large"><i class="fas fa-phone-alt"></i> ${customer.phone}</div>
+        </div>
+        <div class="customer-stats-grid">
+            <div class="stat-box"><div class="stat-value">${customer.totalOrders}</div><div class="stat-label">Total Orders</div></div>
+            <div class="stat-box"><div class="stat-value">₦${(customer.totalSpent / 1000).toFixed(1)}k</div><div class="stat-label">Total Spent</div></div>
+            <div class="stat-box"><div class="stat-value">${customer.orders.reduce((sum, o) => sum + (o.items?.length || 0), 0)}</div><div class="stat-label">Items</div></div>
+        </div>
+        <div class="customer-contact-details">
+            <div class="contact-item"><i class="fas fa-envelope"></i><span>${customer.email}</span></div>
+            <div class="contact-item"><i class="fas fa-calendar-alt"></i><span>First order: ${customer.firstOrder ? new Date(customer.firstOrder).toLocaleDateString() : 'N/A'}</span></div>
+            <div class="contact-item"><i class="fas fa-clock"></i><span>Last order: ${customer.lastOrder ? new Date(customer.lastOrder).toLocaleDateString() : 'N/A'}</span></div>
+        </div>
+        <div class="order-history-title"><i class="fas fa-history"></i> Order History (${customer.orders.length})</div>
+        <div class="order-history-list">
+            ${customerOrdersWithItems.length > 0 ? customerOrdersWithItems.map(order => `
+                <div class="order-history-item">
+                    <div class="order-header">
+                        <span class="order-id">${order.id}</span>
+                        <span class="order-status-badge ${order.status || 'pending'}">${(order.status || 'pending').replace('-', ' ')}</span>
+                        <span class="order-date"><i class="far fa-calendar"></i> ${new Date(order.date || order.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    ${order.items ? `<div class="order-items-preview">${order.items.map(item => `<div class="order-item"><span class="item-name"><span class="item-quantity">${item.quantity}x</span> ${item.name}</span><span class="item-price">₦${(item.price * item.quantity).toLocaleString()}</span></div>`).join('')}</div>` : ''}
+                    <div class="order-total-row"><span class="order-total-label">Total:</span><span class="order-total-amount">₦${(order.amount || order.total || 0).toLocaleString()}</span></div>
+                    ${order.status === 'cancelled' && order.rejectionReason ? `<div class="cancelled-reason-badge"><i class="fas fa-exclamation-circle"></i> Cancelled: ${order.rejectionReason}</div>` : ''}
+                </div>
+            `).join('') : `<div class="no-orders"><i class="fas fa-shopping-cart"></i><p>No orders found</p></div>`}
+        </div>
+    `;
+    document.getElementById('customerModal').classList.add('active');
+};
+
+// ==================== AUTO PROGRESSION CHECKER ====================
+function checkOrderProgressions() {
+    console.log('⏰ Checking order progressions...');
+    database.ref('orders').once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+        const now = new Date();
+        const orders = Object.entries(data).map(([key, order]) => ({ ...order, firebaseKey: key }));
+        let updates = [];
+        orders.forEach(order => {
+            if (order.paymentStatus !== 'verified') return;
+            if (order.status === 'ready' || order.status === 'completed') return;
+            // Preparing -> Incubating (30 min)
+            if (order.status === 'preparing') {
+                const start = new Date(order.preparingStarted || order.verifiedAt || order.updatedAt);
+                if (isNaN(start)) return;
+                if (now - start >= 30 * 60 * 1000) {
+                    console.log(`⏩ Auto-progress: Order ${order.id} preparing → incubating`);
+                    updates.push(database.ref(`orders/${order.firebaseKey}`).update({
+                        status: 'incubating',
+                        incubatingStarted: now.toISOString(),
+                        updatedAt: now.toISOString()
+                    }).then(() => {
+                        const msg = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
+                        addActivityToFeed({ type: 'status_change', message: msg, orderId: order.id, customerName: order.customerName, icon: 'fa-clock', color: '#f39c12' });
+                        broadcastToOrderPage('status_change', msg, order.id, order.customerName);
+                    }));
+                }
+            }
+            // Incubating -> Ready (23 hours)
+            else if (order.status === 'incubating') {
+                const start = new Date(order.incubatingStarted || order.updatedAt);
+                if (isNaN(start)) return;
+                if (now - start >= 23 * 60 * 60 * 1000) {
+                    console.log(`⏩ Auto-progress: Order ${order.id} incubating → ready`);
+                    updates.push(database.ref(`orders/${order.firebaseKey}`).update({
+                        status: 'ready',
+                        readyAt: now.toISOString(),
+                        updatedAt: now.toISOString()
+                    }).then(() => {
+                        const msg = `✅ Order ${order.id.slice(-8)} is READY`;
+                        addActivityToFeed({ type: 'status_change', message: msg, orderId: order.id, customerName: order.customerName, icon: 'fa-check-circle', color: '#2ecc71' });
+                        broadcastToOrderPage('status_change', msg, order.id, order.customerName);
+                    }));
+                }
+            }
+        });
+        Promise.all(updates).then(() => {
+            if (updates.length > 0) console.log(`✅ Completed ${updates.length} auto-progressions`);
+        });
+    }).catch(err => console.error('❌ Error checking progressions:', err));
+}
+setInterval(checkOrderProgressions, 60 * 1000);
+
+// ==================== SMS CAMPAIGN WITH EBULKSMS ====================
+class EBulkSmsService {
+    constructor(username, password, sender) {
+        this.username = username;   // Your eBulksms username
+        this.password = password;   // Your eBulksms password
+        this.sender = sender;       // e.g., "CleanBite"
+        this.baseUrl = 'https://api.ebulksms.com'; // Confirm with eBulksms docs
+    }
+    async sendBulkSMS(phoneNumbers, message) {
+        // eBulksms expects a comma-separated list or an array
+        const recipients = phoneNumbers.join(',');
+        const params = new URLSearchParams({
+            username: this.username,
+            password: this.password,
+            sender: this.sender,
+            message: message,
+            recipients: recipients,
+            // possibly other params like flash, schedule, etc.
+        });
+        try {
+            const response = await fetch(`${this.baseUrl}/sendsms`, {
+                method: 'POST',
+                body: params
+            });
+            const result = await response.text();
+            console.log('eBulksms response:', result);
+            return { success: true, data: result };
+        } catch (error) {
+            console.error('SMS sending failed:', error);
+            return { success: false, error };
+        }
+    }
+    async sendSingleSMS(phoneNumber, message) {
+        return this.sendBulkSMS([phoneNumber], message);
+    }
+    getSubscribedCustomers() {
+        return Array.from(allCustomers.values()).filter(c => c.phone && c.smsConsent !== false);
+    }
+}
+
+const smsService = new EBulkSmsService('your_username', 'your_password', 'CleanBite');
+
 class WeeklyMessageScheduler {
-    constructor(smsService) {
-        this.smsService = smsService;
-        this.weeklyMessages = weeklySMSMessages;
+    constructor(service) {
+        this.service = service;
+        this.weeklyMessages = [
+            { message: "🍶 Did you know? Your gut contains over 100 trillion bacteria! CleanBite's 24-hour fermentation delivers 5+ billion probiotics per jar. Feed your microbiome today. cleanbite.ng", category: "education" },
+            { message: "🌱 Clean eating starts from within. Our yoghurt is made with fresh cow milk, zero preservatives, and 24hr traditional incubation. Your body deserves real food. cleanbite.ng", category: "motivation" },
+            { message: "🛡️ 70% of your immune system lives in your gut! Regular probiotic intake strengthens natural defenses. Grab CleanBite this week. cleanbite.ng", category: "health" },
+            { message: "🔄 Struggling with digestion? Our live active cultures help break down food naturally. Thousands of customers report better gut health within weeks. cleanbite.ng", category: "benefit" },
+            { message: "🥣 Morning ritual: CleanBite plain yoghurt + fresh fruits + honey + granola = the perfect gut-healthy breakfast. Start your day right! cleanbite.ng", category: "lifestyle" },
+            { message: "🔬 24 hours. That's how long we ferment each batch for maximum probiotic potency. Most commercial yoghurts ferment for just 4-6 hours. Choose quality. cleanbite.ng", category: "education" },
+            { message: "🧠 Your gut is your second brain! The gut-brain connection affects mood, focus, and mental clarity. Nourish both with CleanBite. cleanbite.ng", category: "wellness" },
+            { message: "⭐ 'Since switching to CleanBite, my bloating disappeared and I have more energy.' — Sarah, Lagos. Join hundreds of happy customers. cleanbite.ng", category: "testimonial" },
+            { message: "☔ Rainy season alert! Cold weather can weaken digestion. Warm up with our probiotic-rich yoghurt to maintain gut health year-round. cleanbite.ng", category: "seasonal" },
+            { message: "🍯 No refined sugar. Ever. Our sweetness comes from real dates and honey. Clean eating means clean ingredients. Taste the difference. cleanbite.ng", category: "product" },
+            { message: "📅 Gut health isn't a one-time fix—it's a lifestyle. Make CleanBite part of your weekly routine and feel the difference consistently. cleanbite.ng", category: "motivation" },
+            { message: "👥 Know someone who could benefit from better gut health? Share CleanBite with them! Real food, real results, real simple. cleanbite.ng", category: "referral" }
+        ];
         this.currentWeek = 0;
         this.interval = null;
         this.isRunning = false;
     }
-    
-    startWeeklyMessages() {
+    start() {
         if (this.isRunning) return;
-        
-        // Send immediately on start
-        this.sendThisWeeksMessage();
-        
-        // Then schedule weekly
-        this.interval = setInterval(() => {
-            this.sendThisWeeksMessage();
-        }, 7 * 24 * 60 * 60 * 1000); // 7 days
-        
         this.isRunning = true;
-        console.log('✅ Weekly SMS scheduler started');
-        
-        // Update UI
-        const statusEl = document.getElementById('smsStatus');
-        if (statusEl) {
-            statusEl.textContent = '● Active';
-            statusEl.classList.add('active');
-        }
+        this.sendThisWeeksMessage();
+        this.interval = setInterval(() => this.sendThisWeeksMessage(), 7 * 24 * 60 * 60 * 1000);
+        document.getElementById('smsStatus').innerHTML = '● Active';
+        document.getElementById('smsStatus').classList.add('active');
+        showNotification('Weekly SMS campaign started', 'success');
     }
-    
-    stopWeeklyMessages() {
-        if (this.interval) {
-            clearInterval(this.interval);
-            this.interval = null;
-            this.isRunning = false;
-            console.log('⏹️ Weekly SMS scheduler stopped');
-            
-            // Update UI
-            const statusEl = document.getElementById('smsStatus');
-            if (statusEl) {
-                statusEl.textContent = '● Inactive';
-                statusEl.classList.remove('active');
-            }
-        }
+    stop() {
+        if (this.interval) clearInterval(this.interval);
+        this.isRunning = false;
+        this.interval = null;
+        document.getElementById('smsStatus').innerHTML = '● Inactive';
+        document.getElementById('smsStatus').classList.remove('active');
+        showNotification('Weekly SMS campaign stopped', 'info');
     }
-    
     async sendThisWeeksMessage() {
-        const messageData = this.weeklyMessages[this.currentWeek];
-        const customers = this.smsService.getSubscribedCustomers();
+        const today = new Date();
+        // Check for holiday message
+        const holiday = this.getHolidayMessage(today);
+        let messageData;
+        if (holiday) {
+            messageData = { message: holiday.message, category: 'holiday' };
+        } else {
+            const startDate = new Date('2026-01-01');
+            const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+            let weekNumber = Math.floor(daysSinceStart / 7) % this.weeklyMessages.length;
+            if (weekNumber < 0) weekNumber = 0;
+            this.currentWeek = weekNumber;
+            messageData = this.weeklyMessages[weekNumber];
+        }
+        const customers = this.service.getSubscribedCustomers();
         const phoneNumbers = customers.map(c => c.phone);
-        
         if (phoneNumbers.length === 0) {
             console.log('No subscribers to message');
             return;
         }
-        
-        console.log(`📱 Sending Week ${this.currentWeek + 1} message to ${phoneNumbers.length} customers`);
-        
-        // Update current week display
-        const currentWeekEl = document.getElementById('currentWeekMessage');
-        if (currentWeekEl) {
-            currentWeekEl.textContent = `Week ${this.currentWeek + 1}: "${messageData.message.substring(0, 50)}..."`;
-        }
-        
-        // Send in background
-        this.smsService.sendBulkSMS(phoneNumbers, messageData.message)
-            .then(results => {
-                console.log(`✅ Week ${this.currentWeek + 1} messages "sent" successfully`);
-                this.logMessageDelivery(this.currentWeek, phoneNumbers.length, results);
-                this.loadSMSHistory(); // Refresh history
-            })
-            .catch(error => {
-                console.error(`❌ Week ${this.currentWeek + 1} sending failed:`, error);
-            });
-        
-        // Move to next week
-        this.currentWeek = (this.currentWeek + 1) % this.weeklyMessages.length;
-        this.updatePreview();
+        console.log(`📱 Sending message to ${phoneNumbers.length} customers`);
+        const result = await this.service.sendBulkSMS(phoneNumbers, messageData.message);
+        this.logToFirebase(phoneNumbers.length, messageData.message, result);
+        this.loadHistory();
     }
-    
-    async logMessageDelivery(weekNumber, recipientCount, results) {
+    getHolidayMessage(date) {
+        const holidays = [
+            { month: 1, day: 1, message: "🎉 Happy New Year from CleanBite! Start the year with a healthier gut. cleanbite.ng" },
+            { month: 2, day: 14, message: "❤️ Love your gut this Valentine's! Our probiotic yoghurt is the perfect way to show your digestive system some love. cleanbite.ng" },
+            { month: 3, day: 8, message: "👩‍🦱 Happy International Women's Day! Strong women, strong guts. Celebrate with CleanBite. cleanbite.ng" },
+            { month: 5, day: 1, message: "💪 Happy Workers' Day! Fuel your hard work with clean energy. Our probiotic yoghurt gives you the probiotics you need. cleanbite.ng" },
+            { month: 5, day: 27, message: "🧒 Happy Children's Day! Give your little ones a healthy start with CleanBite's natural, preservative-free yoghurt. cleanbite.ng" },
+            { month: 6, day: 12, message: "🇳🇬 Happy Democracy Day! Celebrate freedom with CleanBite. Your gut deserves the freedom to thrive. cleanbite.ng" },
+            { month: 10, day: 1, message: "🇳🇬 Happy Independence Day! Proudly Nigerian, proudly CleanBite. cleanbite.ng" },
+            { month: 12, day: 25, message: "🎄 Merry Christmas from CleanBite! Give the gift of gut health. cleanbite.ng" },
+            { month: 12, day: 26, message: "🎁 Happy Boxing Day! After the feasting, give your gut some love with CleanBite. cleanbite.ng" },
+            { month: 12, day: 31, message: "✨ Happy New Year's Eve! Make a resolution to prioritize your gut health with CleanBite. cleanbite.ng" }
+        ];
+        return holidays.find(h => h.month === date.getMonth() + 1 && h.day === date.getDate());
+    }
+    async logToFirebase(recipientCount, message, result) {
         if (!database) return;
-        
-        const logEntry = {
-            week: weekNumber + 1,
+        await database.ref('sms_campaigns').push({
             date: new Date().toISOString(),
             recipientCount: recipientCount,
-            message: this.weeklyMessages[weekNumber].message,
-            category: this.weeklyMessages[weekNumber].category,
-            status: 'sent',
-            results: results
-        };
-        
-        await database.ref('sms_campaigns').push(logEntry);
+            message: message.substring(0, 100),
+            status: result.success ? 'sent' : 'failed',
+            result: result
+        });
     }
-    
-    updatePreview() {
-        const message = this.weeklyMessages[this.currentWeek];
-        document.getElementById('previewMessage').textContent = message.message;
-        document.getElementById('messageCategory').textContent = message.category;
-        document.getElementById('messageWeek').textContent = this.currentWeek + 1;
-    }
-    
-    async loadSMSHistory() {
-        if (!database) return;
-        
+    async loadHistory() {
+        const historyList = document.getElementById('smsHistoryList');
+        if (!historyList || !database) return;
         const snapshot = await database.ref('sms_campaigns').limitToLast(5).once('value');
         const data = snapshot.val();
-        const historyList = document.getElementById('smsHistoryList');
-        
-        if (!historyList) return;
-        
         if (!data) {
-            historyList.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--gray);">No campaign history yet</div>';
+            historyList.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--gray);">No campaigns yet</div>';
             return;
         }
-        
-        const history = Object.values(data).reverse();
-        historyList.innerHTML = history.map(campaign => `
+        const campaigns = Object.values(data).reverse();
+        historyList.innerHTML = campaigns.map(c => `
             <div class="history-item">
-                <span class="date">${new Date(campaign.date).toLocaleDateString()}</span>
-                <span>Week ${campaign.week}</span>
-                <span class="count">${campaign.recipientCount} recipients</span>
+                <span class="date">${new Date(c.date).toLocaleDateString()}</span>
+                <span class="count">${c.recipientCount || 'Test'} recipients</span>
             </div>
         `).join('');
     }
+    updatePreview() {
+        const today = new Date();
+        const holiday = this.getHolidayMessage(today);
+        let message, category, week;
+        if (holiday) {
+            message = holiday.message;
+            category = 'holiday';
+            week = '🎊';
+            document.getElementById('currentWeekMessage').innerHTML = `<span style="color: var(--cleanbite-warning);">🎉 Holiday:</span> "${message.substring(0, 60)}..."`;
+        } else {
+            const startDate = new Date('2026-01-01');
+            const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+            let weekNumber = Math.floor(daysSinceStart / 7) % this.weeklyMessages.length;
+            if (weekNumber < 0) weekNumber = 0;
+            const msg = this.weeklyMessages[weekNumber];
+            message = msg.message;
+            category = msg.category;
+            week = weekNumber + 1;
+            document.getElementById('currentWeekMessage').innerHTML = `<span style="color: var(--cleanbite-gold);">Week ${week}:</span> "${message.substring(0, 60)}..."`;
+        }
+        document.getElementById('previewMessage').textContent = message;
+        document.getElementById('messageCategory').textContent = category;
+        document.getElementById('messageWeek').textContent = week;
+    }
+    updateSubscriberCount() {
+        const count = this.service.getSubscribedCustomers().length;
+        document.getElementById('subscriberCount').textContent = count;
+    }
 }
 
-// ==================== INITIALIZE SMS CAMPAIGNS - ADD THIS ====================
 let smsScheduler = null;
-
-function initSMSCampaigns() {
-    console.log('📱 Initializing SMS Campaign System...');
-    
-    // Create service with your actual API key when you get one
-    const smsService = new CleanBiteSMSService('YOUR_API_KEY', 'CLEANBITE');
+function initSMS() {
     smsScheduler = new WeeklyMessageScheduler(smsService);
-    
-    // Update subscriber count
-    updateSubscriberCount();
-    
-    // Load SMS history
-    smsScheduler.loadSMSHistory();
-    
-    // Update preview
     smsScheduler.updatePreview();
-
-    updateSMSPreview()
-    
-    // Event listeners
-    document.getElementById('startSMSCampaign')?.addEventListener('click', () => {
-        smsScheduler.startWeeklyMessages();
-        showNotification('Weekly SMS campaign started', 'success');
-    });
-    
-    document.getElementById('stopSMSCampaign')?.addEventListener('click', () => {
-        smsScheduler.stopWeeklyMessages();
-        showNotification('Weekly SMS campaign stopped', 'info');
-    });
-    
+    smsScheduler.updateSubscriberCount();
+    smsScheduler.loadHistory();
+    setInterval(() => smsScheduler.updatePreview(), 24 * 60 * 60 * 1000);
+    setInterval(() => smsScheduler.updateSubscriberCount(), 60 * 60 * 1000);
+    document.getElementById('startSMSCampaign')?.addEventListener('click', () => smsScheduler.start());
+    document.getElementById('stopSMSCampaign')?.addEventListener('click', () => smsScheduler.stop());
     document.getElementById('testSMSButton')?.addEventListener('click', async () => {
-        const testNumber = prompt('Enter your phone number for a test (e.g., 08012345678):');
-        if (testNumber && testNumber.length >= 11) {
-            const message = weeklySMSMessages[0].message;
-            await smsService.sendSingleSMS(testNumber, message);
-        } else if (testNumber) {
+        const num = prompt('Enter your phone number for a test (e.g., 08012345678):');
+        if (num && num.length >= 11) {
+            const holiday = smsScheduler.getHolidayMessage(new Date());
+            const message = holiday ? holiday.message : smsScheduler.weeklyMessages[0].message;
+            await smsService.sendSingleSMS(num, message);
+            alert('Test message sent (check console for response).');
+        } else if (num) {
             alert('Please enter a valid Nigerian phone number');
         }
     });
 }
 
-function updateSubscriberCount() {
-    const customers = Array.from(allCustomers.values());
-    const subscribers = customers.filter(c => 
-        c.phone && 
-        c.phone.length >= 11 && 
-        c.smsConsent !== false
-    ).length;
-    
-    const countEl = document.getElementById('subscriberCount');
-    if (countEl) countEl.textContent = subscribers;
-}
-
-    // ==================== ADD ACTIVITY TO FEED ====================
-    function addActivityToFeed(activity) {
-        const feed = document.getElementById('activityFeed');
-        if (!feed) return;
-        
-        const el = document.createElement('div');
-        el.className = 'activity-item';
-        el.style.borderLeftColor = activity.color || '#3498db';
-        el.innerHTML = `
-            <div class="activity-icon" style="color: ${activity.color || '#3498db'};">
-                <i class="fas ${activity.icon || 'fa-bell'}"></i>
-            </div>
-            <div class="activity-content">
-                <div class="activity-message">${activity.message}</div>
-                <div class="activity-time">
-                    <i class="far fa-clock"></i> Just now
-                    ${activity.customerName ? `
-                        <span class="activity-customer">
-                            <i class="fas fa-user"></i> ${activity.customerName}
-                        </span>
-                    ` : ''}
-                    ${activity.orderId ? `
-                        <span class="activity-order">
-                            <i class="fas fa-hashtag"></i> ${activity.orderId.slice(-8)}
-                        </span>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-        
-        if (feed.firstChild) {
-            feed.insertBefore(el, feed.firstChild);
-        } else {
-            feed.appendChild(el);
-        }
-        
-        while (feed.children.length > 30) {
-            feed.removeChild(feed.lastChild);
-        }
-    }
-
-    // ==================== UPDATE ACTIVITY FEED ====================
-    function updateActivityFeed() {
-        const feed = document.getElementById('activityFeed');
-        if (!feed) return;
-        
-        const activities = allOrders
-            .flatMap(order => {
-                const acts = [];
-                if (order.verifiedAt) {
-                    acts.push({
-                        type: 'payment_verified',
-                        message: `💰 Payment verified for order ${order.id.slice(-8)}`,
-                        orderId: order.id,
-                        customerName: order.customerName,
-                        timestamp: order.verifiedAt,
-                        icon: 'fa-check-circle',
-                        color: '#2ecc71'
-                    });
-                }
-                if (order.updatedAt && order.status) {
-                    let message = '';
-                    if (order.status === 'preparing') 
-                        message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
-                    if (order.status === 'incubating') 
-                        message = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
-                    if (order.status === 'ready') 
-                        message = `✅ Order ${order.id.slice(-8)} is READY`;
-                    if (order.status === 'completed') 
-                        message = `📦 Order ${order.id.slice(-8)} completed`;
-                    
-                    if (message) {
-                        acts.push({
-                            type: 'status_change',
-                            message: message,
-                            orderId: order.id,
-                            customerName: order.customerName,
-                            timestamp: order.updatedAt,
-                            icon: 'fa-sync-alt',
-                            color: '#3498db'
-                        });
-                    }
-                }
-                if (order.createdAt && !order.verifiedAt && order.status !== 'cancelled') {
-                    acts.push({
-                        type: 'order_created',
-                        message: `🛒 New order ${order.id.slice(-8)} from ${order.customerName || 'Customer'}`,
-                        orderId: order.id,
-                        customerName: order.customerName,
-                        timestamp: order.createdAt,
-                        icon: 'fa-cart-plus',
-                        color: '#9b59b6'
-                    });
-                }
-                return acts;
-            })
-            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-            .slice(0, 30);
-        
-        if (activities.length === 0) {
-            feed.innerHTML = `
-                <div class="empty-queue">
-                    <i class="fas fa-stream"></i>
-                    <p>No recent activity</p>
-                </div>
-            `;
-            return;
-        }
-        
-        feed.innerHTML = activities.map(act => `
-            <div class="activity-item" style="border-left-color: ${act.color};">
-                <div class="activity-icon" style="color: ${act.color};">
-                    <i class="fas ${act.icon}"></i>
-                </div>
-                <div class="activity-content">
-                    <div class="activity-message">${act.message}</div>
-                    <div class="activity-time">
-                        <i class="far fa-clock"></i> ${timeAgo(act.timestamp)}
-                        ${act.customerName ? `
-                            <span class="activity-customer">
-                                <i class="fas fa-user"></i> ${act.customerName}
-                            </span>
-                        ` : ''}
-                        ${act.orderId ? `
-                            <span class="activity-order">
-                                <i class="fas fa-hashtag"></i> ${act.orderId.slice(-8)}
-                            </span>
-                        ` : ''}
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    // ==================== TIME AGO HELPER ====================
-    function timeAgo(timestamp) {
-        if (!timestamp) return 'Just now';
-        const diff = Math.floor((new Date() - new Date(timestamp)) / 60000);
-        if (diff < 1) return 'Just now';
-        if (diff < 60) return `${diff}m ago`;
-        if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
-        return `${Math.floor(diff / 1440)}d ago`;
-    }
-
-    // ==================== GET STATUS COLOR ====================
-    function getStatusColor(status) {
-        const colors = {
-            'pending-payment': '#f39c12',
-            'preparing': '#3498db',
-            'incubating': '#9b59b6',
-            'ready': '#2ecc71',
-            'completed': '#95a5a6',
-            'cancelled': '#e74c3c'
-        };
-        return colors[status] || '#95a5a6';
-    }
-
-    function getStatusIcon(status) {
-        const icons = {
-            'pending-payment': 'fa-clock',
-            'preparing': 'fa-utensils',
-            'incubating': 'fa-clock',
-            'ready': 'fa-check-circle',
-            'completed': 'fa-flag-checkered',
-            'cancelled': 'fa-ban'
-        };
-        return icons[status] || 'fa-circle';
-    }
-
-    // ==================== BROADCAST SYSTEM ====================
-    function initBroadcastSystem() {
-        try {
-            if (typeof BroadcastChannel !== 'undefined') {
-                broadcastChannel = new BroadcastChannel('cleanbite_activities');
-                activityChannel = new BroadcastChannel('cleanbite_admin');
-            }
-        } catch (e) {}
-    }
-
-    function getBroadcastIcon(type) {
-        const icons = {
-            'payment_verified': 'fa-check-circle',
-            'payment_rejected': 'fa-times-circle',
-            'order_created': 'fa-cart-plus',
-            'status_change': 'fa-sync-alt',
-            'order_completed': 'fa-flag-checkered'
-        };
-        return icons[type] || 'fa-bell';
-    }
-
-    function getBroadcastColor(type) {
-        const colors = {
-            'payment_verified': '#2ecc71',
-            'payment_rejected': '#e74c3c',
-            'order_created': '#9b59b6',
-            'status_change': '#3498db',
-            'order_completed': '#3498db'
-        };
-        return colors[type] || '#95a5a6';
-    }
-
-    function addActivity(activity) {
-        const feed = document.getElementById('activityFeed');
-        if (!feed) return;
-        
-        const el = document.createElement('div');
-        el.className = 'activity-item';
-        el.style.borderLeftColor = activity.color || '#3498db';
-        el.innerHTML = `
-            <div class="activity-icon" style="color: ${activity.color || '#3498db'};">
-                <i class="fas ${activity.icon || 'fa-bell'}"></i>
-            </div>
-            <div class="activity-content">
-                <div class="activity-message">${activity.message}</div>
-                <div class="activity-time">
-                    <i class="far fa-clock"></i> Just now
-                    ${activity.customerName ? `
-                        <span class="activity-customer">
-                            <i class="fas fa-user"></i> ${activity.customerName}
-                        </span>
-                    ` : ''}
-                    ${activity.orderId ? `
-                        <span class="activity-order">
-                            <i class="fas fa-hashtag"></i> ${activity.orderId.slice(-8)}
-                        </span>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-        
-        if (feed.firstChild) {
-            feed.insertBefore(el, feed.firstChild);
-        } else {
-            feed.appendChild(el);
-        }
-        
-        while (feed.children.length > 30) {
-            feed.removeChild(feed.lastChild);
-        }
-    }
-
-    // ==================== VERIFY PAYMENT ====================
-    window.openVerifyModal = function(orderId) {
-        const order = allOrders.find(o => o.id === orderId);
-        if (!order) return;
-        
-        currentVerificationOrder = orderId;
-        document.getElementById('verifyOrderId').textContent = order.id;
-        document.getElementById('verifyCustomerName').textContent = order.customerName || 'Customer';
-        document.getElementById('verifyAmount').textContent = `₦${(order.total || order.totalAmount || 0).toLocaleString()}`;
-        document.getElementById('verifyMethod').textContent = order.paymentMethod || 'Bank Transfer';
-        document.getElementById('verificationNotes').value = '';
-        document.getElementById('verifyModal').classList.add('active');
-    };
-
-    document.getElementById('confirmVerification')?.addEventListener('click', function() {
-        const btn = this;
-        if (!currentVerificationOrder) return;
-        
-        const order = allOrders.find(o => o.id === currentVerificationOrder);
-        if (!order || !order.firebaseKey) {
-            showNotification('Order not found', 'error');
-            closeModal('verifyModal');
-            return;
-        }
-        
-        const originalText = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
-        
-        const timeout = setTimeout(() => {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-            showNotification('Verification timed out', 'warning');
-        }, 5000);
-        
-        database.ref(`orders/${order.firebaseKey}`).update({
-            paymentStatus: 'verified',
-            status: 'preparing',
-            verifiedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            preparingStarted: new Date().toISOString()
-        })
-        .then(() => {
-            clearTimeout(timeout);
-            playApprovalSound();
-            
-            const message = `💰 Payment verified for order ${order.id.slice(-8)}`;
-            addActivity({
-                type: 'payment_verified',
-                message,
-                orderId: order.id,
-                customerName: order.customerName,
-                icon: 'fa-check-circle',
-                color: '#2ecc71'
-            });
-            
-            broadcastToOrderPage('payment_verified', message, order.id, order.customerName);
-            showNotification('Payment verified successfully', 'success');
-            closeModal('verifyModal');
-        })
-        .catch(error => {
-            clearTimeout(timeout);
-            console.error(error);
-            showNotification('Error verifying payment', 'error');
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-        });
-    });
-
-    // ==================== REJECT PAYMENT ====================
-    window.openRejectModal = function(orderId) {
-        const order = allOrders.find(o => o.id === orderId);
-        if (!order) return;
-        
-        currentVerificationOrder = orderId;
-        document.getElementById('rejectOrderId').textContent = order.id;
-        document.getElementById('rejectCustomerName').textContent = order.customerName || 'Customer';
-        document.getElementById('rejectAmount').textContent = `₦${(order.total || order.totalAmount || 0).toLocaleString()}`;
-        document.getElementById('rejectionReason').value = '';
-        document.getElementById('rejectModal').classList.add('active');
-    };
-
-    document.getElementById('confirmRejection')?.addEventListener('click', function() {
-        const btn = this;
-        if (!currentVerificationOrder) return;
-        
-        const reason = document.getElementById('rejectionReason').value.trim();
-        if (!reason) {
-            showNotification('Please provide a rejection reason', 'warning');
-            return;
-        }
-        
-        const order = allOrders.find(o => o.id === currentVerificationOrder);
-        if (!order || !order.firebaseKey) {
-            showNotification('Order not found', 'error');
-            closeModal('rejectModal');
-            return;
-        }
-        
-        const originalText = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejecting...';
-        
-        const timeout = setTimeout(() => {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-            showNotification('Rejection timed out', 'warning');
-        }, 5000);
-        
-        database.ref(`orders/${order.firebaseKey}`).update({
-            paymentStatus: 'rejected',
-            status: 'cancelled',
-            rejectionReason: reason,
-            rejectedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        })
-        .then(() => {
-            clearTimeout(timeout);
-            
-            const message = `❌ Payment rejected for order ${order.id.slice(-8)}`;
-            addActivity({
-                type: 'payment_rejected',
-                message,
-                orderId: order.id,
-                customerName: order.customerName,
-                icon: 'fa-times-circle',
-                color: '#e74c3c'
-            });
-            
-            broadcastToOrderPage('payment_rejected', message, order.id, order.customerName);
-            showNotification('Payment rejected', 'warning');
-            closeModal('rejectModal');
-        })
-        .catch(error => {
-            clearTimeout(timeout);
-            console.error(error);
-            showNotification('Error rejecting payment', 'error');
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-        });
-    });
-
-    // ==================== UPDATE STATUS ====================
-    window.openStatusModal = function(orderId) {
-        const order = allOrders.find(o => o.id === orderId);
-        if (!order) return;
-        
-        currentStatusOrder = orderId;
-        document.getElementById('statusOrderId').textContent = order.id;
-        document.getElementById('statusCustomerName').textContent = order.customerName || 'Customer';
-        document.getElementById('currentStatus').innerHTML = 
-            `<span class="status-badge ${order.status}" style="background: ${getStatusColor(order.status)}20; color: ${getStatusColor(order.status)};">
-                ${order.status?.replace('-', ' ') || 'pending'}
-            </span>`;
-        
-        const statuses = ['preparing', 'incubating', 'ready', 'completed'];
-        const options = document.getElementById('statusOptions');
-        options.innerHTML = statuses.map(status => `
-            <label class="status-option" style="background: ${order.status === status ? 'var(--primary-light)' : 'white'};">
-                <input type="radio" name="status" value="${status}" ${order.status === status ? 'checked' : ''}>
-                <span class="status-badge ${status}" style="background: ${getStatusColor(status)}20; color: ${getStatusColor(status)};">
-                    <i class="fas ${getStatusIcon(status)}"></i> ${status}
-                </span>
-                ${order.status === status ? '<span style="margin-left: auto; color: var(--primary);"><i class="fas fa-check-circle"></i> Current</span>' : ''}
-            </label>
-        `).join('');
-        
-        document.getElementById('statusModal').classList.add('active');
-    };
-
-    document.getElementById('confirmUpdate')?.addEventListener('click', function() {
-        const btn = this;
-        if (!currentStatusOrder) return;
-        
-        const selected = document.querySelector('input[name="status"]:checked');
-        if (!selected) {
-            showNotification('Please select a status', 'warning');
-            return;
-        }
-        
-        const newStatus = selected.value;
-        const order = allOrders.find(o => o.id === currentStatusOrder);
-        
-        if (!order || !order.firebaseKey) {
-            showNotification('Order not found', 'error');
-            closeModal('statusModal');
-            return;
-        }
-        
-        const originalText = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
-        
-        const updates = {
-            status: newStatus,
-            updatedAt: new Date().toISOString()
-        };
-        
-        if (newStatus === 'preparing' && !order.preparingStarted) {
-            updates.preparingStarted = new Date().toISOString();
-        }
-        if (newStatus === 'incubating' && !order.incubatingStarted) {
-            updates.incubatingStarted = new Date().toISOString();
-        }
-        if (newStatus === 'ready' && !order.readyAt) {
-            updates.readyAt = new Date().toISOString();
-        }
-        if (newStatus === 'completed') {
-            updates.completedAt = new Date().toISOString();
-        }
-        
-        const timeout = setTimeout(() => {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-            showNotification('Update timed out', 'warning');
-        }, 5000);
-        
-        database.ref(`orders/${order.firebaseKey}`).update(updates)
-        .then(() => {
-            clearTimeout(timeout);
-            playApprovalSound();
-            
-            let message = '';
-            if (newStatus === 'preparing') message = `👨‍🍳 Order ${order.id.slice(-8)} started preparation`;
-            if (newStatus === 'incubating') message = `⏱️ Order ${order.id.slice(-8)} moved to incubating`;
-            if (newStatus === 'ready') message = `✅ Order ${order.id.slice(-8)} is READY`;
-            if (newStatus === 'completed') message = `📦 Order ${order.id.slice(-8)} completed`;
-            
-            if (message) {
-                addActivity({
-                    type: 'status_change',
-                    message,
-                    orderId: order.id,
-                    customerName: order.customerName,
-                    icon: 'fa-sync-alt',
-                    color: '#3498db'
-                });
-                broadcastToOrderPage('status_change', message, order.id, order.customerName);
-            }
-            
-            showNotification(`Order updated to ${newStatus}`, 'success');
-            closeModal('statusModal');
-        })
-        .catch(error => {
-            clearTimeout(timeout);
-            console.error(error);
-            showNotification('Error updating status', 'error');
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-        });
-    });
-
-    // ==================== COMPLETE ORDER ====================
-    window.completeOrderManually = function(orderId) {
-        const order = allOrders.find(o => o.id === orderId);
-        if (!order || !order.firebaseKey) {
-            showNotification('Order not found', 'error');
-            return;
-        }
-        
-        const timeout = setTimeout(() => {
-            showNotification('Completion timed out', 'warning');
-        }, 5000);
-        
-        database.ref(`orders/${order.firebaseKey}`).update({
-            status: 'completed',
-            completedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        })
-        .then(() => {
-            clearTimeout(timeout);
-            playApprovalSound();
-            
-            const message = `🏁 Order ${orderId.slice(-8)} completed`;
-            addActivity({
-                type: 'order_completed',
-                message,
-                orderId: order.id,
-                customerName: order.customerName,
-                icon: 'fa-flag-checkered',
-                color: '#3498db'
-            });
-            broadcastToOrderPage('order_completed', message, order.id, order.customerName);
-            showNotification('Order completed', 'success');
-        })
-        .catch(error => {
-            clearTimeout(timeout);
-            console.error(error);
-            showNotification('Error completing order', 'error');
-        });
-    };
-
-    // ==================== VIEW CUSTOMER DETAILS ====================
-    // ==================== FIXED: VIEW CUSTOMER DETAILS WITH ITEMS ====================
-window.viewCustomerDetails = function(phone) {
-    const customer = allCustomers.get(phone);
-    if (!customer) return;
-    
-    // Sort orders by date (newest first)
-    const sortedOrders = [...customer.orders].sort((a, b) => 
-        new Date(b.date) - new Date(a.date)
-    );
-    
-    // Find the full order details from allOrders to get items
-    const customerOrdersWithItems = sortedOrders.map(orderSummary => {
-        const fullOrder = allOrders.find(o => o.id === orderSummary.id);
-        return fullOrder || orderSummary;
-    });
-    
-    const modalBody = document.getElementById('customerModalBody');
-    
-    modalBody.innerHTML = `
-        <div class="customer-profile">
-            <div class="customer-avatar-large">
-                <i class="fas fa-user-circle"></i>
-            </div>
-            <div class="customer-name-large">${customer.name}</div>
-            <div class="customer-phone-large">
-                <i class="fas fa-phone-alt"></i> ${customer.phone}
-            </div>
-        </div>
-        
-        <div class="customer-stats-grid">
-            <div class="stat-box">
-                <div class="stat-value">${customer.totalOrders}</div>
-                <div class="stat-label">Total Orders</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-value">₦${(customer.totalSpent / 1000).toFixed(1)}k</div>
-                <div class="stat-label">Total Spent</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-value">${customer.orders.reduce((sum, o) => sum + (o.items || 0), 0)}</div>
-                <div class="stat-label">Items</div>
-            </div>
-        </div>
-        
-        <div class="customer-contact-details">
-            <div class="contact-item">
-                <i class="fas fa-envelope"></i>
-                <span>${customer.email}</span>
-            </div>
-            <div class="contact-item">
-                <i class="fas fa-calendar-alt"></i>
-                <span>First order: ${customer.firstOrder ? new Date(customer.firstOrder).toLocaleDateString() : 'N/A'}</span>
-            </div>
-            <div class="contact-item">
-                <i class="fas fa-clock"></i>
-                <span>Last order: ${customer.lastOrder ? new Date(customer.lastOrder).toLocaleDateString() : 'N/A'}</span>
-            </div>
-            <div class="contact-item">
-                <i class="fas fa-credit-card"></i>
-                <span>Preferred payment: ${customer.preferredPayment || 'N/A'}</span>
-            </div>
-        </div>
-        
-        <div class="order-history-title">
-            <i class="fas fa-history"></i> Order History (${customer.orders.length})
-        </div>
-        
-        <div class="order-history-list">
-            ${customerOrdersWithItems.length > 0 ? 
-                customerOrdersWithItems.map(order => `
-                    <div class="order-history-item">
-                        <div class="order-header">
-                            <span class="order-id">${order.id}</span>
-                            <span class="order-status-badge ${order.status || 'pending'}">
-                                ${(order.status || 'pending').replace('-', ' ')}
-                            </span>
-                            <span class="order-date">
-                                <i class="far fa-calendar"></i> ${new Date(order.date || order.createdAt).toLocaleDateString()}
-                            </span>
-                        </div>
-                        
-                        ${order.items ? `
-                            <div class="order-items-preview">
-                                ${order.items.map(item => `
-                                    <div class="order-item">
-                                        <span class="item-name">
-                                            <span class="item-quantity">${item.quantity}x</span>
-                                            ${item.name}
-                                        </span>
-                                        <span class="item-price">₦${(item.price * item.quantity).toLocaleString()}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-                        
-                        <div class="order-total-row">
-                            <span class="order-total-label">Total:</span>
-                            <span class="order-total-amount">₦${(order.amount || order.total || 0).toLocaleString()}</span>
-                        </div>
-                        
-                        ${order.status === 'cancelled' && order.rejectionReason ? `
-                            <div class="cancelled-reason-badge">
-                                <i class="fas fa-exclamation-circle"></i>
-                                Cancelled: ${order.rejectionReason}
-                            </div>
-                        ` : ''}
-                    </div>
-                `).join('') 
-            : `
-                <div class="no-orders">
-                    <i class="fas fa-shopping-cart"></i>
-                    <p>No orders found</p>
-                </div>
-            `}
-        </div>
-    `;
-    
-    document.getElementById('customerModal').classList.add('active');
-}
-
-    // ==================== MODAL CLOSE FUNCTIONALITY - FIXED ====================
-document.addEventListener('DOMContentLoaded', function() {
-    // Close modal when clicking the close button
-    document.getElementById('closeCustomerModal')?.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        document.getElementById('customerModal').classList.remove('active');
-    });
-    
-    document.getElementById('closeFilterModal')?.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        document.getElementById('filterModal').classList.remove('active');
-    });
-    
-    // Close modal when clicking outside the modal content
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.classList.remove('active');
-            }
-        });
-    });
-    
-    // Filter modal buttons
-    document.getElementById('clearFilters')?.addEventListener('click', function() {
-        document.getElementById('filterStatus').value = 'all';
-        document.getElementById('filterDate').value = 'all';
-        // Trigger your filter function here
-        if (typeof applyFilters === 'function') applyFilters();
-        document.getElementById('filterModal').classList.remove('active');
-    });
-    
-    document.getElementById('applyFilters')?.addEventListener('click', function() {
-        // Trigger your filter function here
-        if (typeof applyFilters === 'function') applyFilters();
-        document.getElementById('filterModal').classList.remove('active');
-    });
-});
-
-    // ==================== NOTIFICATION ====================
-    function showNotification(message, type = 'success') {
-        const notification = document.createElement('div');
-        notification.className = `notification-toast ${type}`;
-        notification.innerHTML = `
-            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}" 
-               style="font-size: 24px; color: ${type === 'success' ? '#2ecc71' : type === 'warning' ? '#f39c12' : '#3498db'};"></i>
-            <div style="flex: 1;">
-                <div style="font-weight: 700; margin-bottom: 5px;">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
-                <div style="color: var(--gray);">${message}</div>
-            </div>
-            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--gray); cursor: pointer; font-size: 20px;">&times;</button>
-        `;
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), 5000);
-    }
-
-    // ==================== MODAL FUNCTIONS ====================
-    function closeModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) modal.classList.remove('active');
-    }
-
-    // ==================== LOAD DASHBOARD CONTENT ====================
-    function loadDashboardContent() {
-        const mainContent = document.getElementById('mainContent');
-        mainContent.innerHTML = `
-            <!-- Payment Notice -->
-            <div class="payment-notice" id="paymentNotice">
-                <i class="fas fa-exclamation-triangle"></i>
-                <div class="payment-notice-content">
-                    <h4><i class="fas fa-bell"></i> Payment Verification Required</h4>
-                    <p id="paymentNoticeMessage">New orders require payment verification</p>
-                </div>
-                <span class="badge" id="paymentNoticeCount"><i class="fas fa-clock"></i> 0 pending</span>
-            </div>
-
-            <!-- Stats Cards -->
-            <div class="stats-grid">
-                <div class="stat-card revenue">
-                    <div class="stat-header">
-                        <div class="stat-icon"><i class="fas fa-naira-sign"></i></div>
-                        <div class="stat-trend positive"><i class="fas fa-arrow-up"></i> Live</div>
-                    </div>
-                    <div class="stat-value" id="totalRevenue">₦0</div>
-                    <div class="stat-label"><i class="fas fa-circle-check"></i> Verified Revenue</div>
-                </div>
-                
-                <div class="stat-card pending">
-                    <div class="stat-header">
-                        <div class="stat-icon"><i class="fas fa-hourglass-half"></i></div>
-                        <div class="stat-trend" id="pendingTrend"><i class="fas fa-clock"></i> 0</div>
-                    </div>
-                    <div class="stat-value" id="awaitingVerification">0</div>
-                    <div class="stat-label"><i class="fas fa-hourglass"></i> Pending Verification</div>
-                </div>
-                
-                <div class="stat-card verified">
-                    <div class="stat-header">
-                        <div class="stat-icon"><i class="fas fa-check-double"></i></div>
-                        <div class="stat-trend positive"><i class="fas fa-check"></i> Active</div>
-                    </div>
-                    <div class="stat-value" id="verifiedOrdersCount">0</div>
-                    <div class="stat-label"><i class="fas fa-check-circle"></i> Verified Orders</div>
-                </div>
-                
-                <div class="stat-card customers">
-                    <div class="stat-header">
-                        <div class="stat-icon"><i class="fas fa-users"></i></div>
-                        <div class="stat-trend positive"><i class="fas fa-arrow-up"></i> Total</div>
-                    </div>
-                    <div class="stat-value" id="totalCustomers">0</div>
-                    <div class="stat-label"><i class="fas fa-user-plus"></i> Active Customers</div>
-                </div>
-            </div>
-
-            <!-- Filter Bar -->
-            <div class="filter-bar">
-                <div class="filter-group">
-                    <span class="filter-label"><i class="fas fa-filter"></i> Filter:</span>
-                    <select class="filter-select" id="mainFilter">
-                        <option value="all">All Orders</option>
-                        <option value="pending">Pending Payment</option>
-                        <option value="verified">Verified Only</option>
-                        <option value="preparing">Preparing</option>
-                        <option value="incubating">Incubating</option>
-                        <option value="ready">Ready</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
-                    
-                    <select class="filter-select" id="dateFilter">
-                        <option value="all">All Time</option>
-                        <option value="today">Today</option>
-                        <option value="week">This Week</option>
-                        <option value="month">This Month</option>
-                    </select>
-                </div>
-                
-                <div class="filter-search">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="Search orders, customers...">
-                </div>
-                
-                <div class="filter-actions">
-                    <button class="filter-btn" id="applyFilter"><i class="fas fa-check"></i> Apply</button>
-                    <button class="filter-btn" id="resetFilter"><i class="fas fa-redo-alt"></i> Reset</button>
-                </div>
-            </div>
-
-            <!-- Payment Verification Queue -->
-            <div class="verification-section" id="verificationSection">
-                <div class="section-header">
-                    <h3><i class="fas fa-clock"></i> Payment Verification Queue</h3>
-                    <div class="section-count">
-                        <i class="fas fa-hourglass-half"></i>
-                        <span id="verificationCount">0</span> Pending
-                    </div>
-                </div>
-                <div class="verification-grid" id="verificationList"></div>
-            </div>
-
-                        <!-- Verified Orders (Active Only) -->
-            <div class="verification-section" id="verifiedSection">
-                <div class="section-header">
-                    <h3><i class="fas fa-check-circle" style="color: var(--success);"></i> Active Orders</h3>
-                    <div class="section-count" style="color: var(--success);">
-                        <i class="fas fa-check"></i>
-                        <span id="verifiedCount">0</span> Active
-                    </div>
-                </div>
-                <div class="orders-grid" id="verifiedOrdersList"></div>
-            </div>
-            
-            <!-- Cancelled Orders -->
-            <div class="verification-section" id="cancelledSection">
-                <div class="section-header">
-                    <h3><i class="fas fa-times-circle" style="color: var(--danger);"></i> Cancelled Orders</h3>
-                    <div class="section-count" style="color: var(--danger);">
-                        <i class="fas fa-ban"></i>
-                        <span id="cancelledCount">0</span> Total
-                    </div>
-                </div>
-                
-                <!-- Completed Orders Archive -->
-            <div class="verification-section" id="completedSection" style="display: none;">
-                <div class="section-header">
-                    <h3><i class="fas fa-archive" style="color: var(--cleanbite-gray);"></i> Completed Orders Archive</h3>
-                    <div class="section-count" style="color: var(--cleanbite-gray); border-color: var(--cleanbite-gray);">
-                        <i class="fas fa-check-circle"></i>
-                        <span id="completedCount">0</span> Total
-                    </div>
-                </div>
-                
-                <!-- Month Filter for Completed Orders -->
-                <div class="archive-filter-bar">
-                    <div class="filter-group">
-                        <span class="filter-label"><i class="fas fa-calendar"></i> Archive by Month:</span>
-                        <select class="filter-select" id="completedMonthFilter">
-                            <option value="all">All Time</option>
-                        </select>
-                        <button class="filter-btn small" id="applyCompletedFilter"><i class="fas fa-filter"></i> Filter</button>
-                        <button class="filter-btn small" id="resetCompletedFilter"><i class="fas fa-redo-alt"></i> Reset</button>
-                    </div>
-                </div>
-                
-                <div class="orders-grid" id="completedOrdersList"></div>
-            </div>
-                
-                <!-- Cancelled Orders Filter -->
-                <div class="archive-filter-bar">
-                    <div class="filter-group">
-                        <span class="filter-label"><i class="fas fa-calendar"></i> Archive by Month:</span>
-                        <select class="filter-select" id="cancelledMonthFilter">
-                            <option value="all">All Time</option>
-                        </select>
-                        <button class="filter-btn small" id="applyCancelledFilter"><i class="fas fa-filter"></i> Filter</button>
-                        <button class="filter-btn small" id="resetCancelledFilter"><i class="fas fa-redo-alt"></i> Reset</button>
-                    </div>
-                </div>
-                
-                <div class="orders-grid" id="cancelledOrdersList"></div>
-            </div>
-            
-            <!-- Customer Database with Full Features -->
-            <div class="customer-section" id="customerSection">
-                <div class="section-header">
-                    <h3><i class="fas fa-users" style="color: var(--purple);"></i> Customer Database</h3>
-                    <div class="section-count">
-                        <i class="fas fa-user"></i>
-                        <span id="customerCount">0</span> Total Customers
-                    </div>
-                </div>
-                
-                <!-- Customer Filters -->
-                <div class="customer-filter-bar">
-                    <div class="filter-row">
-                        <div class="filter-group">
-                            <span class="filter-label"><i class="fas fa-search"></i> Search:</span>
-                            <input type="text" id="customerSearch" placeholder="Name, phone, email..." class="filter-input">
-                        </div>
-                        <div class="filter-group">
-                            <span class="filter-label"><i class="fas fa-filter"></i> Status:</span>
-                            <select class="filter-select" id="customerStatusFilter">
-                                <option value="all">All Customers</option>
-                                <option value="active">Active (Has orders)</option>
-                                <option value="inactive">Inactive (No orders)</option>
-                                <option value="vip">VIP (5+ orders)</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <span class="filter-label"><i class="fas fa-calendar"></i> Orders:</span>
-                            <select class="filter-select" id="customerOrdersFilter">
-                                <option value="all">Any orders</option>
-                                <option value="1">1 order</option>
-                                <option value="2-3">2-3 orders</option>
-                                <option value="4+">4+ orders</option>
-                            </select>
-                        </div>
-                        <div class="filter-actions">
-                            <button class="filter-btn" id="applyCustomerFilter"><i class="fas fa-check"></i> Apply</button>
-                            <button class="filter-btn" id="resetCustomerFilter"><i class="fas fa-redo-alt"></i> Reset</button>
-                        </div>
-                    </div>
-                    <div class="results-count" id="customerResults">
-                        Showing <span id="customerShowing">0</span> of <span id="customerTotal">0</span> customers
-                    </div>
-                </div>
-                
-                <div class="customers-grid" id="customersList"></div>
-            </div>
-        
-            <!-- Activity Feed -->
-            <div class="activity-section" id="activitySection">
-                <div class="section-header">
-                    <h3><i class="fas fa-stream"></i> Live Activity Feed</h3>
-                    <button class="filter-btn" id="refreshActivity"><i class="fas fa-sync-alt"></i> Refresh</button>
-                </div>
-                <div class="activity-feed" id="activityFeed"></div>
-            </div>
-
-           <!-- 🔥 SMS Campaign Panel - FULLY FUNCTIONAL -->
-            <div class="verification-section" id="smsCampaignSection">
-                <div class="section-header">
-                    <h3><i class="fas fa-sms" style="color: var(--cleanbite-gold);"></i> Weekly Gut Health SMS</h3>
-                    <div class="section-count">
-                        <i class="fas fa-users"></i>
-                        <span id="subscriberCount">0</span> Subscribers
-                    </div>
-                </div>
-                
-                <div class="sms-controls">
-                    <div class="sms-status">
-                        <div class="status-indicator" id="smsStatus">● Inactive</div>
-                        <div class="current-message" id="currentWeekMessage">
-                            Loading current message...
-                        </div>
-                    </div>
-                    
-                    <div class="sms-actions">
-                        <button class="btn-action" id="startSMSCampaign" style="background: var(--cleanbite-success); color: white;">
-                            <i class="fas fa-play"></i> Start Weekly Messages
-                        </button>
-                        <button class="btn-action" id="stopSMSCampaign" style="background: var(--cleanbite-danger); color: white;">
-                            <i class="fas fa-stop"></i> Stop
-                        </button>
-                        <button class="btn-action" id="testSMSButton" style="background: var(--cleanbite-info); color: white;">
-                            <i class="fas fa-paper-plane"></i> Send Test
-                        </button>
-                    </div>
-                    
-                    <div class="sms-preview">
-                        <h4>Preview This Week's Message</h4>
-                        <div class="message-preview-box">
-                            <i class="fas fa-quote-left" style="color: var(--cleanbite-gold);"></i>
-                            <span id="previewMessage">Loading...</span>
-                            <i class="fas fa-quote-right" style="color: var(--cleanbite-gold);"></i>
-                        </div>
-                        <div class="message-meta">
-                            <span>Category: <span id="messageCategory">-</span></span>
-                            <span>Week <span id="messageWeek">-</span>/12</span>
-                        </div>
-                    </div>
-                    
-                    <div class="sms-history">
-                        <h4>Recent Campaigns</h4>
-                        <div class="history-list" id="smsHistoryList">
-                            <div style="text-align: center; padding: 20px; color: var(--gray);">No campaigns yet</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        // Add event listeners for filters
-        document.getElementById('applyFilter')?.addEventListener('click', applyFilters);
-        document.getElementById('resetFilter')?.addEventListener('click', resetFilters);
-        document.getElementById('refreshActivity')?.addEventListener('click', () => updateActivityFeed());
-        document.getElementById('searchInput')?.addEventListener('input', applyFilters);
-    }
-
-    // ==================== FILTER FUNCTIONS ====================
-    function applyFilters() {
-        const filter = document.getElementById('mainFilter')?.value;
-        const search = document.getElementById('searchInput')?.value.toLowerCase();
-        
-        // Filter orders based on criteria
-        const filteredOrders = allOrders.filter(order => {
-            if (filter !== 'all' && order.status !== filter && 
-                !(filter === 'pending' && order.paymentStatus === 'pending') &&
-                !(filter === 'verified' && order.paymentStatus === 'verified')) {
-                return false;
-            }
-            
-            if (search) {
-                return order.id?.toLowerCase().includes(search) ||
-                       order.customerName?.toLowerCase().includes(search) ||
-                       order.customerPhone?.includes(search);
-            }
-            return true;
-        });
-        
-        // Update displays with filtered data
-        updateFilteredDisplays(filteredOrders);
-    }
-
-    function resetFilters() {
-        const mainFilter = document.getElementById('mainFilter');
-        const dateFilter = document.getElementById('dateFilter');
-        const searchInput = document.getElementById('searchInput');
-        
-        if (mainFilter) mainFilter.value = 'all';
-        if (dateFilter) dateFilter.value = 'all';
-        if (searchInput) searchInput.value = '';
-        
-        updateAllDisplays();
-    }
-
-    function updateFilteredDisplays(filteredOrders) {
-        // This would update displays with filtered data
-        // For now, just refresh all
-        updateAllDisplays();
-    }
-
-  function setupTabSwitching() {
+// ==================== TAB SWITCHING ====================
+function setupTabSwitching() {
     const tabs = {
         dashboardTab: ['verificationSection', 'verifiedSection', 'cancelledSection', 'completedSection', 'customerSection', 'activitySection'],
         verificationTab: ['verificationSection'],
-        verifiedOrdersTab: ['verifiedSection'],      // ✅ Shows only active orders
-        cancelledOrdersTab: ['cancelledSection'],    // ✅ Shows cancelled archive
-        completedOrdersTab: ['completedSection'],    // ✅ Shows completed archive
+        verifiedOrdersTab: ['verifiedSection'],
+        cancelledOrdersTab: ['cancelledSection'],
+        completedOrdersTab: ['completedSection'],
         customersTab: ['customerSection'],
         activityTab: ['activitySection']
     };
-    
     Object.keys(tabs).forEach(tabId => {
         document.getElementById(tabId)?.addEventListener('click', (e) => {
             e.preventDefault();
-            
-            document.querySelectorAll('.menu-item').forEach(item => {
-                item.classList.remove('active');
-            });
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
             e.currentTarget.classList.add('active');
-            
+            activeTab = tabId.replace('Tab', '');
             const allSections = ['verificationSection', 'verifiedSection', 'cancelledSection', 'completedSection', 'customerSection', 'activitySection'];
             allSections.forEach(section => {
                 const el = document.getElementById(section);
                 if (el) el.style.display = 'none';
             });
-            
             tabs[tabId].forEach(section => {
                 const el = document.getElementById(section);
                 if (el) el.style.display = 'block';
@@ -4758,255 +3692,71 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 }
 
-        // ==================== SMS MESSAGES WITH HOLIDAYS - LIVE DATA ====================
-const smsMessages = [
-    // Regular weekly messages (Weeks 1-12)
-    { week: 1, message: "🍶 CleanBite: Your gut contains 100+ trillion bacteria! Our 24hr fermentation delivers billions of probiotics per jar. Feed your microbiome daily. cleanbite.ng Reply STOP", category: "gut health", type: "regular" },
-    { week: 2, message: "🌱 Clean eating starts from within. Our yoghurt is made with fresh cow milk, zero preservatives & 24hr traditional incubation. Your body deserves real food. cleanbite.ng Reply STOP", category: "nutrition", type: "regular" },
-    { week: 3, message: "🛡️ 70% of your immune system lives in your gut! Regular probiotic intake strengthens natural defenses. Grab CleanBite this week. cleanbite.ng Reply STOP", category: "immunity", type: "regular" },
-    { week: 4, message: "🔄 Struggling with digestion? Our live active cultures help break down food naturally. Thousands of customers report better gut health. cleanbite.ng Reply STOP", category: "digestion", type: "regular" },
-    { week: 5, message: "🥣 Morning ritual: CleanBite plain yoghurt + fresh fruits + honey + granola = the perfect gut-healthy breakfast. cleanbite.ng Reply STOP", category: "recipes", type: "regular" },
-    { week: 6, message: "🔬 24 hours. That's how long we ferment each batch for maximum probiotic potency. Most commercial yoghurts ferment for just 4-6 hours. Choose quality. cleanbite.ng Reply STOP", category: "quality", type: "regular" },
-    { week: 7, message: "🧠 Your gut is your second brain! The gut-brain connection affects mood, focus, and mental clarity. Nourish both with CleanBite. cleanbite.ng Reply STOP", category: "mental health", type: "regular" },
-    { week: 8, message: "⭐ 'Since switching to CleanBite, my bloating disappeared and I have more energy.' — Sarah, Lagos. Join hundreds of happy customers. cleanbite.ng Reply STOP", category: "testimonial", type: "regular" },
-    { week: 9, message: "☔ Rainy season alert! Cold weather can weaken digestion. Warm up with our probiotic-rich yoghurt to maintain gut health year-round. cleanbite.ng Reply STOP", category: "seasonal", type: "regular" },
-    { week: 10, message: "🍯 No refined sugar. Ever. Our sweetness comes from real dates and honey. Clean eating means clean ingredients. Taste the difference. cleanbite.ng Reply STOP", category: "ingredients", type: "regular" },
-    { week: 11, message: "📅 Gut health isn't a one-time fix—it's a lifestyle. Make CleanBite part of your weekly routine and feel the difference consistently. cleanbite.ng Reply STOP", category: "motivation", type: "regular" },
-    { week: 12, message: "👥 Know someone who could benefit from better gut health? Share CleanBite with them! Real food, real results, real simple. cleanbite.ng Reply STOP", category: "referral", type: "regular" },
-    
-    // 🎉 HOLIDAY MESSAGES
-    { holiday: "New Year", month: 1, day: 1, message: "🎉 Happy New Year from CleanBite! Start 2026 with a healthier gut. Use code NEWYEAR10 for 10% off your first order. Here's to your sovereignty! cleanbite.ng Reply STOP", type: "holiday" },
-    { holiday: "Valentine's Day", month: 2, day: 14, message: "❤️ Love your gut this Valentine's! Our probiotic yoghurt is the perfect way to show your digestive system some love. Treat yourself today. cleanbite.ng Reply STOP", type: "holiday" },
-    { holiday: "Women's Day", month: 3, day: 8, message: "👩‍🦱 Happy International Women's Day! Strong women, strong guts. Celebrate with CleanBite's probiotic-rich yoghurt. You deserve the best. cleanbite.ng Reply STOP", type: "holiday" },
-    { holiday: "Workers' Day", month: 5, day: 1, message: "💪 Happy Workers' Day! Fuel your hard work with clean energy. Our 24hr fermented yoghurt gives you the probiotics you need to keep going strong. cleanbite.ng Reply STOP", type: "holiday" },
-    { holiday: "Children's Day", month: 5, day: 27, message: "🧒 Happy Children's Day! Give your little ones a healthy start with CleanBite's natural, preservative-free yoghurt. Great for growing guts! cleanbite.ng Reply STOP", type: "holiday" },
-    { holiday: "Democracy Day", month: 6, day: 12, message: "🇳🇬 Happy Democracy Day! Celebrate freedom with CleanBite. Your gut deserves the freedom to thrive with real, probiotic-rich food. cleanbite.ng Reply STOP", type: "holiday" },
-    { holiday: "Independence Day", month: 10, day: 1, message: "🇳🇬 Happy Independence Day! Proudly Nigerian, proudly CleanBite. Celebrate our nation's sovereignty by taking control of your health. cleanbite.ng Reply STOP", type: "holiday" },
-    { holiday: "Christmas", month: 12, day: 25, message: "🎄 Merry Christmas from CleanBite! Give the gift of gut health to your loved ones. Our probiotic yoghurt is the present that keeps on giving. cleanbite.ng Reply STOP", type: "holiday" },
-    { holiday: "Boxing Day", month: 12, day: 26, message: "🎁 Happy Boxing Day! After all the feasting, give your gut some love with CleanBite's digestive-friendly probiotics. You deserve it! cleanbite.ng Reply STOP", type: "holiday" },
-    { holiday: "New Year's Eve", month: 12, day: 31, message: "✨ Happy New Year's Eve! As you count down to 2027, make a resolution to prioritize your gut health. CleanBite is here for your journey. cleanbite.ng Reply STOP", type: "holiday" }
-];
+// ==================== INITIALIZE ====================
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 Admin Dashboard initializing...');
+    initAudio();
+    initBroadcastSystem();
+    loadDashboardContent(); // defined in HTML (already there)
+    loadOrdersFromFirebase();
+    setupTabSwitching();
+    initSMS();
 
-// ==================== LIVE SMS PREVIEW UPDATER ====================
-function updateSMSPreview() {
-    const today = new Date();
-    const currentMonth = today.getMonth() + 1;
-    const currentDay = today.getDate();
-    
-    // Check for holiday
-    const holidayMessage = smsMessages.find(msg => 
-        msg.type === 'holiday' && 
-        msg.month === currentMonth && 
-        msg.day === currentDay
-    );
-    
-    if (holidayMessage) {
-        document.getElementById('previewMessage').textContent = holidayMessage.message;
-        document.getElementById('messageCategory').textContent = `🎉 ${holidayMessage.holiday}`;
-        document.getElementById('messageWeek').textContent = "🎊";
-        document.getElementById('currentWeekMessage').innerHTML = 
-            `<span style="color: var(--cleanbite-warning);">🎉 ${holidayMessage.holiday}:</span> "${holidayMessage.message.substring(0, 60)}..."`;
-        return;
-    }
-    
-    // Regular weekly message
-    const regularMessages = smsMessages.filter(msg => msg.type === 'regular');
-    const startDate = new Date('2026-01-01');
-    const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
-    let weekNumber = Math.floor(daysSinceStart / 7) % regularMessages.length;
-    if (weekNumber < 0) weekNumber = 0;
-    
-    const currentMessage = regularMessages[weekNumber];
-    
-    document.getElementById('previewMessage').textContent = currentMessage.message;
-    document.getElementById('messageCategory').textContent = currentMessage.category;
-    document.getElementById('messageWeek').textContent = weekNumber + 1;
-    document.getElementById('currentWeekMessage').innerHTML = 
-        `<span style="color: var(--cleanbite-gold);">Week ${currentMessage.week}:</span> "${currentMessage.message.substring(0, 60)}..."`;
-}
+    // Close modal buttons
+    document.getElementById('closeVerifyModal')?.addEventListener('click', () => closeModal('verifyModal'));
+    document.getElementById('closeRejectModal')?.addEventListener('click', () => closeModal('rejectModal'));
+    document.getElementById('closeStatusModal')?.addEventListener('click', () => closeModal('statusModal'));
+    document.getElementById('closeCustomerModal')?.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); closeModal('customerModal'); });
+    document.getElementById('closeFilterModal')?.addEventListener('click', () => closeModal('filterModal'));
+    document.getElementById('cancelVerification')?.addEventListener('click', () => closeModal('verifyModal'));
+    document.getElementById('cancelRejection')?.addEventListener('click', () => closeModal('rejectModal'));
+    document.getElementById('cancelUpdate')?.addEventListener('click', () => closeModal('statusModal'));
 
-// ==================== UPDATE SUBSCRIBER COUNT ====================
-function updateSubscriberCount() {
-    const countEl = document.getElementById('subscriberCount');
-    if (!countEl) return;
-    
-    // Get customers with SMS consent
-    const customers = Array.from(allCustomers?.values() || []);
-    const subscribers = customers.filter(c => c.phone && c.smsConsent === true).length;
-    countEl.textContent = subscribers;
-}
-
-// ==================== SMS SCHEDULER ====================
-class SMSScheduler {
-    constructor() {
-        this.isRunning = false;
-        this.interval = null;
-    }
-    
-    start() {
-        if (this.isRunning) return;
-        
-        this.isRunning = true;
-        this.interval = setInterval(() => this.sendWeeklyMessage(), 7 * 24 * 60 * 60 * 1000);
-        
-        document.getElementById('smsStatus').innerHTML = '● Active';
-        document.getElementById('smsStatus').style.color = 'var(--cleanbite-success)';
-        
-        this.sendWeeklyMessage();
-        showNotification('Weekly SMS campaign started', 'success');
-    }
-    
-    stop() {
-        if (this.interval) clearInterval(this.interval);
-        this.isRunning = false;
-        this.interval = null;
-        
-        document.getElementById('smsStatus').innerHTML = '● Inactive';
-        document.getElementById('smsStatus').style.color = '';
-        showNotification('Weekly SMS campaign stopped', 'info');
-    }
-    
-    sendWeeklyMessage() {
-        const customers = Array.from(allCustomers?.values() || [])
-            .filter(c => c.phone && c.smsConsent === true);
-        
-        if (customers.length === 0) {
-            showNotification('No subscribers found', 'warning');
-            return;
-        }
-        
-        const today = new Date();
-        const holidayMessage = smsMessages.find(msg => 
-            msg.type === 'holiday' && 
-            msg.month === today.getMonth() + 1 && 
-            msg.day === today.getDate()
-        );
-        
-        if (holidayMessage) {
-            console.log(`🎉 Would send holiday SMS to ${customers.length} customers`);
-            showNotification(`Holiday campaign ready for ${customers.length} subscribers`, 'success');
-            this.logToFirebase(customers.length, holidayMessage.message);
-            return;
-        }
-        
-        const regularMessages = smsMessages.filter(msg => msg.type === 'regular');
-        const startDate = new Date('2026-01-01');
-        const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
-        let weekNumber = Math.floor(daysSinceStart / 7) % regularMessages.length;
-        if (weekNumber < 0) weekNumber = 0;
-        
-        const message = regularMessages[weekNumber];
-        console.log(`📱 Would send Week ${message.week} to ${customers.length} customers`);
-        showNotification(`Campaign ready for ${customers.length} subscribers`, 'success');
-        this.logToFirebase(customers.length, message.message);
-    }
-    
-    logToFirebase(recipientCount, message) {
-        if (!window.database) return;
-        
-        database.ref('sms_campaigns').push({
-            date: new Date().toISOString(),
-            recipientCount: recipientCount,
-            message: message.substring(0, 100),
-            status: 'sent'
-        }).then(() => this.loadCampaignHistory());
-    }
-    
-    loadCampaignHistory() {
-        const historyList = document.getElementById('smsHistoryList');
-        if (!historyList || !window.database) return;
-        
-        database.ref('sms_campaigns').limitToLast(5).once('value', (snapshot) => {
-            const data = snapshot.val();
-            if (!data) {
-                historyList.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--gray);">No campaigns yet</div>';
-                return;
-            }
-            
-            const campaigns = Object.values(data).reverse();
-            historyList.innerHTML = campaigns.map(c => `
-                <div class="history-item">
-                    <span class="date">${new Date(c.date).toLocaleDateString()}</span>
-                    <span class="count">${c.recipientCount || 'Test'} recipients</span>
-                </div>
-            `).join('');
-        });
-    }
-    
-    sendTest(phoneNumber) {
-        if (!phoneNumber) return;
-        showNotification(`Test message would be sent to ${phoneNumber}`, 'success');
-        console.log(`📱 Test SMS to ${phoneNumber}`);
-    }
-}
-
-// ==================== INITIALIZE SMS ====================
-let smsScheduler = null;
-
-function initSMS() {
-    smsScheduler = new SMSScheduler();
-    updateSMSPreview();
-    updateSubscriberCount();
-    smsScheduler.loadCampaignHistory();
-    
-    setInterval(updateSMSPreview, 24 * 60 * 60 * 1000);
-    setInterval(updateSubscriberCount, 60 * 60 * 1000);
-    
-    document.getElementById('startSMSCampaign')?.addEventListener('click', () => smsScheduler.start());
-    document.getElementById('stopSMSCampaign')?.addEventListener('click', () => smsScheduler.stop());
-    document.getElementById('testSMSButton')?.addEventListener('click', () => {
-        const num = prompt('Enter phone number for test (e.g., 2348012345678):');
-        if (num && num.length >= 11) smsScheduler.sendTest(num);
+    // Filter buttons
+    document.getElementById('applyFilter')?.addEventListener('click', applyFilters);
+    document.getElementById('resetFilter')?.addEventListener('click', resetFilters);
+    document.getElementById('refreshActivity')?.addEventListener('click', () => updateActivityFeed());
+    document.getElementById('searchInput')?.addEventListener('input', applyFilters);
+    document.getElementById('applyCustomerFilter')?.addEventListener('click', updateCustomersDisplay);
+    document.getElementById('resetCustomerFilter')?.addEventListener('click', () => {
+        document.getElementById('customerSearch').value = '';
+        document.getElementById('customerStatusFilter').value = 'all';
+        document.getElementById('customerOrdersFilter').value = 'all';
+        updateCustomersDisplay();
     });
-}
+    document.getElementById('applyCancelledFilter')?.addEventListener('click', updateCancelledOrders);
+    document.getElementById('resetCancelledFilter')?.addEventListener('click', () => {
+        document.getElementById('cancelledMonthFilter').value = 'all';
+        updateCancelledOrders();
+    });
+    document.getElementById('applyCompletedFilter')?.addEventListener('click', updateCompletedOrders);
+    document.getElementById('resetCompletedFilter')?.addEventListener('click', () => {
+        document.getElementById('completedMonthFilter').value = 'all';
+        updateCompletedOrders();
+    });
 
-      // ==================== INITIALIZE ====================
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('🚀 Admin Dashboard initializing...');
-            
-            initAudio();
-            initBroadcastSystem();
-            loadDashboardContent();
-            loadOrdersFromFirebase();
-            setupTabSwitching();
-            initSMS();
-            
-            // Modal close buttons
-            document.getElementById('closeVerifyModal')?.addEventListener('click', () => closeModal('verifyModal'));
-            document.getElementById('closeRejectModal')?.addEventListener('click', () => closeModal('rejectModal'));
-            document.getElementById('closeStatusModal')?.addEventListener('click', () => closeModal('statusModal'));
-            document.getElementById('closeCustomerModal')?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                closeModal('customerModal');
-            });
-            document.getElementById('closeFilterModal')?.addEventListener('click', () => closeModal('filterModal'));
-            
-            document.getElementById('cancelVerification')?.addEventListener('click', () => closeModal('verifyModal'));
-            document.getElementById('cancelRejection')?.addEventListener('click', () => closeModal('rejectModal'));
-            document.getElementById('cancelUpdate')?.addEventListener('click', () => closeModal('statusModal'));
-            
-            // Close modals on outside click
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) closeModal(modal.id);
-                });
-            });
-            
-            // Logout button
-            document.getElementById('logoutBtn')?.addEventListener('click', () => {
-                window.location.href = '/login.html';
-            });
-            
-            console.log('✅ Admin Dashboard ready');
+    // Logout
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        window.location.href = '/login.html';
+    });
+
+    // Close modals on outside click
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal(modal.id);
         });
-        
-        // Make functions global
-        window.closeModal = closeModal;
+    });
+
+    console.log('✅ Admin Dashboard ready');
+});
+
+// Make functions global for onclick handlers
+window.closeModal = closeModal;
     </script>
     
 </body>
 </html>
+
 
 
 
