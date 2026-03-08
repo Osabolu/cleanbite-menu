@@ -3463,10 +3463,10 @@ setInterval(checkOrderProgressions, 60 * 1000);
 
 // ==================== SMS CAMPAIGN WITH EBULKSMS ====================
 class EBulkSmsService {
-    constructor(username, password, sender) {
-        this.username = username;   // Your eBulksms username
-        this.password = password;   // Your eBulksms password
-        this.sender = sender;       // e.g., "CleanBite"
+    constructor(username, password, sender);  
+        this.username = cleanbitekitchen.official@gmail.com;  // Your eBulksms username
+        this.password =  Vision0014real!;  // Your eBulksms password
+        this.sender = CLEANBITE;       // e.g., "CleanBite"
         this.baseUrl = 'https://api.ebulksms.com'; // Confirm with eBulksms docs
     }
     async sendBulkSMS(phoneNumbers, message) {
@@ -3541,47 +3541,68 @@ class WeeklyMessageScheduler {
         document.getElementById('smsStatus').classList.remove('active');
         showNotification('Weekly SMS campaign stopped', 'info');
     }
+
     async sendThisWeeksMessage() {
-        const today = new Date();
-        // Check for holiday message
-        const holiday = this.getHolidayMessage(today);
-        let messageData;
-        if (holiday) {
-            messageData = { message: holiday.message, category: 'holiday' };
-        } else {
-            const startDate = new Date('2026-01-01');
-            const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
-            let weekNumber = Math.floor(daysSinceStart / 7) % this.weeklyMessages.length;
-            if (weekNumber < 0) weekNumber = 0;
-            this.currentWeek = weekNumber;
-            messageData = this.weeklyMessages[weekNumber];
-        }
-        const customers = this.service.getSubscribedCustomers();
-        const phoneNumbers = customers.map(c => c.phone);
-        if (phoneNumbers.length === 0) {
-            console.log('No subscribers to message');
-            return;
-        }
-        console.log(`📱 Sending message to ${phoneNumbers.length} customers`);
-        const result = await this.service.sendBulkSMS(phoneNumbers, messageData.message);
-        this.logToFirebase(phoneNumbers.length, messageData.message, result);
-        this.loadHistory();
+    const today = new Date();
+    const holiday = this.getHolidayMessage(today);
+    let messageData;
+
+    if (holiday) {
+        messageData = { message: holiday.message, category: 'holiday' };
+        // 🔥 Add holiday announcement to feed
+        addActivityToFeed({
+            type: 'holiday_sms',
+            message: `🎉 Today is ${holiday.name || 'a holiday'}! Sending holiday SMS.`,
+            icon: 'fa-calendar-alt',
+            color: '#f39c12'
+        });
+    } else {
+        const startDate = new Date('2026-01-01');
+        const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+        let weekNumber = Math.floor(daysSinceStart / 7) % this.weeklyMessages.length;
+        if (weekNumber < 0) weekNumber = 0;
+        this.currentWeek = weekNumber;
+        messageData = this.weeklyMessages[weekNumber];
     }
+
+    const customers = this.service.getSubscribedCustomers();
+    const phoneNumbers = customers.map(c => c.phone);
+    if (phoneNumbers.length === 0) {
+        console.log('No subscribers to message');
+        return;
+    }
+
+    console.log(`📱 Sending message to ${phoneNumbers.length} customers`);
+    const result = await this.service.sendBulkSMS(phoneNumbers, messageData.message);
+
+    // 🔥 Add campaign summary to feed
+    addActivityToFeed({
+        type: 'sms_campaign',
+        message: `📱 Sent ${messageData.category} SMS to ${phoneNumbers.length} customers.`,
+        icon: 'fa-sms',
+        color: '#3498db'
+    });
+
+    this.logToFirebase(phoneNumbers.length, messageData.message, result);
+    this.loadHistory();
+}
+
     getHolidayMessage(date) {
-        const holidays = [
-            { month: 1, day: 1, message: "🎉 Happy New Year from CleanBite! Start the year with a healthier gut. cleanbite.ng" },
-            { month: 2, day: 14, message: "❤️ Love your gut this Valentine's! Our probiotic yoghurt is the perfect way to show your digestive system some love. cleanbite.ng" },
-            { month: 3, day: 8, message: "👩‍🦱 Happy International Women's Day! Strong women, strong guts. Celebrate with CleanBite. cleanbite.ng" },
-            { month: 5, day: 1, message: "💪 Happy Workers' Day! Fuel your hard work with clean energy. Our probiotic yoghurt gives you the probiotics you need. cleanbite.ng" },
-            { month: 5, day: 27, message: "🧒 Happy Children's Day! Give your little ones a healthy start with CleanBite's natural, preservative-free yoghurt. cleanbite.ng" },
-            { month: 6, day: 12, message: "🇳🇬 Happy Democracy Day! Celebrate freedom with CleanBite. Your gut deserves the freedom to thrive. cleanbite.ng" },
-            { month: 10, day: 1, message: "🇳🇬 Happy Independence Day! Proudly Nigerian, proudly CleanBite. cleanbite.ng" },
-            { month: 12, day: 25, message: "🎄 Merry Christmas from CleanBite! Give the gift of gut health. cleanbite.ng" },
-            { month: 12, day: 26, message: "🎁 Happy Boxing Day! After the feasting, give your gut some love with CleanBite. cleanbite.ng" },
-            { month: 12, day: 31, message: "✨ Happy New Year's Eve! Make a resolution to prioritize your gut health with CleanBite. cleanbite.ng" }
-        ];
-        return holidays.find(h => h.month === date.getMonth() + 1 && h.day === date.getDate());
-    }
+    const holidays = [
+        { month: 1, day: 1, name: "New Year", message: "🎉 Happy New Year from CleanBite! ..." },
+        { month: 2, day: 14, name: "Valentine's Day", message: "❤️ Love your gut this Valentine's! ..." },
+        { month: 3, day: 8, name: "Women's Day", message: "👩‍🦱 Happy International Women's Day! ..." },
+        { month: 5, day: 1, name: "Workers' Day", message: "💪 Happy Workers' Day! ..." },
+        { month: 5, day: 27, name: "Children's Day", message: "🧒 Happy Children's Day! ..." },
+        { month: 6, day: 12, name: "Democracy Day", message: "🇳🇬 Happy Democracy Day! ..." },
+        { month: 10, day: 1, name: "Independence Day", message: "🇳🇬 Happy Independence Day! ..." },
+        { month: 12, day: 25, name: "Christmas", message: "🎄 Merry Christmas from CleanBite! ..." },
+        { month: 12, day: 26, name: "Boxing Day", message: "🎁 Happy Boxing Day! ..." },
+        { month: 12, day: 31, name: "New Year's Eve", message: "✨ Happy New Year's Eve! ..." }
+    ];
+    return holidays.find(h => h.month === date.getMonth() + 1 && h.day === date.getDate());
+}
+    
     async logToFirebase(recipientCount, message, result) {
         if (!database) return;
         await database.ref('sms_campaigns').push({
@@ -4028,6 +4049,7 @@ window.closeModal = closeModal;
     
 </body>
 </html>
+
 
 
 
