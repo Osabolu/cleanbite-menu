@@ -3292,6 +3292,7 @@ class EBulkSmsService {
         this.sender = sender;
         this.baseUrl = 'https://api.ebulksms.com';
     }
+
     async sendBulkSMS(phoneNumbers, message) {
         const recipients = phoneNumbers.join(',');
         const params = new URLSearchParams({
@@ -3311,31 +3312,32 @@ class EBulkSmsService {
             return { success: false, error };
         }
     }
+
     async sendSingleSMS(phoneNumber, message) {
         return this.sendBulkSMS([phoneNumber], message);
     }
+
     getSubscribedCustomers() {
-    return Array.from(allCustomers.values())
-        .filter(c => c.phone && c.smsConsent !== false)
-        .map(c => {
-            let phone = c.phone.replace(/\D/g, '');          // remove any non-digits
-            if (phone.startsWith('0')) {
-                phone = '234' + phone.slice(1);              // 080... → 23480...
-            }
-            // Optional: ensure it's exactly 13 digits (234 + 10 digits)
-            if (phone.length === 13) {
-                return { ...c, phone };
-            }
-            return null;                                      // skip invalid numbers
-        })
-        .filter(c => c !== null);                             // remove invalid ones
-}
-     
+        return Array.from(allCustomers.values())
+            .filter(c => c.phone && c.smsConsent !== false)
+            .map(c => {
+                let phone = c.phone.replace(/\D/g, '');
+                if (phone.startsWith('0')) {
+                    phone = '234' + phone.slice(1);
+                }
+                if (phone.length === 13) {
+                    return { ...c, phone };
+                }
+                return null;
+            })
+            .filter(c => c !== null);
+    }
+} 
 
 const smsService = new EBulkSmsService(
     'cleanbitekitchen.official@gmail.com',
     'Vision0014real!',
-    'CLEANBITE'
+    'Cleanbite' 
 );
 
 class WeeklyMessageScheduler {
@@ -3842,6 +3844,7 @@ window.closeModal = closeModal;
     
 </body>
 </html>
+
 
 
 
