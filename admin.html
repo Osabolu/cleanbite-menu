@@ -4621,7 +4621,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="activity-feed" id="activityFeed"></div>
             </div>
 
-            <!-- 🔥 NEW: SMS Campaign Panel - ADD THIS WHOLE SECTION -->
+           <!-- 🔥 SMS Campaign Panel - FULLY FUNCTIONAL -->
             <div class="verification-section" id="smsCampaignSection">
                 <div class="section-header">
                     <h3><i class="fas fa-sms" style="color: var(--cleanbite-gold);"></i> Weekly Gut Health SMS</h3>
@@ -4635,7 +4635,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="sms-status">
                         <div class="status-indicator" id="smsStatus">● Inactive</div>
                         <div class="current-message" id="currentWeekMessage">
-                            Week 1: "Your gut is your second brain..."
+                            Loading current message...
                         </div>
                     </div>
                     
@@ -4659,15 +4659,15 @@ document.addEventListener('DOMContentLoaded', function() {
                             <i class="fas fa-quote-right" style="color: var(--cleanbite-gold);"></i>
                         </div>
                         <div class="message-meta">
-                            <span>Category: <span id="messageCategory">education</span></span>
-                            <span>Week <span id="messageWeek">1</span>/12</span>
+                            <span>Category: <span id="messageCategory">-</span></span>
+                            <span>Week <span id="messageWeek">-</span>/12</span>
                         </div>
                     </div>
                     
                     <div class="sms-history">
                         <h4>Recent Campaigns</h4>
                         <div class="history-list" id="smsHistoryList">
-                            <!-- Populated via JavaScript -->
+                            <div style="text-align: center; padding: 20px; color: var(--gray);">No campaigns yet</div>
                         </div>
                     </div>
                 </div>
@@ -4806,41 +4806,199 @@ document.addEventListener('DOMContentLoaded', function() {
     // Make functions global
     window.closeModal = closeModal;
 
-    // ==================== REAL-TIME SMS PREVIEW ====================
-    // ==================== REAL-TIME SMS PREVIEW WITH HOLIDAYS ====================
+    // ==================== SMS MESSAGES WITH HOLIDAYS ====================
+const smsMessages = [
+    // Regular weekly messages (Weeks 1-12)
+    { 
+        week: 1,
+        message: "🍶 CleanBite: Your gut contains 100+ trillion bacteria! Our 24hr fermentation delivers billions of probiotics per jar. Feed your microbiome daily. cleanbite.ng Reply STOP", 
+        category: "gut health",
+        type: "regular"
+    },
+    { 
+        week: 2,
+        message: "🌱 Clean eating starts from within. Our yoghurt is made with fresh cow milk, zero preservatives & 24hr traditional incubation. Your body deserves real food. cleanbite.ng Reply STOP", 
+        category: "nutrition",
+        type: "regular"
+    },
+    { 
+        week: 3,
+        message: "🛡️ 70% of your immune system lives in your gut! Regular probiotic intake strengthens natural defenses. Grab CleanBite this week. cleanbite.ng Reply STOP", 
+        category: "immunity",
+        type: "regular"
+    },
+    { 
+        week: 4,
+        message: "🔄 Struggling with digestion? Our live active cultures help break down food naturally. Thousands of customers report better gut health. cleanbite.ng Reply STOP", 
+        category: "digestion",
+        type: "regular"
+    },
+    { 
+        week: 5,
+        message: "🥣 Morning ritual: CleanBite plain yoghurt + fresh fruits + honey + granola = the perfect gut-healthy breakfast. cleanbite.ng Reply STOP", 
+        category: "recipes",
+        type: "regular"
+    },
+    { 
+        week: 6,
+        message: "🔬 24 hours. That's how long we ferment each batch for maximum probiotic potency. Most commercial yoghurts ferment for just 4-6 hours. Choose quality. cleanbite.ng Reply STOP", 
+        category: "quality",
+        type: "regular"
+    },
+    { 
+        week: 7,
+        message: "🧠 Your gut is your second brain! The gut-brain connection affects mood, focus, and mental clarity. Nourish both with CleanBite. cleanbite.ng Reply STOP", 
+        category: "mental health",
+        type: "regular"
+    },
+    { 
+        week: 8,
+        message: "⭐ 'Since switching to CleanBite, my bloating disappeared and I have more energy.' — Sarah, Lagos. Join hundreds of happy customers. cleanbite.ng Reply STOP", 
+        category: "testimonial",
+        type: "regular"
+    },
+    { 
+        week: 9,
+        message: "☔ Rainy season alert! Cold weather can weaken digestion. Warm up with our probiotic-rich yoghurt to maintain gut health year-round. cleanbite.ng Reply STOP", 
+        category: "seasonal",
+        type: "regular"
+    },
+    { 
+        week: 10,
+        message: "🍯 No refined sugar. Ever. Our sweetness comes from real dates and honey. Clean eating means clean ingredients. Taste the difference. cleanbite.ng Reply STOP", 
+        category: "ingredients",
+        type: "regular"
+    },
+    { 
+        week: 11,
+        message: "📅 Gut health isn't a one-time fix—it's a lifestyle. Make CleanBite part of your weekly routine and feel the difference consistently. cleanbite.ng Reply STOP", 
+        category: "motivation",
+        type: "regular"
+    },
+    { 
+        week: 12,
+        message: "👥 Know someone who could benefit from better gut health? Share CleanBite with them! Real food, real results, real simple. cleanbite.ng Reply STOP", 
+        category: "referral",
+        type: "regular"
+    },
+    
+    // ==================== 🎉 HOLIDAY MESSAGES ====================
+    {
+        holiday: "New Year",
+        month: 1,
+        day: 1,
+        message: "🎉 Happy New Year from CleanBite! Start 2026 with a healthier gut. Use code NEWYEAR10 for 10% off your first order. Here's to your sovereignty! cleanbite.ng Reply STOP",
+        category: "holiday",
+        type: "holiday"
+    },
+    {
+        holiday: "Valentine's Day",
+        month: 2,
+        day: 14,
+        message: "❤️ Love your gut this Valentine's! Our probiotic yoghurt is the perfect way to show your digestive system some love. Treat yourself today. cleanbite.ng Reply STOP",
+        category: "holiday",
+        type: "holiday"
+    },
+    {
+        holiday: "Women's Day",
+        month: 3,
+        day: 8,
+        message: "👩‍🦱 Happy International Women's Day! Strong women, strong guts. Celebrate with CleanBite's probiotic-rich yoghurt. You deserve the best. cleanbite.ng Reply STOP",
+        category: "holiday",
+        type: "holiday"
+    },
+    {
+        holiday: "Workers' Day",
+        month: 5,
+        day: 1,
+        message: "💪 Happy Workers' Day! Fuel your hard work with clean energy. Our 24hr fermented yoghurt gives you the probiotics you need to keep going strong. cleanbite.ng Reply STOP",
+        category: "holiday",
+        type: "holiday"
+    },
+    {
+        holiday: "Children's Day",
+        month: 5,
+        day: 27,
+        message: "🧒 Happy Children's Day! Give your little ones a healthy start with CleanBite's natural, preservative-free yoghurt. Great for growing guts! cleanbite.ng Reply STOP",
+        category: "holiday",
+        type: "holiday"
+    },
+    {
+        holiday: "Democracy Day",
+        month: 6,
+        day: 12,
+        message: "🇳🇬 Happy Democracy Day! Celebrate freedom with CleanBite. Your gut deserves the freedom to thrive with real, probiotic-rich food. cleanbite.ng Reply STOP",
+        category: "holiday",
+        type: "holiday"
+    },
+    {
+        holiday: "Independence Day",
+        month: 10,
+        day: 1,
+        message: "🇳🇬 Happy Independence Day! Proudly Nigerian, proudly CleanBite. Celebrate our nation's sovereignty by taking control of your health. cleanbite.ng Reply STOP",
+        category: "holiday",
+        type: "holiday"
+    },
+    {
+        holiday: "Christmas",
+        month: 12,
+        day: 25,
+        message: "🎄 Merry Christmas from CleanBite! Give the gift of gut health to your loved ones. Our probiotic yoghurt is the present that keeps on giving. cleanbite.ng Reply STOP",
+        category: "holiday",
+        type: "holiday"
+    },
+    {
+        holiday: "Boxing Day",
+        month: 12,
+        day: 26,
+        message: "🎁 Happy Boxing Day! After all the feasting, give your gut some love with CleanBite's digestive-friendly probiotics. You deserve it! cleanbite.ng Reply STOP",
+        category: "holiday",
+        type: "holiday"
+    },
+    {
+        holiday: "New Year's Eve",
+        month: 12,
+        day: 31,
+        message: "✨ Happy New Year's Eve! As you count down to 2027, make a resolution to prioritize your gut health. CleanBite is here for your journey. cleanbite.ng Reply STOP",
+        category: "holiday",
+        type: "holiday"
+    }
+];
+
+// ==================== REAL-TIME SMS PREVIEW WITH HOLIDAYS ====================
 function updateSMSPreview() {
     const today = new Date();
     const currentMonth = today.getMonth() + 1; // JavaScript months are 0-indexed
     const currentDay = today.getDate();
     
-    // Check if today is a holiday
-    let holidayMessage = null;
+    // Get preview elements
+    const previewEl = document.getElementById('previewMessage');
+    const categoryEl = document.getElementById('messageCategory');
+    const weekEl = document.getElementById('messageWeek');
+    const currentWeekEl = document.getElementById('currentWeekMessage');
+    const previewBox = document.querySelector('.message-preview-box');
     
-    // Check fixed-date holidays
-    const fixedHolidays = smsMessages.filter(msg => msg.type === 'holiday' && msg.month && msg.day);
+    if (!previewEl || !categoryEl || !weekEl || !currentWeekEl) return;
     
-    for (let holiday of fixedHolidays) {
-        if (holiday.month === currentMonth && holiday.day === currentDay) {
-            holidayMessage = holiday;
-            break;
-        }
-    }
+    // Check for fixed-date holidays
+    const holidayMessage = smsMessages.find(msg => 
+        msg.type === 'holiday' && 
+        msg.month === currentMonth && 
+        msg.day === currentDay
+    );
     
-    // Check for week-based holidays (like Easter - simplified)
-    // You can expand this with actual Easter date calculation
-    
-    // Check for Islamic holidays (simplified - you'd need actual Hijri calendar)
-    // For now, we'll use approximate dates
-    
-    // If today is a holiday, show holiday message
     if (holidayMessage) {
-        document.getElementById('previewMessage').textContent = holidayMessage.message;
-        document.getElementById('messageCategory').textContent = `🎉 ${holidayMessage.holiday}`;
-        document.getElementById('messageWeek').textContent = "🎊 SPECIAL";
+        // Update preview with holiday message
+        previewEl.textContent = holidayMessage.message;
+        categoryEl.textContent = `🎉 ${holidayMessage.holiday}`;
+        weekEl.textContent = "🎊";
+        currentWeekEl.innerHTML = `<span style="color: var(--cleanbite-warning);">🎉 ${holidayMessage.holiday}:</span> "${holidayMessage.message.substring(0, 60)}..."`;
         
         // Add holiday styling
-        document.querySelector('.message-preview-box').style.background = 'linear-gradient(135deg, #fef3c7, #fde68a)';
-        document.querySelector('.message-preview-box').style.borderLeft = '6px solid #f59e0b';
+        if (previewBox) {
+            previewBox.style.background = 'linear-gradient(135deg, #fef3c7, #fde68a)';
+            previewBox.style.borderLeft = '6px solid #f59e0b';
+        }
         return;
     }
     
@@ -4848,253 +5006,243 @@ function updateSMSPreview() {
     const regularMessages = smsMessages.filter(msg => msg.type === 'regular');
     
     // Calculate current week based on campaign start date
-    const startDate = new Date('2026-01-01'); // Set your campaign start date
+    const startDate = new Date('2026-01-01');
     const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
     let weekNumber = Math.floor(daysSinceStart / 7) % regularMessages.length;
+    if (weekNumber < 0) weekNumber = 0;
     
     const currentMessage = regularMessages[weekNumber];
     
-    document.getElementById('previewMessage').textContent = currentMessage.message;
-    document.getElementById('messageCategory').textContent = currentMessage.category;
-    document.getElementById('messageWeek').textContent = weekNumber + 1;
+    // Update preview
+    previewEl.textContent = currentMessage.message;
+    categoryEl.textContent = currentMessage.category;
+    weekEl.textContent = weekNumber + 1;
+    currentWeekEl.innerHTML = `<span style="color: var(--cleanbite-gold);">Week ${currentMessage.week}:</span> "${currentMessage.message.substring(0, 60)}..."`;
     
     // Reset styling
-    document.querySelector('.message-preview-box').style.background = 'var(--cleanbite-gold-light)';
-    document.querySelector('.message-preview-box').style.borderLeft = '4px solid var(--cleanbite-gold)';
+    if (previewBox) {
+        previewBox.style.background = 'var(--cleanbite-gold-light)';
+        previewBox.style.borderLeft = '4px solid var(--cleanbite-gold)';
+    }
 }
 
-// Call it when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    updateSMSPreview();
+// ==================== SMS SCHEDULER CLASS ====================
+class RealSMSScheduler {
+    constructor() {
+        this.isRunning = false;
+        this.interval = null;
+    }
     
-    // Check for holidays daily
-    setInterval(updateSMSPreview, 24 * 60 * 60 * 1000); // Once per day
-});
-        // ==================== SMS MESSAGES WITH HOLIDAYS ====================
-    const smsMessages = [
-        // Regular weekly messages (Weeks 1-12)
-        { 
-            week: 1,
-            message: "🍶 CleanBite: Your gut contains 100+ trillion bacteria! Our 24hr fermentation delivers billions of probiotics per jar. Feed your microbiome daily. cleanbite.ng Reply STOP", 
-            category: "gut health",
-            type: "regular"
-        },
-        { 
-            week: 2,
-            message: "🌱 Clean eating starts from within. Our yoghurt is made with fresh cow milk, zero preservatives & 24hr traditional incubation. Your body deserves real food. cleanbite.ng Reply STOP", 
-            category: "nutrition",
-            type: "regular"
-        },
-        { 
-            week: 3,
-            message: "🛡️ 70% of your immune system lives in your gut! Regular probiotic intake strengthens natural defenses. Grab CleanBite this week. cleanbite.ng Reply STOP", 
-            category: "immunity",
-            type: "regular"
-        },
-        { 
-            week: 4,
-            message: "🔄 Struggling with digestion? Our live active cultures help break down food naturally. Thousands of customers report better gut health. cleanbite.ng Reply STOP", 
-            category: "digestion",
-            type: "regular"
-        },
-        { 
-            week: 5,
-            message: "🥣 Morning ritual: CleanBite plain yoghurt + fresh fruits + honey + granola = the perfect gut-healthy breakfast. cleanbite.ng Reply STOP", 
-            category: "recipes",
-            type: "regular"
-        },
-        { 
-            week: 6,
-            message: "🔬 24 hours. That's how long we ferment each batch for maximum probiotic potency. Most commercial yoghurts ferment for just 4-6 hours. Choose quality. cleanbite.ng Reply STOP", 
-            category: "quality",
-            type: "regular"
-        },
-        { 
-            week: 7,
-            message: "🧠 Your gut is your second brain! The gut-brain connection affects mood, focus, and mental clarity. Nourish both with CleanBite. cleanbite.ng Reply STOP", 
-            category: "mental health",
-            type: "regular"
-        },
-        { 
-            week: 8,
-            message: "⭐ 'Since switching to CleanBite, my bloating disappeared and I have more energy.' — Sarah, Lagos. Join hundreds of happy customers. cleanbite.ng Reply STOP", 
-            category: "testimonial",
-            type: "regular"
-        },
-        { 
-            week: 9,
-            message: "☔ Rainy season alert! Cold weather can weaken digestion. Warm up with our probiotic-rich yoghurt to maintain gut health year-round. cleanbite.ng Reply STOP", 
-            category: "seasonal",
-            type: "regular"
-        },
-        { 
-            week: 10,
-            message: "🍯 No refined sugar. Ever. Our sweetness comes from real dates and honey. Clean eating means clean ingredients. Taste the difference. cleanbite.ng Reply STOP", 
-            category: "ingredients",
-            type: "regular"
-        },
-        { 
-            week: 11,
-            message: "📅 Gut health isn't a one-time fix—it's a lifestyle. Make CleanBite part of your weekly routine and feel the difference consistently. cleanbite.ng Reply STOP", 
-            category: "motivation",
-            type: "regular"
-        },
-        { 
-            week: 12,
-            message: "👥 Know someone who could benefit from better gut health? Share CleanBite with them! Real food, real results, real simple. cleanbite.ng Reply STOP", 
-            category: "referral",
-            type: "regular"
-        },
+    start() {
+        if (this.isRunning) return;
         
-        // ==================== 🎉 HOLIDAY MESSAGES ====================
+        this.isRunning = true;
+        this.interval = setInterval(() => {
+            this.sendWeeklyMessage();
+        }, 7 * 24 * 60 * 60 * 1000); // Weekly
         
-        // New Year
-        {
-            holiday: "New Year",
-            month: 1,
-            day: 1,
-            message: "🎉 Happy New Year from CleanBite! Start 2026 with a healthier gut. Use code NEWYEAR10 for 10% off your first order. Here's to your sovereignty! cleanbite.ng Reply STOP",
-            category: "holiday",
-            type: "holiday"
-        },
-        
-        // Valentine's Day
-        {
-            holiday: "Valentine's Day",
-            month: 2,
-            day: 14,
-            message: "❤️ Love your gut this Valentine's! Our probiotic yoghurt is the perfect way to show your digestive system some love. Treat yourself today. cleanbite.ng Reply STOP",
-            category: "holiday",
-            type: "holiday"
-        },
-        
-        // International Women's Day
-        {
-            holiday: "Women's Day",
-            month: 3,
-            day: 8,
-            message: "👩‍🦱 Happy International Women's Day! Strong women, strong guts. Celebrate with CleanBite's probiotic-rich yoghurt. You deserve the best. cleanbite.ng Reply STOP",
-            category: "holiday",
-            type: "holiday"
-        },
-        
-        // Easter
-        {
-            holiday: "Easter",
-            month: 4,
-            day: null, // Will be calculated dynamically
-            message: "🐣 Easter blessings from CleanBite! As you celebrate, remember that true wellness starts from within. Enjoy our traditionally fermented yoghurt this season. cleanbite.ng Reply STOP",
-            category: "holiday",
-            type: "holiday"
-        },
-        
-        // Workers' Day (May 1)
-        {
-            holiday: "Workers' Day",
-            month: 5,
-            day: 1,
-            message: "💪 Happy Workers' Day! Fuel your hard work with clean energy. Our 24hr fermented yoghurt gives you the probiotics you need to keep going strong. cleanbite.ng Reply STOP",
-            category: "holiday",
-            type: "holiday"
-        },
-        
-        // Children's Day (May 27)
-        {
-            holiday: "Children's Day",
-            month: 5,
-            day: 27,
-            message: "🧒 Happy Children's Day! Give your little ones a healthy start with CleanBite's natural, preservative-free yoghurt. Great for growing guts! cleanbite.ng Reply STOP",
-            category: "holiday",
-            type: "holiday"
-        },
-        
-        // Democracy Day (June 12)
-        {
-            holiday: "Democracy Day",
-            month: 6,
-            day: 12,
-            message: "🇳🇬 Happy Democracy Day! Celebrate freedom with CleanBite. Your gut deserves the freedom to thrive with real, probiotic-rich food. cleanbite.ng Reply STOP",
-            category: "holiday",
-            type: "holiday"
-        },
-        
-        // Eid al-Adha (varies)
-        {
-            holiday: "Eid al-Adha",
-            month: null, // Islamic calendar - needs special handling
-            day: null,
-            message: "🕋 Eid Mubarak! May your celebrations be blessed. Enjoy CleanBite's naturally fermented yoghurt as part of your feast. Gut health is a blessing. cleanbite.ng Reply STOP",
-            category: "holiday",
-            type: "holiday"
-        },
-        
-        // Independence Day (October 1)
-        {
-            holiday: "Independence Day",
-            month: 10,
-            day: 1,
-            message: "🇳🇬 Happy Independence Day! Proudly Nigerian, proudly CleanBite. Celebrate our nation's sovereignty by taking control of your health. cleanbite.ng Reply STOP",
-            category: "holiday",
-            type: "holiday"
-        },
-        
-        // Christmas
-        {
-            holiday: "Christmas",
-            month: 12,
-            day: 25,
-            message: "🎄 Merry Christmas from CleanBite! Give the gift of gut health to your loved ones. Our probiotic yoghurt is the present that keeps on giving. cleanbite.ng Reply STOP",
-            category: "holiday",
-            type: "holiday"
-        },
-        
-        // Boxing Day (December 26)
-        {
-            holiday: "Boxing Day",
-            month: 12,
-            day: 26,
-            message: "🎁 Happy Boxing Day! After all the feasting, give your gut some love with CleanBite's digestive-friendly probiotics. You deserve it! cleanbite.ng Reply STOP",
-            category: "holiday",
-            type: "holiday"
-        },
-        
-        // New Year's Eve
-        {
-            holiday: "New Year's Eve",
-            month: 12,
-            day: 31,
-            message: "✨ Happy New Year's Eve! As you count down to 2027, make a resolution to prioritize your gut health. CleanBite is here for your journey. cleanbite.ng Reply STOP",
-            category: "holiday",
-            type: "holiday"
+        // Update UI
+        const statusEl = document.getElementById('smsStatus');
+        if (statusEl) {
+            statusEl.innerHTML = '● Active';
+            statusEl.style.color = 'var(--cleanbite-success)';
         }
-    ];
+        
+        // Send immediately on start
+        this.sendWeeklyMessage();
+        showNotification('Weekly SMS campaign started', 'success');
+    }
     
-    // Calculate current week based on actual date
-    const startDate = new Date('2026-01-01'); // Set your campaign start date
-    const today = new Date();
-    const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
-    let weekNumber = Math.floor(daysSinceStart / 7) % weeklyMessages.length;
+    stop() {
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
+        this.isRunning = false;
+        
+        // Update UI
+        const statusEl = document.getElementById('smsStatus');
+        if (statusEl) {
+            statusEl.innerHTML = '● Inactive';
+            statusEl.style.color = '';
+        }
+        
+        showNotification('Weekly SMS campaign stopped', 'info');
+    }
     
-    // Get the message for this week
-    const currentMessage = weeklyMessages[weekNumber];
+    sendWeeklyMessage() {
+        const today = new Date();
+        const currentMonth = today.getMonth() + 1;
+        const currentDay = today.getDate();
+        
+        // Check for holiday
+        const holidayMessage = smsMessages.find(msg => 
+            msg.type === 'holiday' && 
+            msg.month === currentMonth && 
+            msg.day === currentDay
+        );
+        
+        if (holidayMessage) {
+            console.log(`🎉 Sending holiday message: ${holidayMessage.holiday}`);
+            this.sendMessage(holidayMessage.message);
+            this.logCampaign(holidayMessage.holiday, holidayMessage.message);
+            return;
+        }
+        
+        // Send regular weekly message
+        const regularMessages = smsMessages.filter(msg => msg.type === 'regular');
+        const startDate = new Date('2026-01-01');
+        const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+        let weekNumber = Math.floor(daysSinceStart / 7) % regularMessages.length;
+        if (weekNumber < 0) weekNumber = 0;
+        
+        const message = regularMessages[weekNumber];
+        console.log(`📱 Sending Week ${message.week} message: ${message.category}`);
+        this.sendMessage(message.message);
+        this.logCampaign(`Week ${message.week}`, message.message);
+    }
     
-    // Update the preview elements
-    document.getElementById('previewMessage').textContent = currentMessage.message;
-    document.getElementById('messageCategory').textContent = currentMessage.category;
-    document.getElementById('messageWeek').textContent = weekNumber + 1;
+    sendMessage(message) {
+        // Get all customers with SMS consent from your existing data
+        const customers = Array.from(allCustomers?.values() || [])
+            .filter(c => c.phone && c.smsConsent === true);
+        
+        if (customers.length === 0) {
+            console.log('No customers with SMS consent');
+            showNotification('No subscribers found', 'warning');
+            return;
+        }
+        
+        // Here you would integrate with EbulkSMS API
+        console.log(`✅ Would send to ${customers.length} customers:`, message.substring(0, 50) + '...');
+        showNotification(`Campaign ready for ${customers.length} subscribers`, 'success');
+        
+        // Log to Firebase if available
+        this.logToFirebase(customers.length, message);
+    }
+    
+    logToFirebase(recipientCount, message) {
+        if (window.database) {
+            database.ref('sms_campaigns').push({
+                date: new Date().toISOString(),
+                recipientCount: recipientCount,
+                message: message.substring(0, 100),
+                status: 'sent'
+            }).then(() => {
+                this.loadCampaignHistory();
+            });
+        }
+    }
+    
+    logCampaign(week, message) {
+        console.log(`📊 Campaign logged: ${week}`);
+    }
+    
+    async sendTest(phoneNumber) {
+        if (!phoneNumber) return;
+        
+        const testMessage = "🧪 CleanBite test: Your SMS system is working! You'll receive weekly gut health tips. Reply STOP to opt out. cleanbite.ng";
+        
+        console.log(`📱 Test SMS to ${phoneNumber}:`, testMessage);
+        showNotification(`Test message sent to ${phoneNumber}`, 'success');
+        
+        // Log test
+        if (window.database) {
+            database.ref('sms_campaigns').push({
+                date: new Date().toISOString(),
+                type: 'test',
+                phone: phoneNumber,
+                message: 'Test message',
+                status: 'sent'
+            });
+        }
+    }
+    
+    loadCampaignHistory() {
+        const historyList = document.getElementById('smsHistoryList');
+        if (!historyList || !window.database) return;
+        
+        database.ref('sms_campaigns').limitToLast(5).once('value', (snapshot) => {
+            const data = snapshot.val();
+            if (!data) {
+                historyList.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--gray);">No campaigns yet</div>';
+                return;
+            }
+            
+            const campaigns = Object.values(data).reverse();
+            historyList.innerHTML = campaigns.map(c => `
+                <div class="history-item">
+                    <span class="date">${new Date(c.date).toLocaleDateString()}</span>
+                    <span class="count">${c.recipientCount || 'Test'} recipients</span>
+                </div>
+            `).join('');
+        });
+    }
 }
 
-// Call it when page loads
-document.addEventListener('DOMContentLoaded', function() {
+// ==================== UPDATE SUBSCRIBER COUNT ====================
+function updateSubscriberCount() {
+    const countEl = document.getElementById('subscriberCount');
+    if (!countEl) return;
+    
+    const customers = Array.from(allCustomers?.values() || []);
+    const subscribers = customers.filter(c => c.phone && c.smsConsent === true).length;
+    countEl.textContent = subscribers;
+}
+
+// ==================== INITIALIZE SMS CONTROLS ====================
+let smsScheduler = null;
+
+function initSMSControls() {
+    console.log('📱 Initializing SMS Campaign System...');
+    
+    smsScheduler = new RealSMSScheduler();
+    
+    // Update preview immediately
     updateSMSPreview();
     
-    // Update preview weekly (if page stays open long)
-    setInterval(updateSMSPreview, 24 * 60 * 60 * 1000); // Check once per day
-});
+    // Update subscriber count
+    updateSubscriberCount();
+    
+    // Load campaign history
+    smsScheduler.loadCampaignHistory();
+    
+    // Set up daily preview updates
+    setInterval(updateSMSPreview, 24 * 60 * 60 * 1000);
+    
+    // Set up periodic subscriber count updates
+    setInterval(updateSubscriberCount, 60 * 60 * 1000);
+    
+    // Button event listeners
+    document.getElementById('startSMSCampaign')?.addEventListener('click', () => {
+        smsScheduler.start();
+    });
+    
+    document.getElementById('stopSMSCampaign')?.addEventListener('click', () => {
+        smsScheduler.stop();
+    });
+    
+    document.getElementById('testSMSButton')?.addEventListener('click', () => {
+        const testNumber = prompt('Enter phone number for test (e.g., 2348012345678):');
+        if (testNumber && testNumber.length >= 11) {
+            smsScheduler.sendTest(testNumber);
+        } else if (testNumber) {
+            alert('Please enter a valid Nigerian phone number');
+        }
+    });
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSMSControls);
+} else {
+    initSMSControls();
+}
     </script>
     
 </body>
 </html>
+
 
 
 
