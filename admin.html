@@ -3624,6 +3624,8 @@ function initSMSCampaigns() {
     
     // Update preview
     smsScheduler.updatePreview();
+
+    updateSMSPreview()
     
     // Event listeners
     document.getElementById('startSMSCampaign')?.addEventListener('click', () => {
@@ -4779,10 +4781,51 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Make functions global
     window.closeModal = closeModal;
+
+    // ==================== REAL-TIME SMS PREVIEW ====================
+function updateSMSPreview() {
+    const weeklyMessages = [
+        { message: "🍶 CleanBite: Your gut contains 100+ trillion bacteria! Our 24hr fermentation delivers billions of probiotics per jar. Feed your microbiome daily. cleanbite.ng Reply STOP to opt out", category: "gut health" },
+        { message: "🌱 Clean eating starts from within. Our yoghurt is made with fresh cow milk, zero preservatives & 24hr traditional incubation. Your body deserves real food. cleanbite.ng Reply STOP to opt out", category: "nutrition" },
+        { message: "🛡️ 70% of your immune system lives in your gut! Regular probiotic intake strengthens natural defenses. Grab CleanBite this week. cleanbite.ng Reply STOP to opt out", category: "immunity" },
+        { message: "🔄 Struggling with digestion? Our live active cultures help break down food naturally. Thousands of customers report better gut health. cleanbite.ng Reply STOP to opt out", category: "digestion" },
+        { message: "🥣 Morning ritual: CleanBite plain yoghurt + fresh fruits + honey + granola = the perfect gut-healthy breakfast. cleanbite.ng Reply STOP to opt out", category: "recipes" },
+        { message: "🔬 24 hours. That's how long we ferment each batch for maximum probiotic potency. Most commercial yoghurts ferment for just 4-6 hours. Choose quality. cleanbite.ng Reply STOP to opt out", category: "quality" },
+        { message: "🧠 Your gut is your second brain! The gut-brain connection affects mood, focus, and mental clarity. Nourish both with CleanBite. cleanbite.ng Reply STOP to opt out", category: "mental health" },
+        { message: "⭐ 'Since switching to CleanBite, my bloating disappeared and I have more energy.' — Sarah, Lagos. Join hundreds of happy customers. cleanbite.ng Reply STOP to opt out", category: "testimonial" },
+        { message: "☔ Rainy season alert! Cold weather can weaken digestion. Warm up with our probiotic-rich yoghurt to maintain gut health year-round. cleanbite.ng Reply STOP to opt out", category: "seasonal" },
+        { message: "🍯 No refined sugar. Ever. Our sweetness comes from real dates and honey. Clean eating means clean ingredients. Taste the difference. cleanbite.ng Reply STOP to opt out", category: "ingredients" },
+        { message: "📅 Gut health isn't a one-time fix—it's a lifestyle. Make CleanBite part of your weekly routine and feel the difference consistently. cleanbite.ng Reply STOP to opt out", category: "motivation" },
+        { message: "👥 Know someone who could benefit from better gut health? Share CleanBite with them! Real food, real results, real simple. cleanbite.ng Reply STOP to opt out", category: "referral" }
+    ];
+    
+    // Calculate current week based on actual date
+    const startDate = new Date('2026-01-01'); // Set your campaign start date
+    const today = new Date();
+    const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+    let weekNumber = Math.floor(daysSinceStart / 7) % weeklyMessages.length;
+    
+    // Get the message for this week
+    const currentMessage = weeklyMessages[weekNumber];
+    
+    // Update the preview elements
+    document.getElementById('previewMessage').textContent = currentMessage.message;
+    document.getElementById('messageCategory').textContent = currentMessage.category;
+    document.getElementById('messageWeek').textContent = weekNumber + 1;
+}
+
+// Call it when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    updateSMSPreview();
+    
+    // Update preview weekly (if page stays open long)
+    setInterval(updateSMSPreview, 24 * 60 * 60 * 1000); // Check once per day
+});
     </script>
     
 </body>
 </html>
+
 
 
 
