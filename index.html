@@ -2083,6 +2083,49 @@
             justify-content: center;
         }
     }
+
+            /* ==================== SMS OPT-IN CHECKBOX STYLES ==================== */
+    .sms-optin {
+        margin-top: 20px;
+        padding: 15px;
+        background: var(--cleanbite-gold-light);
+        border-radius: 12px;
+        border: 1px solid var(--cleanbite-gold);
+    }
+    
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .checkbox-container input {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--cleanbite-gold);
+        cursor: pointer;
+    }
+    
+    .checkbox-text {
+        font-size: 0.95rem;
+        color: var(--cleanbite-dark);
+        line-height: 1.5;
+    }
+    
+    .checkbox-text i {
+        margin-right: 5px;
+    }
+    
+    .optin-note {
+        display: block;
+        margin-top: 8px;
+        margin-left: 32px;
+        color: var(--cleanbite-gray);
+        font-size: 0.8rem;
+        font-style: italic;
+    }
     
     </style>
 </head>
@@ -2183,6 +2226,7 @@
             <div id="activityFeed"></div>
         </div>
     </div>
+    
     <!-- ==================== FOOTER ==================== -->
     <footer class="footer">
         <div class="footer-wave">
@@ -2301,6 +2345,19 @@
                             <label for="deliveryNotes">Delivery Notes / Instructions</label>
                             <textarea id="deliveryNotes" rows="3" placeholder="Any special instructions?"></textarea>
                         </div>
+                    </div>
+
+                       <!-- 🔥 NEW: SMS Marketing Opt-In -->
+                    <div class="form-group sms-optin">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="smsOptIn" checked>
+                            <span class="checkmark"></span>
+                            <span class="checkbox-text">
+                                <i class="fas fa-sms" style="color: var(--cleanbite-gold);"></i> 
+                                Receive weekly gut health tips and exclusive offers via SMS (you can unsubscribe anytime)
+                            </span>
+                        </label>
+                        <small class="optin-note">We respect your privacy. No spam, just wellness wisdom.</small>
                     </div>
                     
                     <div class="form-section">
@@ -3436,6 +3493,7 @@ function setupMenuFilters() {
     </script>
 </body>
 </html>
+
 
 
 
