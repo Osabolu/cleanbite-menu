@@ -1990,6 +1990,132 @@
             background: var(--cleanbite-info);
             color: white;
         }
+
+        /* ==================== SMS CAMPAIGN STYLES - ADD TO YOUR ADMIN CSS ==================== */
+        .sms-controls {
+            background: var(--cleanbite-white);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        
+        .sms-status {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--cleanbite-offwhite);
+            border-radius: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .status-indicator {
+            font-weight: 600;
+            padding: 5px 15px;
+            border-radius: 30px;
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .status-indicator.active {
+            background: #d1fae5;
+            color: #059669;
+        }
+        
+        .current-message {
+            flex: 1;
+            font-style: italic;
+            color: var(--cleanbite-gray);
+            font-size: 0.95rem;
+        }
+        
+        .sms-actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .message-preview-box {
+            background: var(--cleanbite-gold-light);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            font-size: 1.1rem;
+            margin: 15px 0;
+            border-left: 4px solid var(--cleanbite-gold);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .message-preview-box i {
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+        
+        .message-preview-box span {
+            flex: 1;
+            line-height: 1.6;
+        }
+        
+        .message-meta {
+            display: flex;
+            justify-content: space-between;
+            color: var(--cleanbite-gray);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            padding: 0 5px;
+        }
+        
+        .sms-history {
+            margin-top: 25px;
+        }
+        
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--cleanbite-light-gray);
+            border-radius: 12px;
+            padding: 10px;
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px dashed var(--cleanbite-light-gray);
+            font-size: 0.9rem;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-item .date {
+            color: var(--cleanbite-gray);
+        }
+        
+        .history-item .count {
+            font-weight: 600;
+            color: var(--cleanbite-success);
+        }
+        
+        @media (max-width: 768px) {
+            .sms-status {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .sms-actions {
+                flex-direction: column;
+            }
+            
+            .message-preview-box {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
         </style>
 </head>
 <body>
@@ -3248,6 +3374,291 @@ setInterval(checkOrderProgressions, 60 * 1000);
         }
     }
 
+    // ==================== WEEKLY SMS MESSAGES LIBRARY - ADD THIS ====================
+const weeklySMSMessages = [
+    {
+        message: "🍶 Did you know? Your gut contains over 100 trillion bacteria! CleanBite's 24-hour fermentation delivers 5+ billion probiotics per jar. Feed your microbiome today. cleanbite.ng",
+        category: "education"
+    },
+    {
+        message: "🌱 Clean eating starts from within. Our yoghurt is made with fresh cow milk, zero preservatives, and 24hr traditional incubation. Your body deserves real food. cleanbite.ng",
+        category: "motivation"
+    },
+    {
+        message: "🛡️ 70% of your immune system lives in your gut! Regular probiotic intake strengthens natural defenses. Grab CleanBite this week. cleanbite.ng",
+        category: "health"
+    },
+    {
+        message: "🔄 Struggling with digestion? Our live active cultures help break down food naturally. Thousands of customers report better gut health within weeks. cleanbite.ng",
+        category: "benefit"
+    },
+    {
+        message: "🥣 Morning ritual: CleanBite plain yoghurt + fresh fruits + honey + granola = the perfect gut-healthy breakfast. Start your day right! cleanbite.ng",
+        category: "lifestyle"
+    },
+    {
+        message: "🔬 24 hours. That's how long we ferment each batch for maximum probiotic potency. Most commercial yoghurts ferment for just 4-6 hours. Choose quality. cleanbite.ng",
+        category: "education"
+    },
+    {
+        message: "🧠 Your gut is your second brain! The gut-brain connection affects mood, focus, and mental clarity. Nourish both with CleanBite. cleanbite.ng",
+        category: "wellness"
+    },
+    {
+        message: "⭐ 'Since switching to CleanBite, my bloating disappeared and I have more energy.' — Sarah, Lagos. Join hundreds of happy customers. cleanbite.ng",
+        category: "testimonial"
+    },
+    {
+        message: "☔ Rainy season alert! Cold weather can weaken digestion. Warm up with our probiotic-rich yoghurt to maintain gut health year-round. cleanbite.ng",
+        category: "seasonal"
+    },
+    {
+        message: "🍯 No refined sugar. Ever. Our sweetness comes from real dates and honey. Clean eating means clean ingredients. Taste the difference. cleanbite.ng",
+        category: "product"
+    },
+    {
+        message: "📅 Gut health isn't a one-time fix—it's a lifestyle. Make CleanBite part of your weekly routine and feel the difference consistently. cleanbite.ng",
+        category: "motivation"
+    },
+    {
+        message: "👥 Know someone who could benefit from better gut health? Share CleanBite with them! Real food, real results, real simple. cleanbite.ng",
+        category: "referral"
+    }
+];
+
+// ==================== SMS SERVICE CLASS - ADD THIS ====================
+class CleanBiteSMSService {
+    constructor(apiKey, senderId) {
+        this.apiKey = apiKey;
+        this.senderId = senderId;
+        this.baseUrl = "https://api.bulksmsnigeria.com/v1"; // You'll replace with actual provider
+    }
+    
+    async sendBulkSMS(phoneNumbers, message) {
+        // Group into batches of 100
+        const batches = this.chunkArray(phoneNumbers, 100);
+        const results = [];
+        
+        console.log(`📱 Would send to ${phoneNumbers.length} numbers: "${message.substring(0, 30)}..."`);
+        
+        // For now, just log - replace with actual API call when you have provider
+        return { success: true, count: phoneNumbers.length, message: 'DEMO MODE - No actual SMS sent' };
+    }
+    
+    async sendSingleSMS(phoneNumber, message) {
+        console.log(`📱 Test SMS to ${phoneNumber}: "${message}"`);
+        alert(`DEMO: SMS would be sent to ${phoneNumber}\n\nMessage: ${message}`);
+        return { success: true };
+    }
+    
+    chunkArray(array, size) {
+        const chunks = [];
+        for (let i = 0; i < array.length; i += size) {
+            chunks.push(array.slice(i, i + size));
+        }
+        return chunks;
+    }
+    
+    getCustomerPhoneNumbers() {
+        const customers = Array.from(allCustomers.values());
+        return customers
+            .filter(c => c.phone && c.phone.length >= 11)
+            .map(c => c.phone);
+    }
+    
+    getSubscribedCustomers() {
+        const customers = Array.from(allCustomers.values());
+        return customers.filter(c => 
+            c.phone && 
+            c.phone.length >= 11 && 
+            c.smsConsent !== false // If they haven't opted out
+        );
+    }
+}
+
+// ==================== WEEKLY SCHEDULER CLASS - ADD THIS ====================
+class WeeklyMessageScheduler {
+    constructor(smsService) {
+        this.smsService = smsService;
+        this.weeklyMessages = weeklySMSMessages;
+        this.currentWeek = 0;
+        this.interval = null;
+        this.isRunning = false;
+    }
+    
+    startWeeklyMessages() {
+        if (this.isRunning) return;
+        
+        // Send immediately on start
+        this.sendThisWeeksMessage();
+        
+        // Then schedule weekly
+        this.interval = setInterval(() => {
+            this.sendThisWeeksMessage();
+        }, 7 * 24 * 60 * 60 * 1000); // 7 days
+        
+        this.isRunning = true;
+        console.log('✅ Weekly SMS scheduler started');
+        
+        // Update UI
+        const statusEl = document.getElementById('smsStatus');
+        if (statusEl) {
+            statusEl.textContent = '● Active';
+            statusEl.classList.add('active');
+        }
+    }
+    
+    stopWeeklyMessages() {
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+            this.isRunning = false;
+            console.log('⏹️ Weekly SMS scheduler stopped');
+            
+            // Update UI
+            const statusEl = document.getElementById('smsStatus');
+            if (statusEl) {
+                statusEl.textContent = '● Inactive';
+                statusEl.classList.remove('active');
+            }
+        }
+    }
+    
+    async sendThisWeeksMessage() {
+        const messageData = this.weeklyMessages[this.currentWeek];
+        const customers = this.smsService.getSubscribedCustomers();
+        const phoneNumbers = customers.map(c => c.phone);
+        
+        if (phoneNumbers.length === 0) {
+            console.log('No subscribers to message');
+            return;
+        }
+        
+        console.log(`📱 Sending Week ${this.currentWeek + 1} message to ${phoneNumbers.length} customers`);
+        
+        // Update current week display
+        const currentWeekEl = document.getElementById('currentWeekMessage');
+        if (currentWeekEl) {
+            currentWeekEl.textContent = `Week ${this.currentWeek + 1}: "${messageData.message.substring(0, 50)}..."`;
+        }
+        
+        // Send in background
+        this.smsService.sendBulkSMS(phoneNumbers, messageData.message)
+            .then(results => {
+                console.log(`✅ Week ${this.currentWeek + 1} messages "sent" successfully`);
+                this.logMessageDelivery(this.currentWeek, phoneNumbers.length, results);
+                this.loadSMSHistory(); // Refresh history
+            })
+            .catch(error => {
+                console.error(`❌ Week ${this.currentWeek + 1} sending failed:`, error);
+            });
+        
+        // Move to next week
+        this.currentWeek = (this.currentWeek + 1) % this.weeklyMessages.length;
+        this.updatePreview();
+    }
+    
+    async logMessageDelivery(weekNumber, recipientCount, results) {
+        if (!database) return;
+        
+        const logEntry = {
+            week: weekNumber + 1,
+            date: new Date().toISOString(),
+            recipientCount: recipientCount,
+            message: this.weeklyMessages[weekNumber].message,
+            category: this.weeklyMessages[weekNumber].category,
+            status: 'sent',
+            results: results
+        };
+        
+        await database.ref('sms_campaigns').push(logEntry);
+    }
+    
+    updatePreview() {
+        const message = this.weeklyMessages[this.currentWeek];
+        document.getElementById('previewMessage').textContent = message.message;
+        document.getElementById('messageCategory').textContent = message.category;
+        document.getElementById('messageWeek').textContent = this.currentWeek + 1;
+    }
+    
+    async loadSMSHistory() {
+        if (!database) return;
+        
+        const snapshot = await database.ref('sms_campaigns').limitToLast(5).once('value');
+        const data = snapshot.val();
+        const historyList = document.getElementById('smsHistoryList');
+        
+        if (!historyList) return;
+        
+        if (!data) {
+            historyList.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--gray);">No campaign history yet</div>';
+            return;
+        }
+        
+        const history = Object.values(data).reverse();
+        historyList.innerHTML = history.map(campaign => `
+            <div class="history-item">
+                <span class="date">${new Date(campaign.date).toLocaleDateString()}</span>
+                <span>Week ${campaign.week}</span>
+                <span class="count">${campaign.recipientCount} recipients</span>
+            </div>
+        `).join('');
+    }
+}
+
+// ==================== INITIALIZE SMS CAMPAIGNS - ADD THIS ====================
+let smsScheduler = null;
+
+function initSMSCampaigns() {
+    console.log('📱 Initializing SMS Campaign System...');
+    
+    // Create service with your actual API key when you get one
+    const smsService = new CleanBiteSMSService('YOUR_API_KEY', 'CLEANBITE');
+    smsScheduler = new WeeklyMessageScheduler(smsService);
+    
+    // Update subscriber count
+    updateSubscriberCount();
+    
+    // Load SMS history
+    smsScheduler.loadSMSHistory();
+    
+    // Update preview
+    smsScheduler.updatePreview();
+    
+    // Event listeners
+    document.getElementById('startSMSCampaign')?.addEventListener('click', () => {
+        smsScheduler.startWeeklyMessages();
+        showNotification('Weekly SMS campaign started', 'success');
+    });
+    
+    document.getElementById('stopSMSCampaign')?.addEventListener('click', () => {
+        smsScheduler.stopWeeklyMessages();
+        showNotification('Weekly SMS campaign stopped', 'info');
+    });
+    
+    document.getElementById('testSMSButton')?.addEventListener('click', async () => {
+        const testNumber = prompt('Enter your phone number for a test (e.g., 08012345678):');
+        if (testNumber && testNumber.length >= 11) {
+            const message = weeklySMSMessages[0].message;
+            await smsService.sendSingleSMS(testNumber, message);
+        } else if (testNumber) {
+            alert('Please enter a valid Nigerian phone number');
+        }
+    });
+}
+
+function updateSubscriberCount() {
+    const customers = Array.from(allCustomers.values());
+    const subscribers = customers.filter(c => 
+        c.phone && 
+        c.phone.length >= 11 && 
+        c.smsConsent !== false
+    ).length;
+    
+    const countEl = document.getElementById('subscriberCount');
+    if (countEl) countEl.textContent = subscribers;
+}
+
     // ==================== ADD ACTIVITY TO FEED ====================
     function addActivityToFeed(activity) {
         const feed = document.getElementById('activityFeed');
@@ -4183,6 +4594,58 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="activity-feed" id="activityFeed"></div>
             </div>
+
+            <!-- 🔥 NEW: SMS Campaign Panel - ADD THIS WHOLE SECTION -->
+            <div class="verification-section" id="smsCampaignSection">
+                <div class="section-header">
+                    <h3><i class="fas fa-sms" style="color: var(--cleanbite-gold);"></i> Weekly Gut Health SMS</h3>
+                    <div class="section-count">
+                        <i class="fas fa-users"></i>
+                        <span id="subscriberCount">0</span> Subscribers
+                    </div>
+                </div>
+                
+                <div class="sms-controls">
+                    <div class="sms-status">
+                        <div class="status-indicator" id="smsStatus">● Inactive</div>
+                        <div class="current-message" id="currentWeekMessage">
+                            Week 1: "Your gut is your second brain..."
+                        </div>
+                    </div>
+                    
+                    <div class="sms-actions">
+                        <button class="btn-action" id="startSMSCampaign" style="background: var(--cleanbite-success); color: white;">
+                            <i class="fas fa-play"></i> Start Weekly Messages
+                        </button>
+                        <button class="btn-action" id="stopSMSCampaign" style="background: var(--cleanbite-danger); color: white;">
+                            <i class="fas fa-stop"></i> Stop
+                        </button>
+                        <button class="btn-action" id="testSMSButton" style="background: var(--cleanbite-info); color: white;">
+                            <i class="fas fa-paper-plane"></i> Send Test
+                        </button>
+                    </div>
+                    
+                    <div class="sms-preview">
+                        <h4>Preview This Week's Message</h4>
+                        <div class="message-preview-box">
+                            <i class="fas fa-quote-left" style="color: var(--cleanbite-gold);"></i>
+                            <span id="previewMessage">Loading...</span>
+                            <i class="fas fa-quote-right" style="color: var(--cleanbite-gold);"></i>
+                        </div>
+                        <div class="message-meta">
+                            <span>Category: <span id="messageCategory">education</span></span>
+                            <span>Week <span id="messageWeek">1</span>/12</span>
+                        </div>
+                    </div>
+                    
+                    <div class="sms-history">
+                        <h4>Recent Campaigns</h4>
+                        <div class="history-list" id="smsHistoryList">
+                            <!-- Populated via JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
         `;
         
         // Add event listeners for filters
@@ -4279,6 +4742,8 @@ document.addEventListener('DOMContentLoaded', function() {
         loadOrdersFromFirebase();
         setupTabSwitching();
         setupCustomerFilters();
+
+         initSMSCampaigns();
         
         // Modal close buttons
         // ==================== MODAL CLOSE BUTTONS ====================
@@ -4318,6 +4783,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
 </body>
 </html>
+
 
 
 
