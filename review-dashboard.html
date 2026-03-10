@@ -369,17 +369,58 @@
                 gap: 15px;
             }
         }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #0a1a2b; line-height: 1.6; }
+        .nav-bar { background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .nav-container { max-width: 1200px; margin: 0 auto; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .nav-logo { font-size: 1.8rem; font-weight: 800; color: #0a1a2b; text-decoration: none; }
+        .nav-logo span { color: #D4AF37; }
+        .nav-toggle { display: none; background: none; border: none; font-size: 1.5rem; color: #0a1a2b; cursor: pointer; }
+        .nav-menu { display: flex; gap: 2rem; }
+        .nav-menu a { color: #64748b; text-decoration: none; font-weight: 600; transition: color 0.2s; display: flex; align-items: center; gap: 0.5rem; }
+        .nav-menu a:hover { color: #D4AF37; }
+        .reviews-container { max-width: 1200px; margin: 3rem auto; padding: 0 2rem; }
+        .reviews-header { text-align: center; margin-bottom: 3rem; }
+        .reviews-header h1 { font-size: 2.5rem; color: #0a1a2b; margin-bottom: 1rem; }
+        .reviews-header h1 i { color: #D4AF37; margin-right: 0.5rem; }
+        .reviews-header p { color: #64748b; font-size: 1.2rem; max-width: 700px; margin: 0 auto; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 3rem; }
+        .stat-card { background: white; padding: 1.5rem; border-radius: 1rem; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        .stat-card .number { font-size: 2rem; font-weight: 800; color: #D4AF37; display: block; margin-bottom: 0.5rem; }
+        .stat-card span:last-child { color: #64748b; font-weight: 600; }
+        .filters { display: flex; justify-content: center; gap: 1rem; margin-bottom: 3rem; flex-wrap: wrap; }
+        .filter-btn { padding: 0.8rem 2rem; border: 2px solid #e2e8f0; background: white; border-radius: 50px; font-weight: 700; color: #64748b; cursor: pointer; transition: all 0.2s; }
+        .filter-btn.active { background: #D4AF37; border-color: #D4AF37; color: #0a1a2b; }
+        .filter-btn:hover { border-color: #D4AF37; }
+        .reviews-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; margin-bottom: 3rem; }
+        .review-card { background: white; border-radius: 1rem; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; transition: transform 0.2s; }
+        .review-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(212,175,55,0.2); border-color: #D4AF37; }
+        .review-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+        .reviewer-info h3 { font-size: 1.2rem; color: #0a1a2b; margin-bottom: 0.25rem; }
+        .reviewer-location { font-size: 0.9rem; color: #64748b; }
+        .review-stars { color: #D4AF37; font-size: 1.2rem; letter-spacing: 2px; }
+        .review-content { color: #1e293b; font-size: 1rem; line-height: 1.7; margin-bottom: 1.5rem; }
+        .review-footer { display: flex; justify-content: space-between; color: #94a3b8; font-size: 0.9rem; border-top: 1px dashed #e2e8f0; padding-top: 1rem; }
+        .review-footer i { margin-right: 0.3rem; }
+        .empty-reviews { text-align: center; padding: 4rem 2rem; background: white; border-radius: 1rem; border: 2px dashed #e2e8f0; }
+        .empty-reviews i { font-size: 4rem; color: #D4AF37; margin-bottom: 1rem; }
+        .empty-reviews h3 { font-size: 1.5rem; color: #0a1a2b; margin-bottom: 0.5rem; }
+        .empty-reviews p { color: #64748b; margin-bottom: 2rem; }
+        .btn { display: inline-block; background: #D4AF37; color: #0a1a2b; padding: 0.8rem 2rem; border-radius: 50px; text-decoration: none; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn:hover { background: #b49450; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(212,175,55,0.3); }
+        @media (max-width: 768px) {
+            .nav-toggle { display: block; }
+            .nav-menu { display: none; flex-direction: column; width: 100%; position: absolute; top: 70px; left: 0; background: white; padding: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+            .nav-menu.active { display: flex; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body>
     <nav class="nav-bar">
         <div class="nav-container">
             <a href="index.html" class="nav-logo">Clean<span>Bite</span></a>
-            
-            <button class="nav-toggle" id="navToggle">
-                <i class="fas fa-bars"></i>
-            </button>
-            
+            <button class="nav-toggle" id="navToggle"><i class="fas fa-bars"></i></button>
             <div class="nav-menu" id="navMenu">
                 <a href="index.html#menu"><i class="fas fa-utensils"></i> Menu</a>
                 <a href="index.html#covenant"><i class="fas fa-handshake"></i> Covenant</a>
@@ -398,19 +439,19 @@
 
         <div class="stats-grid" id="statsGrid">
             <div class="stat-card">
-                <span class="number" id="avgRating">4.9</span>
+                <span class="number" id="avgRating">0</span>
                 <span>Empire Rating</span>
             </div>
             <div class="stat-card">
-                <span class="number" id="totalReviews">47</span>
+                <span class="number" id="totalReviews">0</span>
                 <span>Total Testimonials</span>
             </div>
             <div class="stat-card">
-                <span class="number" id="fiveStarReviews">92%</span>
+                <span class="number" id="fiveStarReviews">0%</span>
                 <span>5-Star Experiences</span>
             </div>
             <div class="stat-card">
-                <span class="number" id="happyCustomers">200</span>
+                <span class="number" id="happyCustomers">0</span>
                 <span>Sovereign Patrons</span>
             </div>
         </div>
@@ -422,59 +463,7 @@
             <button class="filter-btn" data-filter="chef">Chef's Picks</button>
         </div>
 
-        <div class="reviews-grid" id="reviewsGrid">
-            <!-- Sample Reviews - These can be replaced with real data -->
-            <div class="review-card">
-                <div class="review-header">
-                    <div class="reviewer-info">
-                        <h3>Chidi N.</h3>
-                        <div class="reviewer-location"><i class="fas fa-map-marker-alt"></i> Victoria Island, Lagos</div>
-                    </div>
-                    <div class="review-stars" title="5 stars">★★★★★</div>
-                </div>
-                <div class="review-content">
-                    "The sovereignty starts with the first bite. CleanBite's yoghurt transformed my relationship with food. Every ingredient feels intentional, every flavor purposeful."
-                </div>
-                <div class="review-footer">
-                    <span><i class="far fa-calendar"></i> 2 days ago</span>
-                    <span><i class="fas fa-tag"></i> Order #CB-8472</span>
-                </div>
-            </div>
-
-            <div class="review-card">
-                <div class="review-header">
-                    <div class="reviewer-info">
-                        <h3>Amina S.</h3>
-                        <div class="reviewer-location"><i class="fas fa-map-marker-alt"></i> GRA, Ibadan</div>
-                    </div>
-                    <div class="review-stars" title="5 stars">★★★★★</div>
-                </div>
-                <div class="review-content">
-                    "As someone with dietary restrictions, finding flavorful clean food was impossible until CleanBite. The kitchen's attention to detail makes me feel seen and valued."
-                </div>
-                <div class="review-footer">
-                    <span><i class="far fa-calendar"></i> 1 week ago</span>
-                    <span><i class="fas fa-award"></i> Chef's Pick</span>
-                </div>
-            </div>
-
-            <div class="review-card">
-                <div class="review-header">
-                    <div class="reviewer-info">
-                        <h3>Tunde O.</h3>
-                        <div class="reviewer-location"><i class="fas fa-map-marker-alt"></i> Asero, Ogun</div>
-                    </div>
-                    <div class="review-stars" title="4 stars">★★★★☆</div>
-                </div>
-                <div class="review-content">
-                    "The real-time order tracking is a game-changer. Watching my meal's journey from kitchen to delivery gave me complete peace of mind."
-                </div>
-                <div class="review-footer">
-                    <span><i class="far fa-calendar"></i> 3 weeks ago</span>
-                    <span><i class="fas fa-tag"></i> Order #CB-8123</span>
-                </div>
-            </div>
-        </div>
+        <div class="reviews-grid" id="reviewsGrid"></div>
 
         <div class="empty-reviews" id="emptyState" style="display: none;">
             <i class="fas fa-comments"></i>
@@ -486,75 +475,176 @@
         </div>
     </div>
 
+    <!-- Firebase SDK (same config as your admin) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
     <script>
-        // Mobile menu toggle
+        // ==================== FIREBASE CONFIG ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyC1WaO1WE-LFayAqLeql0BP5vD8bddgUuE",
+            authDomain: "cleanbite-empire.firebaseapp.com",
+            databaseURL: "https://cleanbite-empire-default-rtdb.firebaseio.com",
+            projectId: "cleanbite-empire",
+            storageBucket: "cleanbite-empire.firebasestorage.app",
+            messagingSenderId: "733995841314",
+            appId: "1:733995841314:web:d82f5452f1fff0fdfad77b"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // ==================== GLOBAL VARIABLES ====================
+        let allReviews = [];
+        let currentFilter = 'all';
+
+        // ==================== FETCH REVIEWS FROM FIREBASE ====================
+        function loadReviewsFromFirebase() {
+            database.ref('reviews').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    allReviews = Object.keys(data).map(key => ({
+                        id: key,
+                        ...data[key]
+                    }));
+                } else {
+                    allReviews = [];
+                }
+                updateStats();
+                filterAndDisplayReviews();
+            }, (error) => {
+                console.error('Firebase read failed:', error);
+                // Fallback to empty state
+                allReviews = [];
+                updateStats();
+                filterAndDisplayReviews();
+            });
+        }
+
+        // ==================== UPDATE STATS CARDS ====================
+        function updateStats() {
+            const total = allReviews.length;
+            if (total === 0) {
+                document.getElementById('avgRating').textContent = '0';
+                document.getElementById('totalReviews').textContent = '0';
+                document.getElementById('fiveStarReviews').textContent = '0%';
+                document.getElementById('happyCustomers').textContent = '0';
+                return;
+            }
+
+            const sumRatings = allReviews.reduce((sum, r) => sum + (r.rating || 0), 0);
+            const avg = (sumRatings / total).toFixed(1);
+            const fiveStarCount = allReviews.filter(r => r.rating === 5).length;
+            const fiveStarPercent = Math.round((fiveStarCount / total) * 100);
+            const uniqueCustomers = new Set(allReviews.map(r => r.name)).size;
+
+            document.getElementById('avgRating').textContent = avg;
+            document.getElementById('totalReviews').textContent = total;
+            document.getElementById('fiveStarReviews').textContent = fiveStarPercent + '%';
+            document.getElementById('happyCustomers').textContent = uniqueCustomers;
+        }
+
+        // ==================== FILTER & RENDER REVIEWS ====================
+        function filterAndDisplayReviews() {
+            let filtered = [...allReviews];
+
+            // Apply filter
+            if (currentFilter === '5') {
+                filtered = filtered.filter(r => r.rating === 5);
+            } else if (currentFilter === '4') {
+                filtered = filtered.filter(r => r.rating >= 4);
+            } else if (currentFilter === 'chef') {
+                filtered = filtered.filter(r => r.chefPick === true);
+            }
+
+            renderReviews(filtered);
+        }
+
+        function renderReviews(reviews) {
+            const grid = document.getElementById('reviewsGrid');
+            const emptyState = document.getElementById('emptyState');
+
+            if (reviews.length === 0) {
+                grid.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            grid.innerHTML = reviews.map(review => {
+                const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+                const date = review.createdAt ? new Date(review.createdAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently';
+                const location = review.location || 'Nigeria';
+                const orderRef = review.orderId ? `<span><i class="fas fa-tag"></i> Order #${review.orderId.slice(-8)}</span>` : '';
+                const chefPick = review.chefPick ? '<span><i class="fas fa-award"></i> Chef\'s Pick</span>' : '';
+
+                return `
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <h3>${escapeHtml(review.name || 'Anonymous')}</h3>
+                                <div class="reviewer-location"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(location)}</div>
+                            </div>
+                            <div class="review-stars" title="${review.rating} stars">${stars}</div>
+                        </div>
+                        <div class="review-content">"${escapeHtml(review.text || '')}"</div>
+                        <div class="review-footer">
+                            <span><i class="far fa-calendar"></i> ${date}</span>
+                            ${orderRef}
+                            ${chefPick}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Simple escape to prevent XSS
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe.replace(/[&<>"']/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                if (m === '"') return '&quot;';
+                if (m === "'") return '&#039;';
+                return m;
+            });
+        }
+
+        // ==================== SETUP FILTER BUTTONS ====================
+        function setupFilters() {
+            document.querySelectorAll('.filter-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    currentFilter = button.dataset.filter;
+                    filterAndDisplayReviews();
+                });
+            });
+        }
+
+        // ==================== MOBILE MENU ====================
         const navToggle = document.getElementById('navToggle');
         const navMenu = document.getElementById('navMenu');
-        
         if (navToggle && navMenu) {
-            navToggle.addEventListener('click', () => {
-                navMenu.classList.toggle('active');
-            });
-            
-            // Close menu when clicking outside
+            navToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
             document.addEventListener('click', (e) => {
                 if (!navToggle.contains(e.target) && !navMenu.contains(e.target)) {
                     navMenu.classList.remove('active');
                 }
             });
         }
-        
-        // Filter functionality
-        document.querySelectorAll('.filter-btn').forEach(button => {
-            button.addEventListener('click', () => {
-                // Update active button
-                document.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                button.classList.add('active');
-                
-                // Filter logic would go here
-                const filter = button.dataset.filter;
-                console.log('Filtering by:', filter);
-                
-                // In a real app, you would filter reviews here
-            });
+
+        // ==================== INITIALIZE ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            setupFilters();
+            loadReviewsFromFirebase();
         });
-        
-        // Load reviews from localStorage (if any)
-        function loadReviews() {
-            try {
-                const reviews = JSON.parse(localStorage.getItem('cleanbite_reviews') || '[]');
-                
-                // If no reviews in localStorage, keep the sample reviews
-                if (reviews.length === 0) {
-                    console.log('No reviews in localStorage, showing sample reviews');
-                    return;
-                }
-                
-                // Update stats with real data
-                if (reviews.length > 0) {
-                    const total = reviews.length;
-                    const avgRating = (reviews.reduce((sum, r) => sum + r.rating, 0) / total).toFixed(1);
-                    const fiveStarCount = reviews.filter(r => r.rating === 5).length;
-                    const uniqueCustomers = new Set(reviews.map(r => r.name)).size;
-                    
-                    document.getElementById('avgRating').textContent = avgRating;
-                    document.getElementById('totalReviews').textContent = total;
-                    document.getElementById('fiveStarReviews').textContent = Math.round((fiveStarCount / total) * 100) + '%';
-                    document.getElementById('happyCustomers').textContent = uniqueCustomers;
-                }
-            } catch (error) {
-                console.error('Error loading reviews:', error);
-            }
-        }
-        
-        // Load on page load
-        document.addEventListener('DOMContentLoaded', loadReviews);
     </script>
 </body>
-
 </html>
+
+
 
 
 
