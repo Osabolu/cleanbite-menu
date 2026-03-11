@@ -82,7 +82,7 @@
             padding: 0 20px;
         }
 
-        /* Header */
+        /* Header with animated glow */
         .reviews-header {
             text-align: center;
             margin-bottom: 50px;
@@ -90,6 +90,32 @@
             background: rgba(255, 255, 255, 0.05);
             border-radius: 20px;
             border: 1px solid rgba(255, 209, 102, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reviews-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,209,102,0.1) 0%, transparent 70%);
+            animation: glowShift 8s infinite linear;
+            z-index: 0;
+        }
+
+        @keyframes glowShift {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(10%, 10%); }
+            100% { transform: translate(0, 0); }
+        }
+
+        .reviews-header h1,
+        .reviews-header p {
+            position: relative;
+            z-index: 1;
         }
 
         .reviews-header h1 {
@@ -122,12 +148,21 @@
             border-radius: 15px;
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: transform 0.3s, border-color 0.3s;
+            transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+            animation: statPulse 2s infinite;
         }
 
         .stat-card:hover {
             transform: translateY(-5px);
             border-color: rgba(255, 209, 102, 0.4);
+            box-shadow: 0 10px 20px rgba(255, 209, 102, 0.2);
+            animation: none;
+        }
+
+        @keyframes statPulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.2); }
+            70% { box-shadow: 0 0 0 6px rgba(255, 209, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 209, 102, 0); }
         }
 
         .stat-card .number {
@@ -145,13 +180,20 @@
             font-size: 0.9rem;
         }
 
-        /* Filters */
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
         .filters {
             display: flex;
             gap: 15px;
-            margin-bottom: 40px;
             flex-wrap: wrap;
-            justify-content: center;
         }
 
         .filter-btn {
@@ -163,6 +205,13 @@
             cursor: pointer;
             transition: all 0.3s;
             font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-btn i {
+            font-size: 1rem;
         }
 
         .filter-btn:hover {
@@ -177,6 +226,21 @@
             font-weight: 600;
         }
 
+        .sort-dropdown {
+            padding: 10px 25px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #f0f0f0;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .sort-dropdown option {
+            background: #1a1a2e;
+        }
+
         /* Reviews Grid */
         .reviews-grid {
             display: grid;
@@ -185,12 +249,74 @@
             margin-bottom: 50px;
         }
 
+        /* Skeleton loading */
+        .skeleton-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: skeletonPulse 1.5s infinite;
+        }
+
+        @keyframes skeletonPulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        .skeleton-header {
+            height: 20px;
+            width: 60%;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .skeleton-location {
+            height: 16px;
+            width: 40%;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .skeleton-stars {
+            height: 20px;
+            width: 100px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .skeleton-text {
+            height: 16px;
+            width: 100%;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .skeleton-text:last-child {
+            width: 80%;
+        }
+
+        /* Review Card */
         .review-card {
             background: rgba(255, 255, 255, 0.05);
             padding: 30px;
             border-radius: 15px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: transform 0.3s, border-color 0.3s;
+            transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .review-card:hover {
@@ -240,12 +366,53 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             padding-top: 15px;
             display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
             justify-content: space-between;
             align-items: center;
         }
 
         .review-footer i {
             margin-right: 8px;
+        }
+
+        .verified-badge {
+            background: rgba(255, 209, 102, 0.2);
+            color: #ffd166;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .helpful-btn {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #aaa;
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .helpful-btn:hover {
+            border-color: #ffd166;
+            color: #ffd166;
+        }
+
+        .helpful-btn i {
+            margin-right: 5px;
+        }
+
+        .helpful-count {
+            font-weight: 600;
         }
 
         /* Empty State */
@@ -292,6 +459,23 @@
         .btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 20px rgba(255, 209, 102, 0.3);
+        }
+
+        /* Floating Write Button (mobile) */
+        .floating-write {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 999;
+        }
+
+        .floating-write .btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
 
         /* Mobile Menu */
@@ -348,6 +532,15 @@
             .reviews-grid {
                 grid-template-columns: 1fr;
             }
+
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .sort-dropdown {
+                width: 100%;
+            }
         }
 
         @media (max-width: 480px) {
@@ -356,7 +549,7 @@
             }
             
             .filters {
-                gap: 10px;
+                justify-content: center;
             }
             
             .filter-btn {
@@ -367,6 +560,11 @@
             .review-header {
                 flex-direction: column;
                 gap: 15px;
+            }
+
+            .floating-write {
+                bottom: 20px;
+                right: 20px;
             }
         }
     </style>
@@ -381,7 +579,7 @@
                 <a href="#kitchenStream"><i class="fas fa-kitchen-set"></i>Live kitchen</a>
                 <a href="review.html"><i class="fas fa-pencil-alt"></i> Submit Review</a>
                 <a href="track.html"><i class="fas fa-satellite-dish"></i> Track Order</a>
-                <a href="https://www.instagram.com/cleanbite.1/"><i class="fas fa-headset"></i> CleanBIte Support</a>
+                <a href="https://www.instagram.com/cleanbite.1/"><i class="fas fa-headset"></i> CleanBite Support</a>
             </div>
         </div>
     </nav>
@@ -411,14 +609,26 @@
             </div>
         </div>
 
-        <div class="filters" id="filters">
-            <button class="filter-btn active" data-filter="all">All Testimonials</button>
-            <button class="filter-btn" data-filter="5">5 Stars</button>
-            <button class="filter-btn" data-filter="4">4+ Stars</button>
-            <button class="filter-btn" data-filter="chef">Chef's Picks</button>
+        <div class="filter-bar">
+            <div class="filters" id="filters">
+                <button class="filter-btn active" data-filter="all"><i class="fas fa-star"></i> All Testimonials</button>
+                <button class="filter-btn" data-filter="5"><i class="fas fa-star"></i> 5 Stars</button>
+                <button class="filter-btn" data-filter="4"><i class="fas fa-star-half-alt"></i> 4+ Stars</button>
+                <button class="filter-btn" data-filter="chef"><i class="fas fa-crown"></i> Chef's Picks</button>
+            </div>
+            <select class="sort-dropdown" id="sortSelect">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="highest">Highest Rated</option>
+            </select>
         </div>
 
-        <div class="reviews-grid" id="reviewsGrid"></div>
+        <div class="reviews-grid" id="reviewsGrid">
+            <!-- Skeleton loaders will be shown here initially -->
+            <div class="skeleton-card"><div class="skeleton-header"></div><div class="skeleton-location"></div><div class="skeleton-stars"></div><div class="skeleton-text"></div><div class="skeleton-text"></div><div class="skeleton-text" style="width:80%;"></div></div>
+            <div class="skeleton-card"><div class="skeleton-header"></div><div class="skeleton-location"></div><div class="skeleton-stars"></div><div class="skeleton-text"></div><div class="skeleton-text"></div><div class="skeleton-text" style="width:80%;"></div></div>
+            <div class="skeleton-card"><div class="skeleton-header"></div><div class="skeleton-location"></div><div class="skeleton-stars"></div><div class="skeleton-text"></div><div class="skeleton-text"></div><div class="skeleton-text" style="width:80%;"></div></div>
+        </div>
 
         <div class="empty-reviews" id="emptyState" style="display: none;">
             <i class="fas fa-comments"></i>
@@ -430,7 +640,14 @@
         </div>
     </div>
 
-    <!-- Firebase SDK (same config as your admin) -->
+    <!-- Floating Write Button (mobile) -->
+    <div class="floating-write">
+        <a href="review.html" class="btn">
+            <i class="fas fa-pencil-alt"></i> <span>Write Review</span>
+        </a>
+    </div>
+
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
@@ -452,6 +669,7 @@
         // ==================== GLOBAL VARIABLES ====================
         let allReviews = [];
         let currentFilter = 'all';
+        let currentSort = 'newest';
 
         // ==================== LOCAL STORAGE HELPERS ====================
         function saveReviewsToLocalStorage(reviews) {
@@ -477,32 +695,30 @@
             database.ref('reviews').on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
-                    // Convert Firebase object to array
                     allReviews = Object.keys(data).map(key => ({
                         id: key,
-                        ...data[key]
+                        ...data[key],
+                        helpful: data[key].helpful || 0   // ensure helpful count exists
                     }));
                 } else {
                     allReviews = [];
                 }
                 // Update UI
                 updateStats();
-                filterAndDisplayReviews();
+                applySortAndFilter();
                 // Cache in localStorage
                 saveReviewsToLocalStorage(allReviews);
             }, (error) => {
                 console.error('Firebase read failed:', error);
-                // On error, try to use cached data from localStorage
                 const cached = loadReviewsFromLocalStorage();
                 if (cached) {
                     allReviews = cached;
                     updateStats();
-                    filterAndDisplayReviews();
+                    applySortAndFilter();
                 } else {
-                    // No cached data, show empty
                     allReviews = [];
                     updateStats();
-                    filterAndDisplayReviews();
+                    applySortAndFilter();
                 }
             });
         }
@@ -530,8 +746,8 @@
             document.getElementById('happyCustomers').textContent = uniqueCustomers;
         }
 
-        // ==================== FILTER & RENDER REVIEWS ====================
-        function filterAndDisplayReviews() {
+        // ==================== SORT & FILTER ====================
+        function applySortAndFilter() {
             let filtered = [...allReviews];
 
             // Apply filter
@@ -543,6 +759,15 @@
                 filtered = filtered.filter(r => r.chefPick === true);
             }
 
+            // Apply sort
+            if (currentSort === 'newest') {
+                filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            } else if (currentSort === 'oldest') {
+                filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            } else if (currentSort === 'highest') {
+                filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+            }
+
             renderReviews(filtered);
         }
 
@@ -550,22 +775,25 @@
             const grid = document.getElementById('reviewsGrid');
             const emptyState = document.getElementById('emptyState');
 
+            // Clear skeleton
+            grid.innerHTML = '';
+
             if (reviews.length === 0) {
-                grid.innerHTML = '';
                 emptyState.style.display = 'block';
                 return;
             }
 
             emptyState.style.display = 'none';
-            grid.innerHTML = reviews.map(review => {
+            grid.innerHTML = reviews.map((review, index) => {
                 const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
                 const date = review.createdAt ? new Date(review.createdAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently';
                 const location = review.location || 'Nigeria';
                 const orderRef = review.orderId ? `<span><i class="fas fa-tag"></i> Order #${review.orderId.slice(-8)}</span>` : '';
                 const chefPick = review.chefPick ? '<span><i class="fas fa-award"></i> Chef\'s Pick</span>' : '';
+                const verified = review.orderId ? '<span class="verified-badge"><i class="fas fa-check-circle"></i> Verified</span>' : '';
 
                 return `
-                    <div class="review-card">
+                    <div class="review-card" style="animation-delay: ${index * 0.1}s">
                         <div class="review-header">
                             <div class="reviewer-info">
                                 <h3>${escapeHtml(review.name || 'Anonymous')}</h3>
@@ -575,16 +803,50 @@
                         </div>
                         <div class="review-content">"${escapeHtml(review.text || '')}"</div>
                         <div class="review-footer">
-                            <span><i class="far fa-calendar"></i> ${date}</span>
-                            ${orderRef}
-                            ${chefPick}
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <span><i class="far fa-calendar"></i> ${date}</span>
+                                ${orderRef}
+                                ${chefPick}
+                                ${verified}
+                            </div>
+                            <button class="helpful-btn" data-id="${review.id}" data-helpful="${review.helpful || 0}">
+                                <i class="far fa-thumbs-up"></i> <span class="helpful-count">${review.helpful || 0}</span>
+                            </button>
                         </div>
                     </div>
                 `;
             }).join('');
+
+            // Attach helpful button listeners
+            document.querySelectorAll('.helpful-btn').forEach(btn => {
+                btn.addEventListener('click', handleHelpful);
+            });
         }
 
-        // Simple escape to prevent XSS
+        // ==================== HELPFUL BUTTON ====================
+        function handleHelpful(e) {
+            const btn = e.currentTarget;
+            const reviewId = btn.dataset.id;
+            const countSpan = btn.querySelector('.helpful-count');
+            let current = parseInt(countSpan.textContent, 10);
+            current++;
+            countSpan.textContent = current;
+
+            // Update in Firebase (optimistic update)
+            database.ref(`reviews/${reviewId}/helpful`).set(current).catch(err => {
+                console.error('Failed to update helpful count', err);
+                // Revert on error
+                current--;
+                countSpan.textContent = current;
+            });
+
+            // Disable button after click to prevent multiple votes
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'default';
+        }
+
+        // ==================== ESCAPE HTML ====================
         function escapeHtml(unsafe) {
             if (!unsafe) return '';
             return unsafe.replace(/[&<>"']/g, function(m) {
@@ -597,15 +859,20 @@
             });
         }
 
-        // ==================== SETUP FILTER BUTTONS ====================
+        // ==================== SETUP FILTERS & SORT ====================
         function setupFilters() {
             document.querySelectorAll('.filter-btn').forEach(button => {
                 button.addEventListener('click', () => {
                     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
                     button.classList.add('active');
                     currentFilter = button.dataset.filter;
-                    filterAndDisplayReviews();
+                    applySortAndFilter();
                 });
+            });
+
+            document.getElementById('sortSelect').addEventListener('change', (e) => {
+                currentSort = e.target.value;
+                applySortAndFilter();
             });
         }
 
@@ -625,12 +892,12 @@
         document.addEventListener('DOMContentLoaded', () => {
             setupFilters();
 
-            // Try to load cached reviews from localStorage first (for instant display)
+            // Show cached reviews immediately
             const cached = loadReviewsFromLocalStorage();
             if (cached) {
                 allReviews = cached;
                 updateStats();
-                filterAndDisplayReviews();
+                applySortAndFilter();
             }
 
             // Then connect to Firebase for live updates
