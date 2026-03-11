@@ -369,50 +369,6 @@
                 gap: 15px;
             }
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #0a1a2b; line-height: 1.6; }
-        .nav-bar { background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
-        .nav-container { max-width: 1200px; margin: 0 auto; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .nav-logo { font-size: 1.8rem; font-weight: 800; color: #0a1a2b; text-decoration: none; }
-        .nav-logo span { color: #D4AF37; }
-        .nav-toggle { display: none; background: none; border: none; font-size: 1.5rem; color: #0a1a2b; cursor: pointer; }
-        .nav-menu { display: flex; gap: 2rem; }
-        .nav-menu a { color: #64748b; text-decoration: none; font-weight: 600; transition: color 0.2s; display: flex; align-items: center; gap: 0.5rem; }
-        .nav-menu a:hover { color: #D4AF37; }
-        .reviews-container { max-width: 1200px; margin: 3rem auto; padding: 0 2rem; }
-        .reviews-header { text-align: center; margin-bottom: 3rem; }
-        .reviews-header h1 { font-size: 2.5rem; color: #0a1a2b; margin-bottom: 1rem; }
-        .reviews-header h1 i { color: #D4AF37; margin-right: 0.5rem; }
-        .reviews-header p { color: #64748b; font-size: 1.2rem; max-width: 700px; margin: 0 auto; }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 3rem; }
-        .stat-card { background: white; padding: 1.5rem; border-radius: 1rem; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
-        .stat-card .number { font-size: 2rem; font-weight: 800; color: #D4AF37; display: block; margin-bottom: 0.5rem; }
-        .stat-card span:last-child { color: #64748b; font-weight: 600; }
-        .filters { display: flex; justify-content: center; gap: 1rem; margin-bottom: 3rem; flex-wrap: wrap; }
-        .filter-btn { padding: 0.8rem 2rem; border: 2px solid #e2e8f0; background: white; border-radius: 50px; font-weight: 700; color: #64748b; cursor: pointer; transition: all 0.2s; }
-        .filter-btn.active { background: #D4AF37; border-color: #D4AF37; color: #0a1a2b; }
-        .filter-btn:hover { border-color: #D4AF37; }
-        .reviews-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; margin-bottom: 3rem; }
-        .review-card { background: white; border-radius: 1rem; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; transition: transform 0.2s; }
-        .review-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(212,175,55,0.2); border-color: #D4AF37; }
-        .review-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
-        .reviewer-info h3 { font-size: 1.2rem; color: #0a1a2b; margin-bottom: 0.25rem; }
-        .reviewer-location { font-size: 0.9rem; color: #64748b; }
-        .review-stars { color: #D4AF37; font-size: 1.2rem; letter-spacing: 2px; }
-        .review-content { color: #1e293b; font-size: 1rem; line-height: 1.7; margin-bottom: 1.5rem; }
-        .review-footer { display: flex; justify-content: space-between; color: #94a3b8; font-size: 0.9rem; border-top: 1px dashed #e2e8f0; padding-top: 1rem; }
-        .review-footer i { margin-right: 0.3rem; }
-        .empty-reviews { text-align: center; padding: 4rem 2rem; background: white; border-radius: 1rem; border: 2px dashed #e2e8f0; }
-        .empty-reviews i { font-size: 4rem; color: #D4AF37; margin-bottom: 1rem; }
-        .empty-reviews h3 { font-size: 1.5rem; color: #0a1a2b; margin-bottom: 0.5rem; }
-        .empty-reviews p { color: #64748b; margin-bottom: 2rem; }
-   
-        @media (max-width: 768px) {
-            .nav-toggle { display: block; }
-            .nav-menu { display: none; flex-direction: column; width: 100%; position: absolute; top: 70px; left: 0; background: white; padding: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-            .nav-menu.active { display: flex; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-        }
     </style>
 </head>
 <body>
@@ -642,6 +598,7 @@
     </script>
 </body>
 </html>
+
 
 
 
