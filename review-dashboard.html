@@ -369,7 +369,6 @@
                 gap: 15px;
             }
         }
-
     </style>
 </head>
 <body>
@@ -454,11 +453,31 @@
         let allReviews = [];
         let currentFilter = 'all';
 
+        // ==================== LOCAL STORAGE HELPERS ====================
+        function saveReviewsToLocalStorage(reviews) {
+            try {
+                localStorage.setItem('cleanbite_reviews', JSON.stringify(reviews));
+            } catch (e) {
+                console.warn('Failed to save to localStorage', e);
+            }
+        }
+
+        function loadReviewsFromLocalStorage() {
+            try {
+                const stored = localStorage.getItem('cleanbite_reviews');
+                return stored ? JSON.parse(stored) : null;
+            } catch (e) {
+                console.warn('Failed to load from localStorage', e);
+                return null;
+            }
+        }
+
         // ==================== FETCH REVIEWS FROM FIREBASE ====================
         function loadReviewsFromFirebase() {
             database.ref('reviews').on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
+                    // Convert Firebase object to array
                     allReviews = Object.keys(data).map(key => ({
                         id: key,
                         ...data[key]
@@ -466,14 +485,25 @@
                 } else {
                     allReviews = [];
                 }
+                // Update UI
                 updateStats();
                 filterAndDisplayReviews();
+                // Cache in localStorage
+                saveReviewsToLocalStorage(allReviews);
             }, (error) => {
                 console.error('Firebase read failed:', error);
-                // Fallback to empty state
-                allReviews = [];
-                updateStats();
-                filterAndDisplayReviews();
+                // On error, try to use cached data from localStorage
+                const cached = loadReviewsFromLocalStorage();
+                if (cached) {
+                    allReviews = cached;
+                    updateStats();
+                    filterAndDisplayReviews();
+                } else {
+                    // No cached data, show empty
+                    allReviews = [];
+                    updateStats();
+                    filterAndDisplayReviews();
+                }
             });
         }
 
@@ -594,20 +624,18 @@
         // ==================== INITIALIZE ====================
         document.addEventListener('DOMContentLoaded', () => {
             setupFilters();
+
+            // Try to load cached reviews from localStorage first (for instant display)
+            const cached = loadReviewsFromLocalStorage();
+            if (cached) {
+                allReviews = cached;
+                updateStats();
+                filterAndDisplayReviews();
+            }
+
+            // Then connect to Firebase for live updates
             loadReviewsFromFirebase();
         });
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
