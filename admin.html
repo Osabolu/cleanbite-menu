@@ -238,6 +238,54 @@
             overflow-y: auto;
         }
 
+        /* ==================== DELIVERY NOTES STYLES ==================== */
+        .delivery-notes {
+            background: #fef9e6;
+            border-left: 4px solid var(--cleanbite-gold);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin: 12px 0;
+            transition: all 0.2s ease;
+        }
+
+        .delivery-notes-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--cleanbite-gold);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .delivery-notes-header i {
+            font-size: 0.9rem;
+        }
+
+        .delivery-notes-content {
+            font-size: 0.85rem;
+            color: var(--cleanbite-dark);
+            line-height: 1.5;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            background: white;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--cleanbite-light-gray);
+        }
+
+        .delivery-notes-content.empty {
+            color: var(--cleanbite-gray);
+            font-style: italic;
+        }
+
+        .delivery-notes-content i {
+            margin-right: 6px;
+            color: var(--cleanbite-gold);
+        }
+
         /* ==================== PAYMENT NOTICE ==================== */
         .payment-notice {
             display: none;
@@ -546,7 +594,7 @@
 
         .verification-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
             gap: 24px;
         }
 
@@ -730,7 +778,7 @@
             box-shadow: var(--shadow-md);
         }
 
-        /* ==================== ORDERS GRID - 300x300 CARDS ==================== */
+        /* ==================== ORDERS GRID ==================== */
         .orders-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
@@ -739,8 +787,6 @@
         }
 
         .order-card {
-            width: 400px;
-            height: 400px;
             background: var(--cleanbite-white);
             border-radius: 20px;
             padding: 20px;
@@ -750,7 +796,6 @@
             position: relative;
             display: flex;
             flex-direction: column;
-            overflow-y: auto;
         }
 
         .order-card:hover {
@@ -779,6 +824,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-wrap: wrap;
         }
 
         .order-id-badge {
@@ -1513,7 +1559,6 @@
             color: var(--cleanbite-gold);
         }
         
-        /* Order History with Items */
         .order-history-title {
             font-size: 1.1rem;
             font-weight: 700;
@@ -1610,7 +1655,7 @@
             border-bottom: none;
         }
         
-        .item-name {
+        .order-item .item-name {
             font-weight: 500;
             color: var(--cleanbite-dark);
             display: flex;
@@ -1625,11 +1670,6 @@
             border-radius: 20px;
             font-size: 0.7rem;
             font-weight: 700;
-        }
-        
-        .item-price {
-            font-weight: 600;
-            color: var(--cleanbite-success);
         }
         
         .order-total-row {
@@ -1866,7 +1906,7 @@
             background: #b49450;
         }
 
-    .archive-filter-bar {
+        .archive-filter-bar {
             background: var(--cleanbite-white);
             border-radius: 12px;
             padding: 15px 20px;
@@ -1991,7 +2031,7 @@
             color: white;
         }
 
-        /* ==================== SMS CAMPAIGN STYLES - ADD TO YOUR ADMIN CSS ==================== */
+        /* ==================== SMS CAMPAIGN STYLES ==================== */
         .sms-controls {
             background: var(--cleanbite-white);
             border-radius: 16px;
@@ -2117,30 +2157,29 @@
             }
         }
 
-        /* Holiday message styling */
-            .message-preview-box.holiday {
-                background: linear-gradient(135deg, #fef3c7, #fde68a) !important;
-                border-left: 6px solid #f59e0b !important;
-                animation: holidayPulse 2s infinite;
-            }
-            
-            @keyframes holidayPulse {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.02); }
-                100% { transform: scale(1); }
-            }
-            
-            .holiday-badge {
-                background: #f59e0b;
-                color: white;
-                padding: 4px 12px;
-                border-radius: 30px;
-                font-size: 0.7rem;
-                font-weight: 700;
-                display: inline-block;
-                margin-left: 10px;
-            }
-        </style>
+        .message-preview-box.holiday {
+            background: linear-gradient(135deg, #fef3c7, #fde68a) !important;
+            border-left: 6px solid #f59e0b !important;
+            animation: holidayPulse 2s infinite;
+        }
+        
+        @keyframes holidayPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        
+        .holiday-badge {
+            background: #f59e0b;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-left: 10px;
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -2342,7 +2381,7 @@
         </div>
     </div>
     
-    <!-- Filter Modal - FIXED -->
+    <!-- Filter Modal -->
     <div class="modal" id="filterModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -2461,6 +2500,33 @@ function getStatusIcon(status) {
         'cancelled': 'fa-ban'
     };
     return icons[status] || 'fa-circle';
+}
+
+// ==================== DELIVERY NOTES HELPER ====================
+function renderDeliveryNotes(order) {
+    const notes = order.deliveryNotes;
+    if (!notes || notes.trim() === '') {
+        return '';
+    }
+    return `
+        <div class="delivery-notes">
+            <div class="delivery-notes-header">
+                <i class="fas fa-truck"></i>
+                <span>Delivery Instructions</span>
+            </div>
+            <div class="delivery-notes-content">
+                <i class="fas fa-comment-dots"></i>
+                ${escapeHtml(notes)}
+            </div>
+        </div>
+    `;
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // ==================== AUDIO ====================
@@ -2590,7 +2656,8 @@ function processCustomers() {
             amount: order.total || order.totalAmount,
             status: order.status,
             paymentStatus: order.paymentStatus,
-            items: order.items || []
+            items: order.items || [],
+            deliveryNotes: order.deliveryNotes || null
         });
         const orderDate = new Date(order.createdAt || order.timestamp || 0);
         if (!customer.firstOrder || orderDate < new Date(customer.firstOrder)) customer.firstOrder = order.createdAt || order.timestamp;
@@ -2717,6 +2784,7 @@ function updateVerificationQueue() {
                     </div>
                 `).join('') || '<div>No items</div>'}
             </div>
+            ${renderDeliveryNotes(order)}
             <div class="verification-footer">
                 <span class="verification-amount">₦${(order.total || order.totalAmount || 0).toLocaleString()}</span>
                 <div class="verification-actions">
@@ -2819,6 +2887,7 @@ function renderOrderCard(order, type) {
                     </div>
                 `).join('') || '<div>No items</div>'}
             </div>
+            ${renderDeliveryNotes(order)}
             ${progressHtml}
             <div class="order-footer">
                 <div class="order-total">
@@ -3227,6 +3296,7 @@ window.viewCustomerDetails = function(phone) {
                         <span class="order-date"><i class="far fa-calendar"></i> ${new Date(order.date || order.createdAt).toLocaleDateString()}</span>
                     </div>
                     ${order.items ? `<div class="order-items-preview">${order.items.map(item => `<div class="order-item"><span class="item-name"><span class="item-quantity">${item.quantity}x</span> ${item.name}</span><span class="item-price">₦${(item.price * item.quantity).toLocaleString()}</span></div>`).join('')}</div>` : ''}
+                    ${renderDeliveryNotes(order)}
                     <div class="order-total-row"><span class="order-total-label">Total:</span><span class="order-total-amount">₦${(order.amount || order.total || 0).toLocaleString()}</span></div>
                     ${order.status === 'cancelled' && order.rejectionReason ? `<div class="cancelled-reason-badge"><i class="fas fa-exclamation-circle"></i> Cancelled: ${order.rejectionReason}</div>` : ''}
                 </div>
@@ -3284,7 +3354,7 @@ function checkOrderProgressions() {
 }
 setInterval(checkOrderProgressions, 60 * 1000);
 
-// ==================== SMS CAMPAIGN (eBulkSMS) ====================
+// ==================== SMS CAMPAIGN ====================
 class EBulkSmsService {
     constructor(username, password, sender) {
         this.username = username;
@@ -3756,7 +3826,7 @@ function loadDashboardContent() {
 // ==================== TAB SWITCHING ====================
 function setupTabSwitching() {
     const tabs = {
-        dashboardTab: ['verificationSection', 'verifiedSection', 'cancelledSection', 'completedSection', 'customerSection', 'activitySection'],
+        dashboardTab: ['verificationSection', 'verifiedSection', 'cancelledSection', 'completedSection', 'customerSection', 'activitySection', 'smsCampaignSection'],
         verificationTab: ['verificationSection'],
         verifiedOrdersTab: ['verifiedSection'],
         cancelledOrdersTab: ['cancelledSection'],
@@ -3770,7 +3840,7 @@ function setupTabSwitching() {
             document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
             e.currentTarget.classList.add('active');
             activeTab = tabId.replace('Tab', '');
-            const allSections = ['verificationSection', 'verifiedSection', 'cancelledSection', 'completedSection', 'customerSection', 'activitySection'];
+            const allSections = ['verificationSection', 'verifiedSection', 'cancelledSection', 'completedSection', 'customerSection', 'activitySection', 'smsCampaignSection'];
             allSections.forEach(section => {
                 const el = document.getElementById(section);
                 if (el) el.style.display = 'none';
@@ -3844,27 +3914,3 @@ window.closeModal = closeModal;
     
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
